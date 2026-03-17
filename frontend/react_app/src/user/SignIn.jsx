@@ -27,22 +27,8 @@ export const SignIn = () => {
     }
   };
 
-  // const handleLogin = async (e) => {
-  //    e.preventDefault();
-
-  //    try {
-  //     const res = await api.post("auth/token/", {
-  //       username,
-  //       password,
-  //     });
-
-  //     localStorage.setItem("access", res.data.access);
-  //     localStorage.setItem("refresh", res.data.refresh);
-  //     navigate("/");
-  //    } catch {
-  //     alert("Invalid login credentials");
-  //    }
-  // };
+  
+  
   
   
   return (

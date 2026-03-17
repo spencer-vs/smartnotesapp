@@ -67,7 +67,7 @@
   cursor: pointer;
   transition: 0.3s ease;
 }
-.signnBTN :hover {
+.signnBTN:hover {
   background: black;
   color: red;
   box-shadow: 0 0 15px red;
@@ -87,6 +87,13 @@
     font-size: 1.4rem;
     margin-bottom: 15px;
   }
+  .signnBTN:hover {
+  background: red;
+  color: black;
+  box-shadow: 0 0 15px red;
+  border: 1px solid black;
+}
+
 }
 @media (min-width: 601px) and (max-width: 1024px) {
   .formWrapper {
@@ -112,4 +119,11 @@
     font-size: 1rem;
     padding: 10px;
   }
+  .signnBTN:hover {
+  background: red;
+  color: black;
+  box-shadow: 0 0 15px red;
+  border: 1px solid black;
+}
+
 }

@@ -93,26 +93,24 @@ class TaskDetailView(generics.RetrieveAPIView):
 
 
 @api_view(['POST'])
-def create_task(self, request):
-    
-    if request.method != "POST":
-        return JsonResponse({'error': 'Invalid request'}, status=405)
+@permission_classes([IsAuthenticated])
+def create_task(request):
     try:
-        todo_list = generate_todo_list()
+        title = request.data.get("title")
+        task = request.data.get("task")
+        if not title or not task:
+            return JsonResponse({'error': 'Missing data'}, status=400)
+        todo_list = generate_todo_list(task)
         if not todo_list:
             return JsonResponse({'error': 'Could not generate To Do list'}, status=500)
         new_todo = Task.objects.create(
-            user = self.request.user,
+            user=request.user,
             list=todo_list
         )
-        new_todo.save()
-        
-        
-        
-        return JsonResponse({'content': todo_list})
+        return JsonResponse({'content': todo_list}, status=201)
     except Exception as e:
-        print("error:", "Failed to generate tiemtable", e)
-        return None
+        print("error:", e)
+        return JsonResponse({'error': 'Server error'}, status=500)
         
     
     
@@ -120,30 +118,25 @@ def create_task(self, request):
 
 
 
-def generate_todo_list(request):
+def generate_todo_list(user_input):
     try:
         client = OpenAI(
-        api_key=os.environ.get("GROQ_API_KEY"),
-        base_url="https://api.x.ai/v1",
+            api_key=os.environ.get("GROQ_API_KEY"),
+            base_url="https://api.x.ai/v1",
         )
         prompt = f"""
-        Create a Timetable from the items inputed by the user, the timetable should be proportionaly spread to match the 7 days of the week, with days and hours.
+        Create a timetable from the following tasks:
+        {user_input}
+        Spread it across 7 days with proper hours.
         """
         completion = client.chat.completions.create(
-        model="grok-beta", # Or current version
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-        ],
+            model="grok-beta",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ],
         )
-
-        return JsonResponse({"response": completion.choices[0].message.content})
+        return completion.choices[0].message.content
     except Exception as e:
         print("Error generating timetable:", e)
         return None
-    
-
-
-
-
-
