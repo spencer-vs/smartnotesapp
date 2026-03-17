@@ -119,24 +119,36 @@ def create_task(request):
 
 
 def generate_todo_list(user_input):
+    
+    
+    
     try:
+        
         client = OpenAI(
             api_key=os.environ.get("GROQ_API_KEY"),
-            base_url="https://api.x.ai/v1",
+            base_url="https://api.groq.com/openai/v1",   # ← fixed
         )
         prompt = f"""
         Create a timetable from the following tasks:
         {user_input}
         Spread it across 7 days with proper hours.
+        Output only the timetable, no extra explanation.
         """
         completion = client.chat.completions.create(
-            model="grok-beta",
+            model="llama3-70b-8192",           # or "mixtral-8x7b-32768", "gemma2-9b-it", etc.
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
-            ],
+            ],  temperature=0.7,
+            max_tokens=1200,
         )
-        return completion.choices[0].message.content
+        return completion.choices[0].message.content.strip()
     except Exception as e:
-        print("Error generating timetable:", e)
-        return None
+        import traceback
+        print("Error generating timetable:")
+        traceback.print_exc()               # ← shows full stack trace in server logs
+        return JsonResponse({
+        'error': 'Could not generate timetable',
+        'detail': str(e)                    # ← send to frontend (temporary!)
+        }, status=500)
+

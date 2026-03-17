@@ -28,9 +28,19 @@ const TaskCreate = () => {
       alert("Task created succesfully")
       setLoading(false)
     })
-    .catch(err => {
-      console.error('Failed to create note:', err)
-    })
+   .catch(err => {
+    console.error('Failed to create task:', err);
+    if (err.response) {
+        // Server responded with 4xx/5xx
+        alert("Server error: " + (err.response.data.error || "Unknown error"));
+        console.log("Response data:", err.response.data);
+    } else if (err.request) {
+        alert("No response from server (network issue?)");
+    } else {
+        alert("Request setup error: " + err.message);
+    }
+    setLoading(false);
+})
 
   }
   
