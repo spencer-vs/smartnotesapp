@@ -3,6 +3,7 @@ import styles from './TaskCreate.module.css'
 import { useState, useEffect } from 'react'
 import Header from '../ui/Header'
 import api from "../api/axios"
+import Footer from '../ui/Footer'
 
 const TaskCreate = () => {
   const [title, setTitle] = useState("");
@@ -58,7 +59,8 @@ const TaskCreate = () => {
   
   
   return (
-    <div className={styles.task_container}>
+   <>
+   <div className={styles.task_container}>
         <Header />
 
         <div className={styles.task_area}>
@@ -102,6 +104,8 @@ const TaskCreate = () => {
         
        
     </div>
+    <Footer />
+    </>
   )
 }
 
