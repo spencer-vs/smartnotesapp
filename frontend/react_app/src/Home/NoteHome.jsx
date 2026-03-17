@@ -94,13 +94,22 @@ const NoteHome = () => {
   }
 };
 
+  // if (auth.loading) {
+  //   return <AuthSpinner />
+  // }
+
+  if (!auth.isAuthenticated) {
+    return (
+      <div>
+        <Animation />
+      </div>
+    )
+  }
+
    return (
     <div>
      
-      <Header />
-       {/* {auth.isAuthenticated && (
-          <Carousels />
-       )} */}
+       <Header /> 
       
 
       <div className={styles.noteContainer}>
@@ -120,7 +129,7 @@ const NoteHome = () => {
           </div>
           </>
         ) : (
-          <Animation />
+           <Animation />
         )}
        
        
@@ -163,3 +172,5 @@ const NoteHome = () => {
 }
 
 export default NoteHome
+
+

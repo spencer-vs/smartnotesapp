@@ -1,5 +1,4 @@
-import React from 'react'
-import Header from './Header'
+import React from "react"
 import styles from './Features.module.css'
 import header_1 from "../assets/img/header_1.png"
 import header_2 from "../assets/img/header_2.png"
@@ -9,161 +8,91 @@ import home from "../assets/img/home.png"
 import login from "../assets/img/login.png"
 import signup from "../assets/img/signup.png"
 import update from "../assets/img/update.png"
-import Footer from "../ui/Footer"
-import menu from "../assets/img/menu.png"
-import search from "../assets/img/search.png"
+import logo from "../assets/img/logo.png"
 import contact from "../assets/img/contact.png"
+import Footer from "../ui/Footer"
+import { useEffect, useState } from 'react'
+
 
 const Features = () => {
-  return (
+    const featureData = [
+    {
+    title: "SmartNotes",
+    images: [logo],
+    text: "Welcome to SmartNotes app where all your creative headaches come to an end, let's go on a journey to discover more about SmartNotes courtesy of your most kind developer."
+  },
+  
+
+        {
+    title: "Header Component",
+    images: [header_1, header_2],
+    text: "The header component is made up of two parts, the first shows a header for the logged out user, while the second shows a header for the logged in user."
+  },
+  {
+    title: "Sign Up Component",
+    images: [signup],
+    text: "The Sign Up component consist of input fields for username, password, phone number and email, after succesfully filling in this information, the user will immediately be redirected to the login component where they can immediately log in and write their own customised note."
+  },
+  {
+    title: "Login Component",
+    images: [login],
+    text: "The login component is one of the most exciting features of this app, it allows users to access their own customised and personalised notes given users absolute privacy."
+  },
+  {
+    title: "Home Component",
+    images: [home],
+    text: "The home component is the nexus of this app, it contains all user notes with buttons that allows for deleting, updating and sharing notes across devices."
+  },
+  {
+    title: "Create Component",
+    images: [create],
+    text: "The create component serves as perhaps the most important component, with a single click of the plus icon users can be able to create as much notes as they want which will be displayed at both frontend and backend."
+  },
+  {
+    title: "Update Component",
+    images: [update],
+    text: "The update component allows for editing of already created notes."
+  },
+  {
+    title: "Contact Component",
+    images: [contact],
+    text: "The contact component can be used by users to send a direct message to the developer via the Django admin panel."
+  },
+  {
+    title: "Footer Component",
+    images: [footer],
+    text: "The footer provides important imformation about the site such as developer info and sitemap allowing for seamless navigation."
+  }
+];
+const [current, setCurrent] = useState(0);
+useEffect(() => {
+  const interval = setInterval(() => {
+    setCurrent((prev) => (prev + 1) % featureData.length);
+  }, 9000);
+  return () => clearInterval(interval);
+}, []);
+ 
+ 
+ 
+ 
+    return (
     <div>
-        <Header />
-        <div className={styles.featuresContainer}>
-          <div className={styles.featuresHeader}>Site Features</div>
-          
-          <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Header Component</h1>
-            <div className={styles.firstImage}>
-              <img src={header_1} alt="Feature 1" className={styles.img_1} />
-              <img src={header_2} alt="Feature 1" className={styles.img_1} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The header component is made up of two parts, the first shows a header for the logged out user, while the second shows a header for the logged in user with both having excellent slide shows that describe the various features of the app</p>
-            </div>
-          </div>
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Sign Up Component</h1>
-            <div className={styles.firstImage}>
-              <img src={signup} alt="Sign Up" className={styles.img_2} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The Sign Up component consist of input fields for username, password, phone number and email, after succesfully fill this information, the user will immediately be redirected to the login component where they can immediately log in and write their own customised note</p>
-            </div>
-          </div>
-
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Login Component</h1>
-            <div className={styles.firstImage}>
-              <img src={login} alt="Login" className={styles.img_3} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The login component is one of the most exciting features of this app, it allows users to access their own customised and personalised notes given users absolute privacy</p>
-            </div>
-          </div>
-
-
-          
-          <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Menu Component</h1>
-            <div className={styles.firstImage}>
-              <img src={menu} alt="Menu" className={styles.img_4} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The menu component is the go to naviagtion system on the site, with a couple of clicks users can access any page on the site.</p>
-            </div>
-          </div>
-
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Notes Component</h1>
-            <div className={styles.firstImage}>
-              <img src={home} alt="Notes" className={styles.img_4} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The home component is the nexus of this app, it contains all user notes with buttons that allows for deleting notes and updating notes</p>
-            </div>
-          </div>
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Create Component</h1>
-            <div className={styles.firstImage}>
-              <img src={create} alt="Create" className={styles.img_5} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The create component serves as perhaps the most important component, with a single click of the plus icon users can be able to create as much notes as they want which will be displayed at both frontend and backend</p>
-            </div>
-          </div>
-
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Update Component</h1>
-            <div className={styles.firstImage}>
-              <img src={update} alt="Update" className={styles.img_6} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The update component is just like the create component difference been that it allows for the editing of already created notes</p>
-            </div>
-          </div>
-
-
-
-          <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Search Component</h1>
-            <div className={styles.firstImage}>
-              <img src={search} alt="Search" className={styles.img_4} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>No notes app is complete without a search function, by typing words from their notes in the search box users can access notes with the correspondant words making it easy to find old notes.</p>
-            </div>
-          </div>
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Contact Component</h1>
-            <div className={styles.firstImage}>
-              <img src={contact} alt="Contact" className={styles.img_4} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The contact component can be used by users to send a direct message to the developer via the Django admin panel.</p>
-            </div>
-          </div>
-
-
-
-           <div className={styles.firstFeature}>
-            <h1 className={styles.firstHeader}>Footer Component</h1>
-            <div className={styles.firstImage}>
-              <img src={footer} alt="Footer" className={styles.img_7} />
-            </div>
-            <div className={styles.firstText}>
-              <p className={styles.p_1}>The footer provides important imformation about the site such as developer info and sitemap allowing for seamless navigation</p>
-            </div>
-          </div>
-
-
-
-
-           
-
-
-
-           
-
-
-
-           
-
-
-
-           
-        
-        
-        
-        </div>
-        <Footer />
+      
+    <div className={styles.firstFeature} >
+    <div className={styles.featureInner} key={current}> 
+        <h1 className={styles.firstHeader}>{featureData[current].title}</h1>
+   <div className={styles.featureGrid}>
+    <div className={styles.firstImage}>
+      {featureData[current].images.map((img, i) => (
+        <img key={i} src={img} className={styles.featureImg} />
+      ))}
+    </div>
+    <div className={styles.firstText}>
+      <p className={styles.p_1}>{featureData[current].text}</p>
+    </div>
+  </div>
+</div>
+</div>
     </div>
   )
 }
