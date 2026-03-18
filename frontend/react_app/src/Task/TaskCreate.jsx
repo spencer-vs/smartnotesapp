@@ -36,7 +36,7 @@ const TaskCreate = () => {
         alert("Server error: " + (err.response.data.error || "Unknown error"));
         console.log("Response data:", err.response.data);
     } else if (err.request) {
-        alert("No response from server (network issue?)");
+        alert("No response from server might be network issue");
     } else {
         alert("Request setup error: " + err.message);
     }
