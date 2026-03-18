@@ -55,6 +55,7 @@ class Task(models.Model):
     todo_title = models.CharField(max_length=100, blank=True)
     todo_list = models.TextField(null=True, blank=True)  
     created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
     
     
     

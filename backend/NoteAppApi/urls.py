@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, TaskDetailView, search_notes, ContactListCreate, create_task
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, task_detail, search_notes, ContactListCreate, create_task
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -10,5 +10,8 @@ urlpatterns = [
    path("notes/search/", search_notes),
    path("notes/contact/", ContactListCreate.as_view(), name="contact_us"),
    path("notes/task/", views.create_task, name="task_create"),
-   path("notes/<int:pk>/task", TaskDetailView.as_view(), name="task-detail")
+   path("notes/task/<int:pk>/", task_detail, name="task-detail")
 ]
+
+
+# api.get(`notes/task/${id}/`)

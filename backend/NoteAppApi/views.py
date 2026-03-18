@@ -83,13 +83,19 @@ class NoteDetailView(generics.RetrieveAPIView):
 
 
 
-class TaskDetailView(generics.RetrieveAPIView):
-    serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
-    def get_queryset(self):
-        return Task.objects.filter(user=self.request.user, is_deleted=False)
-
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def task_detail(request, pk):
+    try:
+        task = Task.objects.get(id=pk, user=request.user, is_deleted=False)
+        serializer = TaskSerializer(task)
+        return JsonResponse(serializer.data, safe=False, status=200)
+    except Task.DoesNotExist:
+        return JsonResponse({'error': 'Task not found'}, status=404)
+    except Exception as e:
+        print("Error:", e)
+        return JsonResponse({'error': 'Server error'}, status=500)
+    
 
 
 @api_view(['POST'])
@@ -147,8 +153,5 @@ def generate_todo_list(user_input):
         import traceback
         print("Error generating timetable:")
         traceback.print_exc()               # ← shows full stack trace in server logs
-        return JsonResponse({
-        'error': 'Could not generate timetable',
-        'detail': str(e)                    # ← send to frontend (temporary!)
-        }, status=500)
+        return None
 
