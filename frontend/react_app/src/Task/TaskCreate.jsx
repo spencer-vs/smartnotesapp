@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import Header from '../ui/Header'
 import api from "../api/axios"
 import Footer from '../ui/Footer'
+import { useNavigate, useParams } from 'react-router-dom';
 
 const TaskCreate = () => {
   const [title, setTitle] = useState("");
   const [task, setTask] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
 
 
   const createTask = () => {
@@ -28,6 +30,7 @@ const TaskCreate = () => {
       console.log(res.data)
       alert("Task created succesfully")
       setLoading(false)
+      navigate("/saved_task");
     })
    .catch(err => {
     console.error('Failed to create task:', err);

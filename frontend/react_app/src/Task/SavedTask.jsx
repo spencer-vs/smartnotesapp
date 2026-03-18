@@ -27,9 +27,9 @@ const SavedTask = ({id}) => {
     }, [id])
   
 
-//   if (loading) return <p>Loading...</p>
+  if (loading) return <p>Loading...</p>
 
-//   if (!task) return <p>Task not found</p>
+  if (!task) return <p>Task not found</p>
   
  
 
@@ -47,9 +47,9 @@ return (
             <h1 className={styles.saved_header}>Saved TimeTable</h1>
             <div className={styles.saved_task}>
                 <div className={styles.task}>
-                    {/* <p><strong>{task.id}</strong></p> */}
+                    <p><strong>{task.id}</strong></p>
                     <p><strong>Content:</strong></p>
-                    {/* <pre>{task.list}</pre> */}
+                    <pre>{task.list}</pre>
 
                 </div>
 
