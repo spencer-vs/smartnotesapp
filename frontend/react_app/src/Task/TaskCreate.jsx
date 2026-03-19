@@ -30,7 +30,7 @@ const TaskCreate = () => {
       console.log(res.data)
       alert("Task created succesfully")
       setLoading(false)
-      navigate("/saved_task");
+      navigate(`/saved_task/${id}`);
     })
    .catch(err => {
     console.error('Failed to create task:', err);
@@ -117,4 +117,4 @@ export default TaskCreate
 
 
 
-// Pol 1231, Pol 1232, Pol 1233, Pol 1234, Pol 1235, Pol 1236, Pol 1237,
+// Pol 1231, Pol 1232, Pol 1233, Pol 1234, Pol 1235, Pol 1236, Pol 1237

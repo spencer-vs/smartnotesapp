@@ -8,14 +8,14 @@ import { NavLink } from 'react-router-dom'
 import { useNavigate, useParams } from 'react-router-dom';
 
 
-const SavedTask = ({id}) => {
+const SavedTask = () => {
   
-   
+    const { id } = useParams()
     const [task, setTask] = useState(null)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        api.get(`notes/task${id}/`)
+        api.get(`notes/task/${id}/`)
         .then(res => {
             setTask(res.data);
             setLoading(false);
@@ -48,8 +48,9 @@ return (
             <div className={styles.saved_task}>
                 <div className={styles.task}>
                     <p><strong>{task.id}</strong></p>
+                     <p><strong>{task.todo_title}</strong></p>
                     <p><strong>Content:</strong></p>
-                    <pre>{task.list}</pre>
+                    <pre>{task.todo_list}</pre>
 
                 </div>
 
