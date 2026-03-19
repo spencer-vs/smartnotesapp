@@ -105,8 +105,8 @@ def create_task(request):
     try:
         title = request.data.get("title")
         task = request.data.get("task")
-        task_id = request.data.get(id=id)
-        Task.objects.get(id=task_id)
+        # task_id = request.data.get(id=id)
+        # Task.objects.get(id=task_id)
        # print("API KEY:", os.environ.get('GROQ_API_KEY'))
         if not title or not task:
             return JsonResponse({'error': 'Missing data'}, status=400)
