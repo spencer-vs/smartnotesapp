@@ -28,9 +28,11 @@ const TaskCreate = () => {
       //setTitle("")
       //setTask("")
       console.log(res.data)
+      const taskId = res.data.id
+      console.log("ID:", res.data.id)
       alert("Task created succesfully")
       setLoading(false)
-      navigate(`/saved_task/${id}`);
+      navigate(`/saved_task/${taskId}`);
     })
    .catch(err => {
     console.error('Failed to create task:', err);
