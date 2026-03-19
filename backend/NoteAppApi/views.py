@@ -113,8 +113,9 @@ def create_task(request):
             return JsonResponse({'error': 'Could not generate To Do list'}, status=500)
         new_todo = Task.objects.create(
             user=request.user,
-            list=todo_list
+            todo_list=todo_list
         )
+        new_todo.save()
         return JsonResponse({'content': todo_list}, status=201)
     except Exception as e:
         print("error:", e)
