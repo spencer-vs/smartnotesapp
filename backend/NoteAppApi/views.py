@@ -14,6 +14,7 @@ from django.http import JsonResponse
 import os
 from groq import Groq
 from .models import Task
+import traceback
 
 # Create your views here.
 
@@ -127,14 +128,14 @@ def generate_todo_list(user_input):
     try:
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            print("Groq API key not found")
+            print("❌ Groq API key not found")
             return None
-        
-        
-        
         client = Groq(api_key=api_key)
         prompt = f"""
-        In tabular form create a timetable for the items provided in the list, it should contain hours, days and name of activity and should start a day after the user creates timetable.
+        Create a timetable in table format for:
+        {user_input}
+        Include days, hours, and activities.
+        Start from the next day.
         """
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -142,13 +143,13 @@ def generate_todo_list(user_input):
                 {"role": "user", "content": prompt},
             ],
             temperature=0.7,
-            max_tokens=1000,
+            max_tokens=800,
         )
         return completion.choices[0].message.content.strip()
     except Exception as e:
-        print("Groq error:", e)
+        print("❌ Groq error:")
+        traceback.print_exc()   # VERY IMPORTANT
         return None
-
 
 
   
