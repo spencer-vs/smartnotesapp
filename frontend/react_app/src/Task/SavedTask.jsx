@@ -45,18 +45,67 @@ return (
     <Header />
     
             <h1 className={styles.saved_header}>Saved TimeTable</h1>
-            <div className={styles.saved_task}>
+
+
+             <div className={styles.saved_title_1}>
+                                 <textarea
+                                          type="text"
+                                          className={styles.saved_task}
+                                          placeholder="Write Your Title Here..."
+                                          value={task.todo_title}
+                                          
+                                         
+                                 ></textarea>
+                     </div>
+
+
+
+                <div className={styles.saved_list__2}>
+                                 <textarea
+                                           type="text"
+                                           className={styles.saved_list}
+                                           placeholder="Write Your List Here.."
+                                           value={task.todo_list}
+                                           
+                                          
+                                  ></textarea>
+                                </div>
+
+            {/* <div className={styles.saved_task}>
                 <div className={styles.task}>
-                    <p><strong>{task.id}</strong></p>
-                     <p><strong>{task.todo_title}</strong></p>
-                    <p><strong>Content:</strong></p>
-                    <pre>{task.todo_list}</pre>
+                     <div className={styles.saved_title_1}>
+                                 <textarea
+                                          type="text"
+                                          className={styles.saved_task}
+                                          placeholder="Write Your Title Here..."
+                                          value={task.todo_title}
+                                          
+                                         
+                                 ></textarea>
+                     </div>
+
+
+                      <div className={styles.saved_list__2}>
+                                 <textarea
+                                           type="text"
+                                           className={styles.saved_list}
+                                           placeholder="Write Your List Here.."
+                                           value={task.todo_list}
+                                           
+                                          
+                                  ></textarea>
+                                </div>
+                     
+                    
+                     {/* <p className={styles.display_content}><strong></strong></p>
+                    <p className={styles.display_content}><strong>Content:</strong></p>
+                    <pre className={styles.display_content}></pre> 
 
                 </div>
 
             </div>
          
-           
+            */}
 
         </div>
   
