@@ -86,11 +86,12 @@ class NoteDetailView(generics.RetrieveAPIView):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def task_detail(request, pk):
+def task_detail(request, id):
     try:
-        task = Task.objects.get(id=pk, user=request.user, is_deleted=False)
-        serializer = TaskSerializer(task)
-        return JsonResponse(serializer.data, safe=False, status=200)
+        task = Task.objects.get(id=id, user=request.user, is_deleted=False)
+       # serializer = TaskSerializer(task)
+        #return JsonResponse(serializer.data, safe=False, status=200)
+        return JsonResponse({'id': task.id, "todo_title": task.todo_title, "todo_list": task.todo_list})
     except Task.DoesNotExist:
         return JsonResponse({'error': 'Task not found'}, status=404)
     except Exception as e:
@@ -122,6 +123,7 @@ def create_task(request):
         return JsonResponse({
             'id': new_todo.id,
             'todo_list': new_todo.todo_list,
+            'todo_title': new_todo.todo_title
             
             }, status=201)
     except Exception as e:

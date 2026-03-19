@@ -10,7 +10,7 @@ urlpatterns = [
    path("notes/search/", search_notes),
    path("notes/contact/", ContactListCreate.as_view(), name="contact_us"),
    path("notes/task/", views.create_task, name="task_create"),
-   path("notes/task/<int:pk>/", task_detail, name="task-detail")
+   path("notes/task/<int:id>/", task_detail, name="task-detail")
 ]
 
 

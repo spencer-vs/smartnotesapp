@@ -41,7 +41,7 @@ const App = () => {
       <Route path='/animation' element={<Animation />}></Route>
       <Route path='/SearchNotes' element={<SearchNotes />}></Route>      
       <Route path='/contact' element={<Contact />}></Route> 
-      <Route path='/Create_task' element={<TaskCreate />}></Route> 
+      <Route path='/create_task' element={<TaskCreate />}></Route> 
       <Route path='/saved_task/:id' element={<SavedTask />}></Route>
 
 
