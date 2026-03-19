@@ -15,7 +15,7 @@ class ContactAdmin(admin.ModelAdmin):
     
     
 @admin.register(Task)
-class ToDoAdmin(admin.ModelAdmin):
+class TaskAdmin(admin.ModelAdmin):
     list_display = ("id", "todo_title", "todo_list")
     search_fields = ('ToDo',)
     

@@ -60,4 +60,4 @@ class Task(models.Model):
     
     
     def __str__(self):
-        return self.title or 'unititled'
+        return self.todo_title or 'Task'
