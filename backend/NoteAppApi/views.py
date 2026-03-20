@@ -87,7 +87,7 @@ class NoteDetailView(generics.RetrieveAPIView):
 @permission_classes([IsAuthenticated])
 def get_all_task(request):
     try:
-        tasks = Task.object.filter(
+        tasks = Task.objects.filter(
             user = request.user,
             is_deleted=False
         ).order_by('-id')
