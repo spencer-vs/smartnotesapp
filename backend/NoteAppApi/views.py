@@ -105,19 +105,20 @@ def task_detail(request, id):
 def create_task(request):
     try:
         title = request.data.get("title")
-        task = request.data.get("task")
+        task_input = request.data.get("task")
         # task_id = request.data.get(id=id)
         # Task.objects.get(id=task_id)
        # print("API KEY:", os.environ.get('GROQ_API_KEY'))
-        if not title or not task:
+        if not title or not task_input:
             return JsonResponse({'error': 'Missing data'}, status=400)
-        todo_list = generate_todo_list(task)
+        todo_list = generate_todo_list(task_input)
         if not todo_list:
             return JsonResponse({'error': 'Could not generate To Do list'}, status=500)
         new_todo = Task.objects.create(
            
             user=request.user,
-            todo_list=todo_list
+            todo_list=todo_list,
+            todo_title=title
         )
         new_todo.save()
         return JsonResponse({

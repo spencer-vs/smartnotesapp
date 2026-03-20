@@ -52,7 +52,7 @@ return (
                                           type="text"
                                           className={styles.saved_task}
                                           placeholder="Write Your Title Here..."
-                                          value={task.todo_title}
+                                          value={task.todo_title || ""}
                                           
                                          
                                  ></textarea>
@@ -65,7 +65,7 @@ return (
                                            type="text"
                                            className={styles.saved_list}
                                            placeholder="Write Your List Here.."
-                                           value={task.todo_list}
+                                           value={task.todo_list || ""}
                                            
                                           
                                   ></textarea>
