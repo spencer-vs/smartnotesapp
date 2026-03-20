@@ -17,6 +17,7 @@ import SearchNotes from './ui/Search'
 import Contact from './ui/Contact'
 import TaskCreate from './Task/TaskCreate'
 import SavedTask from './Task/SavedTask'
+import DisplayTask from './Task/DisplayTask'
 
 
 
@@ -43,6 +44,8 @@ const App = () => {
       <Route path='/contact' element={<Contact />}></Route> 
       <Route path='/create_task' element={<TaskCreate />}></Route> 
       <Route path='/saved_task/:id' element={<SavedTask />}></Route>
+      <Route path='/display_task/' element={<DisplayTask />}></Route>
+
 
 
      

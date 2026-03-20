@@ -80,7 +80,30 @@ class NoteDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Note.objects.filter(user=self.request.user, is_deleted=False)
+    
+    
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_all_task(request):
+    try:
+        tasks = Task.object.filter(
+            user = request.user,
+            is_deleted=False
+        ).order_by('-id')
+        
+        data = []
+        for task in tasks:
+            data.append({
+            "id": task.id,
+            "todo_title": task.todo_title,
+            "todo_list": task.todo_list
+            })
+            return JsonResponse(data, safe=False, status=200)
+    except Exception as e:
+        print("Error Fetching Task:", e)
+        return JsonResponse({'error': 'Server Error'}, status=500)
+            
 
 
 

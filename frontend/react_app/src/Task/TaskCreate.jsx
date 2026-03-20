@@ -32,7 +32,7 @@ const TaskCreate = () => {
       console.log("ID:", res.data.id)
       alert("Task created succesfully")
       setLoading(false)
-      navigate(`/saved_task/${taskId}`);
+      navigate('/display_task/');
     })
    .catch(err => {
     console.error('Failed to create task:', err);
