@@ -11,21 +11,39 @@ import { useNavigate, useParams } from 'react-router-dom';
 const SavedTask = () => {
   
     const { id } = useParams()
-    const [task, setTask] = useState(null)
+    // const [task, setTask] = useState(null)
+    const [title, setTitle] = useState("");
+    const [todo, setTodo] = useState("")
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        api.get(`notes/task/${id}/`)
-        .then(res => {
-            setTask(res.data);
-            setLoading(false);
+    // useEffect(() => {
+    //     api.get(`notes/task/${id}/`)
+    //     .then(res => {
+    //         setTask(res.data);
+    //         setLoading(false);
+    //     })
+    //     .catch(err => {
+    //         console.error('Error fetching task:', err);
+    //         setLoading(false);
+    //     });
+    // }, [id])
+
+    const updateTask = () => {
+        api.put(`notes/task/${id}/update`, {
+            'title': title,
+            'todo_list': todo
+        }).then(res => {
+            setTitle(res.data.todo_title)
+            setTodo(res.data.todo_list)
+            alert("Task updated successfully")
+            console.log(res.data);
         })
         .catch(err => {
-            console.error('Error fetching task:', err);
-            setLoading(false);
+            console.error('Update failed:', err);
+            alert("Failed to update task");
         });
-    }, [id])
   
+    }
 
   if (loading) return <p>Loading...</p>
 
@@ -45,7 +63,7 @@ return (
     <Header />
        
     
-        <h1 className={styles.saved_header}>Saved TimeTable</h1>
+        <h1 className={styles.saved_header}>Update TimeTable</h1>
 
 
         <div className={styles.saved_title_1}>
@@ -54,6 +72,7 @@ return (
                 className={styles.saved_task}
                 placeholder="Write Your Title Here..."
                 value={task.todo_title || ""}
+                onChange={(e) => setTitle(e.target.value)}
             ></textarea>
         </div>
 
@@ -65,10 +84,13 @@ return (
                 className={styles.saved_list}
                 placeholder="Write Your List Here.."
                 value={task.todo_list || ""}
+                onChange={(e) => setTodo(e.target.value)}
             ></textarea>
         </div>
 
-            
+        <button className={styles.updateTask} onClick={updateTask}>
+            Update Task
+        </button>  
 
         </div>
   

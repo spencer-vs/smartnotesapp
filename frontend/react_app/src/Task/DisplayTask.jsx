@@ -14,6 +14,15 @@ const DisplayTask = () => {
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
+
+    const truncateWords = (text, limit) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    return words.length > limit
+    ? words.slice(0, limit).join(" ") + "..."
+    : text;
+    };
+
     
     useEffect(() => {
         setLoading(true)
@@ -34,10 +43,11 @@ const DisplayTask = () => {
   
     return (
     <>
-    
-    <div className={styles.display_con}>
     <Header />
+    <div className={styles.display_con}>
+    
 
+    
     <h1 className={styles.task_header}>All Task</h1>
 
     {tasks.length === 0 ? (
@@ -46,14 +56,16 @@ const DisplayTask = () => {
         tasks.map(task => (
             <div className={styles.task_display} key={task.id}>
              <h3 className={styles.display_title}>{task.todo_title}</h3>
-             <p className={styles.display_list}>{task.todo_list}</p>
+             <p className={styles.display_list}>{truncateWords(task.todo_list, 10)}</p>
 
-             <button onClick={() => navigate(`/saved_task${task.id}`)}>View Task</button>
+             <button onClick={() => navigate(`/saved_task/${task.id}`)} className={styles.display_btn}>
+                View Task
+            </button>
             </div>
         ))
     )}
         
-     
+    
     </div>
    <Footer />
     </>

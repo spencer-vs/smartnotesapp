@@ -103,7 +103,35 @@ def get_all_task(request):
     except Exception as e:
         print("Error Fetching Task:", e)
         return JsonResponse({'error': 'Server Error'}, status=500)
-            
+    
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_task(request):
+    try:
+       task = Task.objects.get(id=id, is_deleted=False, user=request.user)
+       title = request.data.get("title")
+       todo_list = request.data.get("todo_list")
+    
+       if title:
+        task.todo_title = title
+        
+       if todo_list:
+        task.todo_list = todo_list
+        
+       task.save()
+       return JsonResponse({
+        "id": task.id,
+            "todo_title": task.todo_title,
+            "todo_list": task.todo_list
+        }, status=200)
+    except Task.DoesNotExist:
+        return JsonResponse({'error': 'Task not found'}, status=404)
+    except Exception as e:
+        print("Update error:", e)
+        return JsonResponse({'error': 'Server Error'}, status=500)
+    
 
 
 
