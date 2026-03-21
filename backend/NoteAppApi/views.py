@@ -111,11 +111,11 @@ def get_all_task(request):
 def update_task(request):
     try:
        task = Task.objects.get(id=id, is_deleted=False, user=request.user)
-       title = request.data.get("title")
+       todo_title = request.data.get("title")
        todo_list = request.data.get("todo_list")
     
-       if title:
-        task.todo_title = title
+       if todo_title:
+        task.todo_title = todo_title
         
        if todo_list:
         task.todo_list = todo_list

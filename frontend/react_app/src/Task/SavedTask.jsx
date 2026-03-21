@@ -11,32 +11,36 @@ import { useNavigate, useParams } from 'react-router-dom';
 const SavedTask = () => {
   
     const { id } = useParams()
-    // const [task, setTask] = useState(null)
-    const [title, setTitle] = useState("");
-    const [todo, setTodo] = useState("")
+    const [task, setTask] = useState(null)
+    const [todo_title, setTitle] = useState("");
+    const [todo_list, setTodo] = useState("")
     const [loading, setLoading] = useState(true)
 
-    // useEffect(() => {
-    //     api.get(`notes/task/${id}/`)
-    //     .then(res => {
-    //         setTask(res.data);
-    //         setLoading(false);
-    //     })
-    //     .catch(err => {
-    //         console.error('Error fetching task:', err);
-    //         setLoading(false);
-    //     });
-    // }, [id])
+    useEffect(() => {
+        api.get(`notes/task/${id}/`)
+        .then(res => {
+            setTask(res.data);
+            setTitle(res.data.todo_title)
+            setTodo(res.data.todo_list)
+            setLoading(false);
+        })
+        .catch(err => {
+            console.error('Error fetching task:', err);
+            setLoading(false);
+        });
+    }, [id])
 
     const updateTask = () => {
-        api.put(`notes/task/${id}/update`, {
-            'title': title,
-            'todo_list': todo
+        api.put(`notes/task/${id}/update/`, {
+            'title': todo_title,
+            'todo_list': todo_list
         }).then(res => {
+           
             setTitle(res.data.todo_title)
             setTodo(res.data.todo_list)
             alert("Task updated successfully")
             console.log(res.data);
+            setLoading(false);
         })
         .catch(err => {
             console.error('Update failed:', err);
@@ -71,7 +75,7 @@ return (
                 type="text"
                 className={styles.saved_task}
                 placeholder="Write Your Title Here..."
-                value={task.todo_title || ""}
+                value={todo_title || ""}
                 onChange={(e) => setTitle(e.target.value)}
             ></textarea>
         </div>
@@ -83,7 +87,7 @@ return (
                 type="text"
                 className={styles.saved_list}
                 placeholder="Write Your List Here.."
-                value={task.todo_list || ""}
+                value={todo_list || ""}
                 onChange={(e) => setTodo(e.target.value)}
             ></textarea>
         </div>
