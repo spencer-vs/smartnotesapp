@@ -238,7 +238,7 @@ def task_detail(request, id):
 # ✅ GET ALL TASKS
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_all_tasks(request):
+def get_all_task(request):
     try:
         tasks = Task.objects.filter(user=request.user).order_by('-id')
         data = [
