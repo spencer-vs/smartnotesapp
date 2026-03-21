@@ -41,13 +41,13 @@ const SavedTask = () => {
             setTask(res.data)
             setTitle(res.data.todo_title)
             setTodo(res.data.todo_list)
-            toast.success("Task updated successfully")
+            alert("Task updated successfully")
             console.log(res.data);
             setLoading(false);
         })
         .catch(err => {
             console.error('Update failed:', err);
-            toast.error("Failed to update task");
+            alert("Failed to update task");
         });
   
     }
