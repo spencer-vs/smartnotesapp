@@ -83,71 +83,73 @@ class NoteDetailView(generics.RetrieveAPIView):
     
     
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_all_task(request):
-    try:
-        tasks = Task.objects.filter(
-            user = request.user,
-            is_deleted=False
-        ).order_by('-id')
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_all_task(request):
+#     try:
+#         tasks = Task.objects.filter(
+#             user = request.user,
+#             is_deleted=False
+#         ).order_by('-id')
         
-        data = []
-        for task in tasks:
-            data.append({
-            "id": task.id,
-            "todo_title": task.todo_title,
-            "todo_list": task.todo_list
-            })
-            return JsonResponse(data, safe=False, status=200)
-    except Exception as e:
-        print("Error Fetching Task:", e)
-        return JsonResponse({'error': 'Server Error'}, status=500)
+#         data = []
+#         for task in tasks:
+#             data.append({
+#             "id": task.id,
+#             "todo_title": task.todo_title,
+#             "todo_list": task.todo_list
+#             })
+#             return JsonResponse(data, safe=False, status=200)
+#     except Exception as e:
+#         print("Error Fetching Task:", e)
+#         return JsonResponse({'error': 'Server Error'}, status=500)
     
 
 
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def update_task(request):
-    try:
-       task = Task.objects.get(id=id, is_deleted=False, user=request.user)
-       todo_title = request.data.get("title")
-       todo_list = request.data.get("todo_list")
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def update_task(request, id):
+#     try:
+#        task = Task.objects.get(id=id, is_deleted=False, user=request.user)
+#        todo_title = request.data.get("todo_title")
+#        todo_list = request.data.get("todo_list")
     
-       if todo_title:
-        task.todo_title = todo_title
+#        if todo_title:
+#         task.todo_title = todo_title
         
-       if todo_list:
-        task.todo_list = todo_list
+#        if todo_list:
+#         task.todo_list = todo_list
         
-       task.save()
-       return JsonResponse({
-        "id": task.id,
-            "todo_title": task.todo_title,
-            "todo_list": task.todo_list
-        }, status=200)
-    except Task.DoesNotExist:
-        return JsonResponse({'error': 'Task not found'}, status=404)
-    except Exception as e:
-        print("Update error:", e)
-        return JsonResponse({'error': 'Server Error'}, status=500)
+#        task.save()
+#        return JsonResponse({
+#         "id": task.id,
+#             "todo_title": task.todo_title,
+#             "todo_list": task.todo_list
+#         }, status=200)
+#     except Task.DoesNotExist:
+#         return JsonResponse({'error': 'Task not found'}, status=404)
+#     except Exception as e:
+#         import traceback
+#         traceback.print_exc()
+#         print("Update error:", e)
+#         return JsonResponse({'error': 'Server Error'}, status=500)
     
 
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def task_detail(request, id):
-    try:
-        task = Task.objects.get(id=id, user=request.user, is_deleted=False)
-       # serializer = TaskSerializer(task)
-        #return JsonResponse(serializer.data, safe=False, status=200)
-        return JsonResponse({'id': task.id, "todo_title": task.todo_title, "todo_list": task.todo_list})
-    except Task.DoesNotExist:
-        return JsonResponse({'error': 'Task not found'}, status=404)
-    except Exception as e:
-        print("Error:", e)
-        return JsonResponse({'error': 'Server error'}, status=500)
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def task_detail(request, id):
+#     try:
+#         task = Task.objects.get(id=id, user=request.user, is_deleted=False)
+#        # serializer = TaskSerializer(task)
+#         #return JsonResponse(serializer.data, safe=False, status=200)
+#         return JsonResponse({'id': task.id, "todo_title": task.todo_title, "todo_list": task.todo_list})
+#     except Task.DoesNotExist:
+#         return JsonResponse({'error': 'Task not found'}, status=404)
+#     except Exception as e:
+#         print("Error:", e)
+#         return JsonResponse({'error': 'Server error'}, status=500)
     
 
 
@@ -213,40 +215,70 @@ def generate_todo_list(user_input):
         print("❌ Groq error:")
         traceback.print_exc()   # VERY IMPORTANT
         return None
+    
+    
+    
+    
+# ✅ GET SINGLE TASK
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def task_detail(request, id):
+    try:
+        task = Task.objects.get(id=id, user=request.user, is_deleted=False)
+        return JsonResponse({
+            "id": task.id,
+            "todo_title": task.todo_title,
+            "todo_list": task.todo_list
+        })
+    except Task.DoesNotExist:
+        return JsonResponse({'error': 'Task not found'}, status=404)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
+# ✅ GET ALL TASKS
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_all_tasks(request):
+    try:
+        tasks = Task.objects.filter(user=request.user).order_by('-id')
+        data = [
+            {
+                "id": task.id,
+                "todo_title": task.todo_title,
+                "todo_list": task.todo_list
+            }
+            for task in tasks
+        ]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
+# ✅ UPDATE TASK
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_task(request, id):
+    try:
+        task = Task.objects.get(id=id, user=request.user)
+        todo_title = request.data.get("todo_title")
+        todo_list = request.data.get("todo_list")
+        if todo_title:
+            task.todo_title = todo_title
+        if todo_list:
+            task.todo_list = todo_list
+        task.save()
+        return JsonResponse({
+            "id": task.id,
+            "todo_title": task.todo_title,
+            "todo_list": task.todo_list
+        }, status=200)
+    except Task.DoesNotExist:
+        return JsonResponse({'error': 'Task not found'}, status=404)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
 
 
   
 
 
-
-# def generate_todo_list(user_input):
-    
-    
-    
-#     try:
-        
-#         client = OpenAI(
-#             api_key=os.environ.get("GROQ_API_KEY"),
-#             base_url="https://api.groq.com/openai/v1",   # ← fixed
-#         )
-#         prompt = f"""
-#         Create a timetable from the following tasks:
-#         {user_input}
-#         Spread it across 7 days with proper hours.
-#         Output only the timetable, no extra explanation.
-#         """
-#         completion = client.chat.completions.create(
-#             model="llama3-70b-8192",           # or "mixtral-8x7b-32768", "gemma2-9b-it", etc.
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant."},
-#                 {"role": "user", "content": prompt}
-#             ],  temperature=0.7,
-#             max_tokens=1200,
-#         )
-#         return completion.choices[0].message.content.strip()
-#     except Exception as e:
-#         import traceback
-#         print("Error generating timetable:")
-#         traceback.print_exc()               # ← shows full stack trace in server logs
-#         return None
 

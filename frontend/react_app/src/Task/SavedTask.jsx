@@ -6,6 +6,8 @@ import api from "../api/axios"
 import Footer from '../ui/Footer'
 import { NavLink } from 'react-router-dom'
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; 
 
 
 const SavedTask = () => {
@@ -15,6 +17,7 @@ const SavedTask = () => {
     const [todo_title, setTitle] = useState("");
     const [todo_list, setTodo] = useState("")
     const [loading, setLoading] = useState(true)
+    const navigate = useNavigate()
 
     useEffect(() => {
         api.get(`notes/task/${id}/`)
@@ -32,19 +35,19 @@ const SavedTask = () => {
 
     const updateTask = () => {
         api.put(`notes/task/${id}/update/`, {
-            'title': todo_title,
+            'todo_title': todo_title,
             'todo_list': todo_list
         }).then(res => {
-           
+            setTask(res.data)
             setTitle(res.data.todo_title)
             setTodo(res.data.todo_list)
-            alert("Task updated successfully")
+            toast.success("Task updated successfully")
             console.log(res.data);
             setLoading(false);
         })
         .catch(err => {
             console.error('Update failed:', err);
-            alert("Failed to update task");
+            toast.error("Failed to update task");
         });
   
     }

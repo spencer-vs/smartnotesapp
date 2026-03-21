@@ -12,7 +12,7 @@ urlpatterns = [
    path("notes/task/", views.create_task, name="task_create"),
    path("notes/task/<int:id>/", task_detail, name="task-detail"),
    path("notes/tasks/", get_all_task, name="get_all_tasks"),
-   path("notes/task/<int:pk>/update/", update_task, name="update_task")
+   path("notes/task/<int:id>/update/", update_task, name="update-task")
 ]
 
 
