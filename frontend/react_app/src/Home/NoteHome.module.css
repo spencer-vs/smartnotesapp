@@ -1,5 +1,5 @@
 .noteContainer {
-  background-color: black;
+  background-image:  url("../../src/assets/img/notes_1.jpg");
   padding: 0;
   background-position: center;
   background-repeat: no-repeat;
@@ -23,36 +23,37 @@
 }
 .listDisplay{
     font-size: 1rem;
-    color: white;
+    color: #a51010dc;
     list-style: none;
    
 }
 
 .noteList {
   text-decoration: none;
-  color: white;
+  color: #a51010dc;
   margin-right: 7rem;
   padding: 1rem;
   margin-bottom: 2rem;
 }
 .noteLink {
-  border: 3px solid rgba(0, 255, 255, 0.705);
+  border: 6px solid #a51010dc;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   padding: 2rem 3rem;
-  color: white;
+  color: cyan;
+  font-size: 2rem;
   text-decoration: none;
 }
 .noteLink:hover {
-   box-shadow: 0 0 25px #0ff;
+   box-shadow: 0 0 25px #a51010dc;
 }
   .noteTitle {
    font-family: Arial, Helvetica, sans-serif;
 }
 .noteText {
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
 }
 .deleteNote {
    font-size: 1.5rem;
@@ -120,8 +121,39 @@
   
 }
 .icon {
-   color: red;
+   color: #a51010dc;
 }
+
+
+
+
+
+.loader {
+   border: 6px solid #f3f3f3;
+   border-top: 6px solid #a51010dc;
+   border-radius: 50%;
+   width: 50px;
+   height: 50px;
+   animation: spin 2s ease-in infinite;
+   /* display: flex;
+   justify-content: center;
+   align-items: center; */
+   margin: 50px auto;
+}
+
+@keyframes spin {
+   0% {
+      transform: rotate(0deg) ; 
+   }
+
+ 
+
+   100% { 
+      transform: rotate(360deg); 
+   }
+}
+
+
 @media (max-width: 600px) {
   .noteContainer {
     padding-left: 0.7rem;

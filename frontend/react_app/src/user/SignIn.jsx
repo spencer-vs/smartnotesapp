@@ -9,6 +9,7 @@ import { AuthContext } from "../context/AuthContext"
 export const SignIn = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { login } = useContext(AuthContext);
 
@@ -18,14 +19,20 @@ export const SignIn = () => {
     e.preventDefault();
 
     try {
+      setLoading(true)
       const res = await api.post("auth/token/", { username, password });
       login(res.data);
       navigate("/");
+      setLoading(false)
 
     } catch {
       alert("Invalid Login Credentials!")
+      setLoading(false)
     }
   };
+
+
+  
 
   
   
@@ -41,7 +48,12 @@ export const SignIn = () => {
       <h2 className={styles.loginHeader}>Login</h2>
       <input className={styles.signinName} placeholder="Username" onChange={(e) => setUsername(e.target.value)}/>
       <input className={styles.signinPassword} type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
-      <button className={styles.signinBTN} onClick={handleLogin}>Login</button>
+      <button className={styles.signinBTN} onClick={handleLogin}>
+        Login
+      </button>
+      {loading && (
+        <div className={styles.loader}></div>
+      )}
      </form>
 
     </div>

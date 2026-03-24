@@ -22,7 +22,7 @@
 
 .task_heading {
     font-size: 1.5rem;
-    color: #a51010dc;
+    color: #0ff;
 }
 
 
@@ -36,10 +36,14 @@
     min-height: 3rem;
     resize: vertical;
     border-radius: 10px;
-    border: 5px solid #a51010dc;
+    border: 3px solid #0ff;
     padding: 1rem 2rem;
     background-color: black;
     color: white;
+}
+
+.create_task:hover {
+   box-shadow: 0 0 25px #0ff;
 }
 
 
@@ -52,21 +56,64 @@
     min-height: 20rem;
     resize: vertical;
     border-radius: 10px;
-    border: 5px solid #a51010dc;
+    border: 3px solid #0ff;
     padding: 1rem 2rem;
     background-color: black;
     color: white;
 }
 
+.create_list:hover {
+   box-shadow: 0 0 25px #0ff;
+}
 
-.task_submit {
+ /* {
     display: flex;
-    justify-content: flex-start;
-    border: 5px solid #a51010dc;
+    .task_submitjustify-content: flex-start;
+    border: 5px solid #0ff;
     border-radius: 10px;
     background-color: black;
     color: white;
     font-size: 2rem;
     padding: 1rem 2rem;
     cursor: pointer;
+} */
+
+
+
+.task_submit {
+   font-size: 1.5rem;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid #0ff;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+
+
+.task_submit::before {
+   content: "";
+   position: absolute;
+   top: -50%;
+   left: -50%;
+   width: 200%;
+   height: 200%;
+   background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(0, 255, 255, 0) 70%);
+   transition: 0.4s;
+   transform: scale(0);
+}
+.task_submit:hover::before {
+   transform: scale(1);
+}
+.task_submit:hover {
+   color: #000;
+   background: #0ff;
+   box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+}
+.task_submit:active {
+   transform: scale(0.95);
 }

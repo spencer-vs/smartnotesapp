@@ -3,8 +3,7 @@
     padding: 3rem;
     font-size: 1.5rem;
     font-family: Arial, Helvetica, sans-serif;
-    background-color: black;
-    color: white;
+    background-image:  url("../../src/assets/img/notes_4.jpg");
     height: 100%;
     min-height: 100vh;
     box-sizing: border-box;
@@ -19,13 +18,13 @@
     min-height: 50px;
     resize: vertical;
     border-radius: 10px;
-    border: 3px solid rgba(0, 255, 255, 0.705);
+    border: 5px solid #a51010dc;
     padding: 1rem 2rem;
     background-color: black;
     color: white;
 }
 .createTitle:hover {
-    box-shadow: 0 0 30px #0ff;
+    box-shadow: 0 0 30px #a51010dc;
 }
 .createText {
     display: flex;
@@ -38,13 +37,13 @@
     min-height: 500px;
     resize: vertical;
     border-radius: 10px;
-    border: 3px solid rgba(0, 255, 255, 0.705);
+    border: 5px solid #a51010dc;
     padding: 1rem 2rem;
     background-color: black;
     color: white;
 }
 .createText:hover {
-    box-shadow: 0 0 30px #0ff;
+    box-shadow: 0 0 30px #a51010dc;
 }
 .createBtn {
    margin-top: 15rem;
@@ -56,6 +55,7 @@
    border-radius: 10px;
    width: 10%;
    transition: all .5s;
+   padding: 1rem 1rem;
 }
 .createBtn:hover {
     transform: scale(1.05);

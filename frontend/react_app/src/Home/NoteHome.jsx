@@ -113,7 +113,7 @@ const NoteHome = () => {
       
 
       <div className={styles.noteContainer}>
-        {loading && <p>Loading notes...</p>}
+        {loading && <div className={styles.loader}></div>}
         {auth.isAuthenticated ? (
           <>
           <div className={styles.searchIcon}>

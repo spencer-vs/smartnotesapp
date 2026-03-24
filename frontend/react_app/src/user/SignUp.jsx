@@ -12,6 +12,7 @@ const SignUp = () => {
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
 
@@ -38,8 +39,11 @@ const SignUp = () => {
   
   const handleRegister = async (e) => {
   e.preventDefault();
+  setLoading(true)
   if (!validateForm()) return;
+  setLoading(false)
   try {
+    setLoading(true)
     await api.post("auth/register/", {
       username,
       password,
@@ -48,6 +52,7 @@ const SignUp = () => {
     });
     alert("Account created successfully. Please login.");
     navigate("/login");
+    setLoading(false)
   } catch (err) {
     const backendErrors = err.response?.data;
     if (backendErrors) {
@@ -55,9 +60,12 @@ const SignUp = () => {
     } else {
       alert("Registration failed");
     }
+    setLoading(false)
   }
 };
+ 
 
+if (loading) return <div className={styles.loader}></div>
 
 
   return (
@@ -123,8 +131,11 @@ const SignUp = () => {
 
           
       <button type="submit" className={styles.signupBTN}>
-        Register
+         Register
       </button>
+       {loading && (
+              <div className={styles.loader}></div>
+            )}
       </form>
      
       </div>

@@ -52,9 +52,13 @@ const SavedTask = () => {
   
     }
 
-  if (loading) return <p>Loading...</p>
+
+  if (loading) return <div className={styles.loader}></div>
 
   if (!task) return <p>Task not found</p>
+
+
+
   
  
 
