@@ -5,12 +5,26 @@ import Header from '../ui/Header'
 import api from "../api/axios"
 import Footer from '../ui/Footer'
 import { useNavigate, useParams } from 'react-router-dom';
+import bg1 from "../assets/img/notes_2.jpg"
+import bg2 from "../assets/img/notes_1.jpg"
+import bg3 from "../assets/img/notes_3.jpg"
+import bg4 from "../assets/img/notes_4.jpg"
 
 const TaskCreate = () => {
   const [title, setTitle] = useState("");
   const [task, setTask] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate()
+  const backgrounds = [bg1, bg2, bg3, bg4]
+  const [index, setIndex] = useState(0)
+
+
+   useEffect(() => {
+    const interval = setInterval(() => {
+    setIndex((prev) => (prev + 1) % backgrounds.length);
+    }, 4000);
+    return () => clearInterval(interval);
+    }, []);
 
 
   const createTask = () => {
@@ -65,7 +79,7 @@ const TaskCreate = () => {
   
   return (
    <>
-   <div className={styles.task_container}>
+   <div className={styles.task_container} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
         <Header />
 
         <div className={styles.task_area}>

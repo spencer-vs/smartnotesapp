@@ -14,9 +14,9 @@ const Animations = () => {
 
 
 
-    <div className={styles.logo}>
+    {/* <div className={styles.logo}>
       <img src={logo} alt="Logo" className={styles.logoImg} />
-    </div>
+    </div> */}
 
     
      <div className={styles.scene}>

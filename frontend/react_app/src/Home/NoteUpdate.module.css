@@ -22,10 +22,10 @@
     padding: 1rem 2rem;
     background-color: black;
     color: white;
-    border: 3px solid rgba(0, 255, 255, 0.705);
+    border: 5px solid #a51010dc;
 }
 .updateTitle:hover {
-    box-shadow: 0 0 30px #0ff;
+    box-shadow: 0 0 30px #a51010dc;
 }
 .updateContent {
     display: flex;
@@ -42,10 +42,10 @@
     padding: 1rem 2rem;
     background-color: black;
     color: white;
-    border: 3px solid rgba(0, 255, 255, 0.705);
+    border: 5px solid #a51010dc;
 }
 .updateContent:hover {
-    box-shadow: 0 0 30px #0ff;
+    box-shadow: 0 0 30px #a51010dc;
 }
 .updateBtn {
    margin-top: 15rem;
@@ -61,6 +61,32 @@
 .updateBtn:hover {
     transform: scale(1.05);
 }
+
+
+.loader {
+   border: 6px solid #f3f3f3;
+   border-top: 6px solid #a51010dc;
+   border-radius: 50%;
+   width: 50px;
+   height: 50px;
+   animation: spin 2s ease-in infinite;
+   margin: 50px auto;
+}
+
+@keyframes spin {
+   0% {
+      transform: rotate(0deg) ; 
+   }
+
+ 
+
+   100% { 
+      transform: rotate(360deg); 
+   }
+}
+
+
+
 @media (max-width: 600px) {
   .updateContainer {
     padding: 1rem;

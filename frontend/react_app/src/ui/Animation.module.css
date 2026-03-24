@@ -24,7 +24,7 @@
     margin: 0;
     position: relative;
 
-    animation: container var(--intro) ease infinite;
+    animation: container 10s ease infinite;
    
 }
 
@@ -46,7 +46,7 @@
 }
 
 
-.logo {
+/* .logo {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -92,7 +92,7 @@
         opacity: 0;
         transform: rotate(360deg) scale(1.5);
     }
-}
+} */
 
 
 
@@ -111,8 +111,8 @@
   
   
 
-  animation: scene var(--scene) ease-in-out forwards;
-  animation-delay: var(--intro);
+  animation: scene 1.5s ease-in-out forwards;
+  /* animation-delay: var(--intro); */
  
 }
 
@@ -136,8 +136,9 @@
   position: relative;
   transform-style: preserve-3d;
   transform-origin: left center;
-  animation: flipCard var(--flip) ease-in-out forwards;
-  animation-delay: calc(var(--intro) + var(--scene));
+  animation: flipCard 5s ease-in-out forwards;
+  /* animation-delay: calc(var(--intro) + var(--scene)); */
+  animation-delay: 2s;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 
 }
@@ -211,7 +212,7 @@
   
 
   animation: userCard 1.5s ease-in-out forwards;
-   animation-delay: calc(var(--intro) + var(--scene) + var(--flip)); 
+  animation-delay: 7s; 
   
   
 }
@@ -240,7 +241,7 @@
   transform: translateX(100%);
   clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%);
   animation: userCard 1.5s ease-in-out forwards;
-  animation-delay: calc(var(--intro) + var(--scene) + var(--flip) + 0.5s); 
+  animation-delay: 7s; 
  
   
 }

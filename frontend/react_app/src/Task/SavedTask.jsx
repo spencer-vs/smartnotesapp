@@ -8,6 +8,10 @@ import { NavLink } from 'react-router-dom'
 import { useNavigate, useParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
+import bg1 from "../assets/img/notes_2.jpg"
+import bg2 from "../assets/img/notes_1.jpg"
+import bg3 from "../assets/img/notes_3.jpg"
+import bg4 from "../assets/img/notes_4.jpg"
 
 
 const SavedTask = () => {
@@ -18,6 +22,16 @@ const SavedTask = () => {
     const [todo_list, setTodo] = useState("")
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
+    const backgrounds = [bg1, bg2, bg3, bg4]
+    const [index, setIndex] = useState(0)
+            
+            
+        useEffect(() => {
+        const interval = setInterval(() => {
+        setIndex((prev) => (prev + 1) % backgrounds.length);
+        }, 4000);
+        return () => clearInterval(interval);
+        }, []);
 
     useEffect(() => {
         api.get(`notes/task/${id}/`)
@@ -70,7 +84,8 @@ const SavedTask = () => {
 return (
    <>
     
-   <div className={styles.save_cont}>
+   <div className={styles.save_cont} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+     {loading && <div className={styles.loader}></div>}
     <Header />
        
     

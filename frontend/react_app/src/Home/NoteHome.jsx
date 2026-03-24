@@ -11,6 +11,10 @@ import Carousels from '../ui/Carousels'
 import Animation from '../ui/Animation'
 import { AuthContext } from "../context/AuthContext"
 import { FaSearch } from "react-icons/fa"
+import bg1 from "../assets/img/notes_2.jpg"
+import bg2 from "../assets/img/notes_1.jpg"
+import bg3 from "../assets/img/notes_3.jpg"
+import bg4 from "../assets/img/notes_4.jpg"
 
 
 
@@ -23,11 +27,19 @@ const NoteHome = () => {
   const navigate = useNavigate()
 
   const { auth } = useContext(AuthContext);
+ 
 
-
-  // if (!localStorage.getItem("access")) {
-  //   return "Welcome to SmartNotes";
-  // }
+  const backgrounds = [bg1, bg2, bg3, bg4]
+  const [index, setIndex] = useState(0)
+  
+  
+    useEffect(() => {
+      const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % backgrounds.length);
+      }, 4000);
+      return () => clearInterval(interval);
+      }, []);
+ 
 
   useEffect(() => {
     if (!auth.isAuthenticated) return;
@@ -112,7 +124,7 @@ const NoteHome = () => {
        <Header /> 
       
 
-      <div className={styles.noteContainer}>
+      <div className={styles.noteContainer} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
         {loading && <div className={styles.loader}></div>}
         {auth.isAuthenticated ? (
           <>
