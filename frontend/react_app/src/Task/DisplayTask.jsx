@@ -10,6 +10,7 @@ import bg1 from "../assets/img/notes_2.jpg"
 import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
+import TaskHeader from './TaskHeader'
 
 const DisplayTask = () => {
    
@@ -57,7 +58,7 @@ const DisplayTask = () => {
   
     return (
     <>
-    <Header />
+    <TaskHeader />
     <div className={styles.display_con} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
     {loading && <div className={styles.loader}></div>}
 

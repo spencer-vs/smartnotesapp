@@ -47,19 +47,42 @@
 .updateContent:hover {
     box-shadow: 0 0 30px #a51010dc;
 }
+
+
 .updateBtn {
-   margin-top: 15rem;
    font-size: 1.5rem;
-   margin-top: 1rem;
-   background-color: darkred;
-   border: 2px solid white;
-   color: white;
-   border-radius: 10px;
-   width: 10%;
-   transition: all .5s;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid #0ff;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+.updateBtn::before {
+   content: "";
+   position: absolute;
+   top: -50%;
+   left: -50%;
+   width: 200%;
+   height: 200%;
+   background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(0, 255, 255, 0) 70%);
+   transition: 0.4s;
+   transform: scale(0);
+}
+.updateBtn:hover::before {
+   transform: scale(1);
 }
 .updateBtn:hover {
-    transform: scale(1.05);
+   color: #000;
+   background: #0ff;
+   box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+}
+.updateBtn:active {
+   transform: scale(0.95);
 }
 
 

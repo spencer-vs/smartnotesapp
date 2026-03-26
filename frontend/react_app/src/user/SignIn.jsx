@@ -22,7 +22,7 @@ export const SignIn = () => {
       setLoading(true)
       const res = await api.post("auth/token/", { username, password });
       login(res.data);
-      navigate("/");
+      navigate("/welcome");
       setLoading(false)
 
     } catch {

@@ -18,6 +18,7 @@ import Contact from './ui/Contact'
 import TaskCreate from './Task/TaskCreate'
 import SavedTask from './Task/SavedTask'
 import DisplayTask from './Task/DisplayTask'
+import Welcome from './ui/Welcome'
 
 
 
@@ -45,6 +46,7 @@ const App = () => {
       <Route path='/create_task' element={<TaskCreate />}></Route> 
       <Route path='/saved_task/:id' element={<SavedTask />}></Route>
       <Route path='/display_task/' element={<DisplayTask />}></Route>
+      <Route path='/welcome' element={<Welcome />}></Route>
 
 
 

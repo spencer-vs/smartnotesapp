@@ -9,6 +9,7 @@ import bg1 from "../assets/img/notes_2.jpg"
 import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
+import TaskHeader from './TaskHeader'
 
 const TaskCreate = () => {
   const [title, setTitle] = useState("");
@@ -80,7 +81,7 @@ const TaskCreate = () => {
   return (
    <>
    <div className={styles.task_container} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
-        <Header />
+        <TaskHeader />
 
         <div className={styles.task_area}>
            

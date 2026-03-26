@@ -12,6 +12,7 @@ import bg1 from "../assets/img/notes_2.jpg"
 import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
+import TaskHeader from './TaskHeader'
 
 
 const SavedTask = () => {
@@ -86,7 +87,7 @@ return (
     
    <div className={styles.save_cont} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
      {loading && <div className={styles.loader}></div>}
-    <Header />
+    <TaskHeader />
        
     
         <h1 className={styles.saved_header}>Update TimeTable</h1>

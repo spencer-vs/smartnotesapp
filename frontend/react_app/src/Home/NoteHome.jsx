@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from "./NoteHome.module.css"
-import Header from '../ui/Header'
+import NHeader from './NHeader'
 import Footer from '../ui/Footer'
 import { useState, useEffect, useContext } from 'react'
 import api from "../api/axios"
@@ -121,7 +121,7 @@ const NoteHome = () => {
    return (
     <div>
      
-       <Header /> 
+       <NHeader /> 
       
 
       <div className={styles.noteContainer} style={{ backgroundImage: `url(${backgrounds[index]})`}}>

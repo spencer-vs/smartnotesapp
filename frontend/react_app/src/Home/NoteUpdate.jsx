@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from "../api/axios"
 import Header from '../ui/Header';
+import NHeader from './NHeader'
 import Footer from '../ui/Footer';
 import bg1 from "../assets/img/notes_2.jpg"
 import bg2 from "../assets/img/notes_1.jpg"
@@ -65,7 +66,7 @@ const NoteUpdate = () => {
   
   return (
    <>
-   <Header /> 
+   <NHeader /> 
   
    <div className={styles.updateContainer} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
       {loading && <div className={styles.loader}></div>}
