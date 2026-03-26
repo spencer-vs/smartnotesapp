@@ -96,7 +96,7 @@ return (
         <div className={styles.saved_title_1}>
             <textarea
                 type="text"
-                className={styles.saved_task}
+                className={styles.saved_title}
                 placeholder="Write Your Title Here..."
                 value={todo_title || ""}
                 onChange={(e) => setTitle(e.target.value)}

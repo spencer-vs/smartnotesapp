@@ -14,19 +14,7 @@
    
 }
 
-.saved_task {
-  padding: 2rem 3rem;
- 
-  background-color: #131111;
-  display: grid;
-  gap: 2rem;
-  padding: 2rem;
-  width: 800px;
-  
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  translate: transform all .8s;
-}
+
 
 /* .saved_task:hover {
     transform: scale(1.01);
@@ -82,7 +70,7 @@
 
 
 
- .saved_task {
+.saved_title {
     display: flex;
     justify-content: flex-start;
     font-size: 1.5rem;
@@ -90,6 +78,10 @@
     width: 40rem;
     min-height: 3rem;
     resize: vertical;
+    gap: 2rem;
+    padding: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
     border-radius: 10px;
     border: 5px solid #a51010dc;
     padding: 1rem 2rem;
@@ -164,4 +156,84 @@
    100% { 
       transform: rotate(360deg); 
    }
+} 
+
+@media (min-width: 510px) and (max-width: 1024px) {
+    .saved_list {
+     display: flex;
+    justify-content: flex-start;
+    font-size: 1rem;
+    font-family: Arial, Helvetica, sans-serif;
+    width: 40rem;
+    min-height: 40rem;
+    resize: vertical;
+    border-radius: 10px;
+    border: 5px solid #a51010dc; 
+    padding: 1rem 2rem;
+    background-color: black;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+}
+
+
+@media (min-width: 300px) and (max-width: 500px) {
+    .saved_title {
+    display: flex;
+    justify-content: flex-start;
+    font-size: 1rem;
+    font-family: Arial, Helvetica, sans-serif;
+    width: 15rem;
+    min-height: 3rem;
+    resize: vertical;
+    gap: 2rem;
+    padding: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    border: 5px solid #a51010dc;
+    padding: 1rem 2rem;
+    background-color: black;
+    color: white;
+}
+
+.saved_task:hover {
+   box-shadow: 0 0 25px #a51010dc;
+}
+
+.saved_list {
+     display: flex;
+    justify-content: flex-start;
+    font-size: 1rem;
+    font-family: Arial, Helvetica, sans-serif;
+    width: 17rem;
+    min-height: 40rem;
+    resize: vertical;
+    border-radius: 10px;
+    border: 5px solid #a51010dc; 
+    padding: 1rem 2rem;
+    background-color: black;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.saved_list:hover {
+   box-shadow: 0 0 25px #a51010dc;
+}
+
+.updateTask {
+   font-size: 1rem;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid #0ff;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+
 }

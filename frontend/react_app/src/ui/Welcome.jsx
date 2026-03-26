@@ -37,10 +37,11 @@ const Welcome = () => {
 // </div>
 //   <div className={styles.welcome}>
 //           Hi Isaac, welcome back, what are we doing today.
+ //style={{ backgroundImage: `url(${backgrounds[index]})`}}
 //        </div>
   
     return (
-    <div className={`${styles.intro_con} `} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+    <div className={`${styles.intro_con} `}>
 
     
 
