@@ -85,7 +85,7 @@
     border-radius: 10px;
     border: 5px solid #a51010dc;
     padding: 1rem 2rem;
-    background-color: black;
+    background-image: linear-gradient(#131111, #9D9999);
     color: white;
 }
 
@@ -104,7 +104,7 @@
     border-radius: 10px;
     border: 5px solid #a51010dc; 
     padding: 1rem 2rem;
-    background-color: black;
+    background-image: linear-gradient(#131111, #9D9999);
     color: white;
     margin-bottom: 2rem;
 }
@@ -170,7 +170,7 @@
     border-radius: 10px;
     border: 5px solid #a51010dc; 
     padding: 1rem 2rem;
-    background-color: black;
+   background-image: linear-gradient(#131111, #9D9999);
     color: white;
     margin-bottom: 2rem;
 }
@@ -194,7 +194,7 @@
     border-radius: 10px;
     border: 5px solid #a51010dc;
     padding: 1rem 2rem;
-    background-color: black;
+    background-image: linear-gradient(#131111, #9D9999);
     color: white;
 }
 
@@ -213,7 +213,7 @@
     border-radius: 10px;
     border: 5px solid #a51010dc; 
     padding: 1rem 2rem;
-    background-color: black;
+    background-image: linear-gradient(#131111, #9D9999);
     color: white;
     margin-bottom: 2rem;
 }

@@ -139,6 +139,11 @@ form {
    }
 }
 
+.option {
+  font-size: 1.3rem;
+  color: cyan;
+  text-decoration: none;
+}
 
 
 

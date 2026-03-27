@@ -1,12 +1,12 @@
 
 import React, { useState, useContext } from 'react';
-import styles from "./NHeader.module.css";
+import styles from "./LHeader.module.css";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from "../context/AuthContext";
 
 
 
-const NHeader = () => {
+const LHeader = () => {
   const { auth, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,7 +31,7 @@ const NHeader = () => {
   {/* Top bar */}
   <div className={styles.topBar}>
 
-   <div className={styles.rightSide}>
+  <div className={styles.leftSide}>
         {auth.isAuthenticated && (
         <>
         {/* <span className={styles.username}>
@@ -46,17 +46,16 @@ const NHeader = () => {
         </>
       )}
     
-    </div> 
-   
-    <div className={styles.leftSide}>
-      
+    </div>  
+    <div className={styles.rightside}>
     <button className={styles.logout} onClick={handleLogout}>
               Logout
     </button>
     </div>
   </div>
   {/* FULLSCREEN MENU */}
-  <div className={`${styles.menuOverlay} ${menuOpen ? styles.open : ""}`}>
+  
+  <div  className={`${styles.menuOverlay} ${menuOpen ? styles.open : ""}`}>
     <ul className={styles.menuLinks}>
       
         <>
@@ -73,12 +72,23 @@ const NHeader = () => {
      
        
     </ul>
+
+
+   
+      
+   
+   
+
+
   </div>
+
+
+    
 </div>
 </>
   );
 };
-export default NHeader;
+export default LHeader;
 
 
 

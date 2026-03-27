@@ -31,7 +31,7 @@ const TaskHeader = () => {
   {/* Top bar */}
   <div className={styles.topBar}>
 
-   <div className={styles.rightSide}>
+  <div className={styles.leftSide}>
         {auth.isAuthenticated && (
         <>
         {/* <span className={styles.username}>
@@ -46,17 +46,16 @@ const TaskHeader = () => {
         </>
       )}
     
-    </div> 
-   
-    <div className={styles.leftSide}>
-      
+    </div>  
+    <div className={styles.rightside}>
     <button className={styles.logout} onClick={handleLogout}>
               Logout
     </button>
     </div>
   </div>
   {/* FULLSCREEN MENU */}
-  <div className={`${styles.menuOverlay} ${menuOpen ? styles.open : ""}`}>
+  
+  <div  className={`${styles.menuOverlay} ${menuOpen ? styles.open : ""}`}>
     <ul className={styles.menuLinks}>
       
         <>
@@ -73,7 +72,18 @@ const TaskHeader = () => {
      
        
     </ul>
+
+
+   
+      
+   
+   
+
+
   </div>
+
+
+    
 </div>
 </>
   );

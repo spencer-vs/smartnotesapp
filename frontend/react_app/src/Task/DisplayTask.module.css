@@ -42,7 +42,7 @@
   text-decoration: none;
   /* margin-left: 20rem; */
   margin-bottom: 3rem;
-  background-color: black;
+  background-image: linear-gradient(#131111, #9D9999);
 }
 .task_display:hover {
    box-shadow: 0 0 25px #a51010dc;

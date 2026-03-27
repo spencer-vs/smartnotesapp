@@ -4,6 +4,7 @@ import api from "../api/axios"
 import { useNavigate } from "react-router-dom"
 import styles from "./SignUp.module.css"
 import Header from '../ui/Header'
+import { NavLink } from 'react-router-dom'
 
 const SignUp = () => {
   
@@ -70,7 +71,6 @@ if (loading) return <div className={styles.loader}></div>
 
   return (
    <>
-   <Header /> 
    
    <div className={styles.container}>
       
@@ -128,11 +128,15 @@ if (loading) return <div className={styles.loader}></div>
         className={styles.error}
         >{errors.email}</p>}
 
-
+      
           
       <button type="submit" className={styles.signupBTN}>
          Register
       </button>
+
+      <div>
+        Already have an account <NavLink to='/login' className={styles.option}>Sign In</NavLink>
+      </div>
        {loading && (
               <div className={styles.loader}></div>
             )}

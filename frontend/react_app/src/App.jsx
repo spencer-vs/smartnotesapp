@@ -19,6 +19,8 @@ import TaskCreate from './Task/TaskCreate'
 import SavedTask from './Task/SavedTask'
 import DisplayTask from './Task/DisplayTask'
 import Welcome from './ui/Welcome'
+import SIHeader from './user/SIHeader'
+import SUHeader from './user/SUHeader'
 
 
 
@@ -47,6 +49,8 @@ const App = () => {
       <Route path='/saved_task/:id' element={<SavedTask />}></Route>
       <Route path='/display_task/' element={<DisplayTask />}></Route>
       <Route path='/welcome' element={<Welcome />}></Route>
+      <Route path='/siheader' element={<SIHeader />}></Route>
+      <Route path='/suheader' element={<SUHeader />}></Route>
 
 
 

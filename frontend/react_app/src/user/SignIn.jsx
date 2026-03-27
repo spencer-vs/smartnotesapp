@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom"
 import styles from "./SignIn.module.css"
 import Header from "../ui/Header"
 import { AuthContext } from "../context/AuthContext"
+import SIHeader from "./SIHeader"
+import { NavLink } from "react-router-dom"
 
 export const SignIn = () => {
   const [username, setUsername] = useState("");
@@ -40,7 +42,7 @@ export const SignIn = () => {
   
   return (
     <>
-      <Header /> 
+    
    
     <div className={styles.container}>
       
@@ -54,6 +56,10 @@ export const SignIn = () => {
       {loading && (
         <div className={styles.loader}></div>
       )}
+
+      <div>
+        Don't have an account <NavLink to='/signup' className={styles.option}>Sign Up</NavLink>
+      </div>
      </form>
 
     </div>
