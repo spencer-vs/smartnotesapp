@@ -68,8 +68,8 @@ const NoteCreate = () => {
   return (
     <div>
          <NHeader /> 
-         <div className={styles.createContainer} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
-          {/* {loading && <div className={styles.loader}></div>} */}
+         <div className={styles.createContainer} >
+          {/* {loading && <div className={styles.loader}></div>} style={{ backgroundImage: `url(${backgrounds[index]})`}}*/}
         
         <textarea
           type="text"

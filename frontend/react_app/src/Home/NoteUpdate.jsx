@@ -68,7 +68,7 @@ const NoteUpdate = () => {
    <>
    <NHeader /> 
   
-   <div className={styles.updateContainer} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+   <div className={styles.updateContainer}>
       {loading && <div className={styles.loader}></div>}
         <textarea 
         value={title}

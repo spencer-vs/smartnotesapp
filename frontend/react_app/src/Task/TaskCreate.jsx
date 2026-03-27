@@ -80,7 +80,7 @@ const TaskCreate = () => {
   
   return (
    <>
-   <div className={styles.task_container} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+   <div className={styles.task_container}>
         <TaskHeader />
 
         <div className={styles.task_area}>

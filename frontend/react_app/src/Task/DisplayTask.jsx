@@ -59,7 +59,7 @@ const DisplayTask = () => {
     return (
     <>
     <TaskHeader />
-    <div className={styles.display_con} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+    <div className={styles.display_con}>
     {loading && <div className={styles.loader}></div>}
 
    

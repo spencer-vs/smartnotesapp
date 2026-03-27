@@ -124,7 +124,7 @@ const NoteHome = () => {
        <NHeader /> 
       
 
-      <div className={styles.noteContainer} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+      <div className={styles.noteContainer}>
         {loading && <div className={styles.loader}></div>}
         {auth.isAuthenticated ? (
           <>

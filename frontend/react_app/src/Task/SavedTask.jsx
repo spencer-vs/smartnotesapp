@@ -85,7 +85,7 @@ const SavedTask = () => {
 return (
    <>
     
-   <div className={styles.save_cont} style={{ backgroundImage: `url(${backgrounds[index]})`}}>
+   <div className={styles.save_cont}>
      {loading && <div className={styles.loader}></div>}
     <TaskHeader />
        
