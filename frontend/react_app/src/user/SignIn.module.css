@@ -1,5 +1,5 @@
 .container {
-  background-image:  url("../../src/assets/img/notes_1.jpg");
+  background-image:  url("../../src/assets/img/notes_3.jpg");
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -8,16 +8,17 @@
 }
 .formWrapper {
   background: rgba(255, 0, 0, 0.05);
-  border: 5px solid #a51010dc;
+  border: 5px solid goldenrod;
   padding: 40px;
   width: 100%;
   max-width: 420px;
   border-radius: 15px;
-  box-shadow: 0 0 25px rgba(255, 0, 0, 0.4);
+  box-shadow: 0 0 25px black;
+  perspective: 500px;
 }
 .loginHeader {
   font-size: 2.5rem;
-  color: #a51010dc;
+  color: red;
   text-align: center;
   margin-bottom: 25px;
 }
@@ -26,7 +27,7 @@
 .signinName {
   font-size: 1.2rem;
   padding: 12px 15px;
-  border: 2px solid #a51010dc;
+  border: 2px solid gold;
   border-radius: 10px;
   background: black;
   color: white;
@@ -35,7 +36,7 @@
 .signinName:focus {
   outline: none;
   border-color: white;
-  box-shadow: 0 0 10px red;
+  box-shadow: 0 0 10px goldenrod;
 }
 
 
@@ -43,7 +44,7 @@
 .signinPassword {
   font-size: 1.2rem;
   padding: 12px 15px;
-  border: 2px solid #a51010dc;
+  border: 2px solid gold;
   border-radius: 10px;
   background: black;
   color: white;
@@ -52,7 +53,7 @@
 .signinPassword:focus {
   outline: none;
   border-color: white;
-  box-shadow: 0 0 10px red;
+  box-shadow: 0 0 10px goldenrod;
 }
 
 
@@ -61,18 +62,18 @@
   font-size: 1.2rem;
   padding: 12px;
   border-radius: 10px;
-  background: #a51010dc;
+  background: gold;
   color: black;
   border: none;
   cursor: pointer;
   transition: 0.3s ease;
 }
-.signnBTN:hover {
+/* .signnBTN:hover {
   background: black;
   color: red;
   box-shadow: 0 0 15px red;
   border: 1px solid #a51010dc;
-}
+} */
 
 
 .loader {
@@ -102,7 +103,7 @@
 
 .option {
   font-size: 1.3rem;
-  color: cyan;
+  color: #0ff;
   text-decoration: none;
 }
 
@@ -114,7 +115,7 @@
   }
   .formWrapper {
     padding: 20px;
-    max-width: 100%;
+    max-width: 80%;
     border-radius: 10px;
   }
   .loginHeader {

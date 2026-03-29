@@ -19,6 +19,9 @@ import bg4 from "../assets/img/notes_4.jpg"
 
 
 
+
+
+
 const NoteHome = () => {
 
   const [notes, setNotes] = useState([]);
@@ -121,7 +124,9 @@ const NoteHome = () => {
    return (
     <div>
      
-       <NHeader /> 
+        <NHeader /> 
+
+
       
 
       <div className={styles.noteContainer}>
