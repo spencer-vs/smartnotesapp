@@ -15,7 +15,9 @@ const footer = () => {
 
         <div className={styles.container}>
               <div className={styles.footer}>
-                <div className={styles.footerHeader}> <h1 className={styles.footerHeading}>SmartNotes</h1></div>
+                <div className={styles.footerHeader}> 
+                  <h1 className={styles.footerHeading}>SmartNotes</h1>
+                </div>
                 <div className={styles.footerRow}>
               
              
@@ -37,7 +39,7 @@ const footer = () => {
 
                        <li className={styles.footerItem}>
                           <NavLink to="/about" className={styles.footerLink_3}>
-                              About Developer
+                             Developer
                           </NavLink>
                       </li>
 
@@ -52,7 +54,7 @@ const footer = () => {
 
                       <li className={styles.footerItem}>
                           <NavLink to="/contact" className={styles.footerLink_3}>
-                            Contact Us
+                            Contact 
                           </NavLink>
                       </li>
 
@@ -84,7 +86,7 @@ const footer = () => {
 
                      <li className={styles.footerItem}>
                           <NavLink to="/about" className={styles.footerLink_3}>
-                              About Developer
+                             Developer
                           </NavLink>
                       </li>
 

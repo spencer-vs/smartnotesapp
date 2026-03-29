@@ -22,7 +22,7 @@
 
 .task_heading {
     font-size: 1.5rem;
-    color: #a51010dc;
+    color: goldenrod;
 }
 
 
@@ -36,15 +36,17 @@
     min-height: 3rem;
     resize: vertical;
     border-radius: 10px;
-    border: 5px solid #a51010dc;
+    border: 5px solid goldenrod;
     padding: 1rem 2rem;
     background-image: linear-gradient(#131111, #9D9999);
     color: white;
+    box-shadow: 0 0 15px black;
+    perspective: 300px;
 }
 
-.create_task:hover {
-   box-shadow: 0 0 25px #a51010dc;
-}
+/* .create_task:hover {
+   box-shadow: 0 0 25px gold;
+} */
 
 
 .create_list {
@@ -56,15 +58,17 @@
     min-height: 20rem;
     resize: vertical;
     border-radius: 10px;
-    border: 5px solid #a51010dc;
+    border: 5px solid goldenrod;
     padding: 1rem 2rem;
     background-image: linear-gradient(#131111, #9D9999);
     color: white;
+    box-shadow: 0 0 15px black;
+    perspective: 300px;
 }
 
-.create_list:hover {
-   box-shadow: 0 0 25px #a51010dc;
-}
+/* .create_list:hover {
+   box-shadow: 0 0 25px gold;
+} */
 
  /* {
     display: flex;

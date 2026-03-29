@@ -142,7 +142,7 @@
 
 .loader {
    border: 6px solid #f3f3f3;
-   border-top: 6px solid #a51010dc;
+   border-top: 6px solid goldenrod;
    border-radius: 50%;
    width: 50px;
    height: 50px;
@@ -228,8 +228,14 @@
     font-size: 1.3rem;
   }
   .deleteNote {
-    width: 40%;
+    width: 20%;
   }
+
+  .updateNote {
+    width: 20%;
+  }
+
+  
   .createIcon {
     padding-right: 2rem;
     font-size: 2.5rem;
