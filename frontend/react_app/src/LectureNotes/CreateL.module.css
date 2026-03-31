@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Dancing+Script:wght@400..700&family=New+Rocker&display=swap');
+
+
+
+
+
+.create_con {
+  background-image:  url("../../src/assets/img/notes_13.jpg");
+  padding: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+  
+}
+
+.create {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+   
+    margin-top: 5rem;
+    margin-bottom: 3rem;
+
+}
+
+
+.message {
+
+    border: 5px solid gold;
+    border-radius: 50px;
+    text-align: center;
+    height: 28rem;
+    width: 35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 5rem;
+    opacity: 0;
+    animation: message 2s ease-in forwards;
+    box-shadow: 0 0 25px gold;
+     gap: 4rem;
+}
+
+
+@keyframes message {
+    0%{
+       opacity: 0; 
+    }
+
+    100%{
+       opacity: 1; 
+    }
+}
+
+.btn {
+   display: flex;
+   flex-direction: row;
+}
+
+
+
+.text {
+    /* text-align: center; */
+    font-family: "New Rocker", sans-serif;
+    font-weight: 200;
+    font-optical-sizing: auto;
+    font-size: 2rem;
+    color: white;
+   
+   
+}
+
+
+.record {
+  display: block;
+  height: 10px;
+  width: 300px;
+  border-radius: 3px;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+  background-image: linear-gradient(90deg, white, black);
+  background-size: 200% 100%;
+  
+}
+
+.record.animate {
+   animation: pulse 3s linear infinite;
+}
+
+@keyframes pulse {
+   
+    from {
+     background-position: 200% 0;
+   }
+
+   to {
+      background-position: -200% 0;
+   }
+}
+
+
+.deleteBtn {
+   font-size: 1.5rem;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid #0ff;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+.deleteBtn::before {
+   content: "";
+   position: absolute;
+   top: -50%;
+   left: -50%;
+   width: 200%;
+   height: 200%;
+   background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(0, 255, 255, 0) 70%);
+   transition: 0.4s;
+   transform: scale(0);
+}
+.deleteBtn:hover::before {
+   transform: scale(1);
+}
+.deleteBtn:hover {
+   color: #000;
+   background: #0ff;
+   box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+}
+.deleteBtn:active {
+   transform: scale(0.95);
+}
+
+
+
+
+.shareBtn {
+   font-size: 1.5rem;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid #0ff;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+
+
+.shareBtn::before {
+   content: "";
+   position: absolute;
+   top: -50%;
+   left: -50%;
+   width: 200%;
+   height: 200%;
+   background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(0, 255, 255, 0) 70%);
+   transition: 0.4s;
+   transform: scale(0);
+}
+.shareBtn:hover::before {
+   transform: scale(1);
+}
+
+
+.shareBtn:hover {
+   color: #000;
+   background: #0ff;
+   box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+}
+
+.shareBtn:active {
+   transform: scale(0.95);
+}
+
+
+@media (max-width: 500px) {
+
+   .create {
+      padding: 1rem 2rem;
+   }
+
+
+.message {
+
+    border: 5px solid gold;
+    border-radius: 50px;
+    text-align: center;
+    height: 25rem;
+    width: 30rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 5rem;
+    opacity: 0;
+    animation: message 2s ease-in forwards;
+    box-shadow: 0 0 25px gold;
+     gap: 1rem;
+}
+
+.record {
+   width: 150px;
+}
+
+.text {
+   font-weight: 150;
+}
+
+.deleteBtn {
+   font-size: 1rem;
+}
+
+.shareBtn {
+   font-size: 1rem;
+}
+
+
+}

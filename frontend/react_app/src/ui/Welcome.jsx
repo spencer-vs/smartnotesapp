@@ -67,8 +67,8 @@ const Welcome = () => {
      
        
        
-    <NavLink className={styles.card3} to="/">
-        <p className={styles.text_1}>Generate lecture notes with AI</p>
+    <NavLink className={styles.card3} to="/lecturenotes">
+        <p className={styles.text_1}>Record your lectures and convert them to notes using AI.</p>
         <button className={styles.intro_btn}>
             Lecture Notes
         </button>

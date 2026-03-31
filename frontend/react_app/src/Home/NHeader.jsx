@@ -68,6 +68,12 @@ const NHeader = () => {
         <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/display_task/" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
                       }>Task</NavLink></li>
+        
+
+
+        <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
+                     `${styles.navLink} ${isActive ? styles.active : ''}`
+                      }>Lectures</NavLink></li>
         </>
      
        

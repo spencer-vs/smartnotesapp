@@ -21,6 +21,9 @@ import DisplayTask from './Task/DisplayTask'
 import Welcome from './ui/Welcome'
 import SIHeader from './user/SIHeader'
 import SUHeader from './user/SUHeader'
+import LectureNotes from './LectureNotes/LectureNotes'
+import CreateL from './LectureNotes/CreateL'
+import ViewL from './LectureNotes/ViewL'
 
 
 
@@ -51,7 +54,10 @@ const App = () => {
       <Route path='/welcome' element={<Welcome />}></Route>
       <Route path='/siheader' element={<SIHeader />}></Route>
       <Route path='/suheader' element={<SUHeader />}></Route>
-
+      <Route path='/lecturenotes' element={<LectureNotes />}></Route>
+      <Route path='/createlecture' element={<CreateL />}></Route>
+      <Route path='/viewlecture' element={<ViewL />}></Route>
+  
 
 
      
