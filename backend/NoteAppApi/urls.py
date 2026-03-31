@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -12,7 +12,8 @@ urlpatterns = [
    path("notes/task/", views.create_task, name="task_create"),
    path("notes/task/<int:id>/", task_detail, name="task-detail"),
    path("notes/tasks/", get_all_task, name="get_all_tasks"),
-   path("notes/task/<int:id>/update/", update_task, name="update-task")
+   path("notes/task/<int:id>/update/", update_task, name="update-task"), 
+   path('notes/upload-audio/', upload_audio),
 ]
 
 

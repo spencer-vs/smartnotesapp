@@ -61,3 +61,25 @@ class Task(models.Model):
     
     def __str__(self):
         return self.todo_title or 'Task'
+    
+    
+    
+    
+
+
+
+
+class Lecture(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='Lecture'
+    )
+    lecture = models.TextField(null=True, blank=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+    
+    
+    
+    def __str__(self):
+        return self.lecture or 'Lectures'

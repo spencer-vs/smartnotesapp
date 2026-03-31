@@ -15,6 +15,10 @@ import os
 from groq import Groq
 from .models import Task
 import traceback
+import assemblyai as aai
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import uuid
 
 # Create your views here.
 
@@ -80,76 +84,6 @@ class NoteDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Note.objects.filter(user=self.request.user, is_deleted=False)
-    
-    
-
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def get_all_task(request):
-#     try:
-#         tasks = Task.objects.filter(
-#             user = request.user,
-#             is_deleted=False
-#         ).order_by('-id')
-        
-#         data = []
-#         for task in tasks:
-#             data.append({
-#             "id": task.id,
-#             "todo_title": task.todo_title,
-#             "todo_list": task.todo_list
-#             })
-#             return JsonResponse(data, safe=False, status=200)
-#     except Exception as e:
-#         print("Error Fetching Task:", e)
-#         return JsonResponse({'error': 'Server Error'}, status=500)
-    
-
-
-# @api_view(['PUT'])
-# @permission_classes([IsAuthenticated])
-# def update_task(request, id):
-#     try:
-#        task = Task.objects.get(id=id, is_deleted=False, user=request.user)
-#        todo_title = request.data.get("todo_title")
-#        todo_list = request.data.get("todo_list")
-    
-#        if todo_title:
-#         task.todo_title = todo_title
-        
-#        if todo_list:
-#         task.todo_list = todo_list
-        
-#        task.save()
-#        return JsonResponse({
-#         "id": task.id,
-#             "todo_title": task.todo_title,
-#             "todo_list": task.todo_list
-#         }, status=200)
-#     except Task.DoesNotExist:
-#         return JsonResponse({'error': 'Task not found'}, status=404)
-#     except Exception as e:
-#         import traceback
-#         traceback.print_exc()
-#         print("Update error:", e)
-#         return JsonResponse({'error': 'Server Error'}, status=500)
-    
-
-
-
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def task_detail(request, id):
-#     try:
-#         task = Task.objects.get(id=id, user=request.user, is_deleted=False)
-#        # serializer = TaskSerializer(task)
-#         #return JsonResponse(serializer.data, safe=False, status=200)
-#         return JsonResponse({'id': task.id, "todo_title": task.todo_title, "todo_list": task.todo_list})
-#     except Task.DoesNotExist:
-#         return JsonResponse({'error': 'Task not found'}, status=404)
-#     except Exception as e:
-#         print("Error:", e)
-#         return JsonResponse({'error': 'Server error'}, status=500)
     
 
 
@@ -282,3 +216,53 @@ def update_task(request, id):
 
 
 
+
+
+
+
+@csrf_exempt
+def upload_audio(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=405)
+    try:
+        audio_file = request.FILES.get("audio")
+        if not audio_file:
+            return JsonResponse({"error": "No audio file"}, status=400)
+        # ✅ Create folder
+        folder = os.path.join(settings.MEDIA_ROOT, "audio")
+        os.makedirs(folder, exist_ok=True)
+        # ✅ Unique filename (VERY IMPORTANT)
+        file_name = f"{uuid.uuid4()}.webm"
+        file_path = os.path.join(folder, file_name)
+        # ✅ Save file
+        with open(file_path, "wb+") as f:
+            for chunk in audio_file.chunks():
+                f.write(chunk)
+        print("Audio saved at:", file_path)
+        # ✅ Check API key
+        api_key = os.getenv("ASSEMBLYAI_API_KEY")
+        if not api_key:
+            print("AssemblyAI key missing!")
+            return JsonResponse({"error": "API key missing"}, status=500)
+        aai.settings.api_key = api_key
+        # ✅ Transcribe
+        transcriber = aai.Transcriber()
+        transcript = transcriber.transcribe(file_path)
+        print("Transcript status:", transcript.status)
+        if transcript.status == "error":
+            print("AssemblyAI error:", transcript.error)
+            return JsonResponse({"error": "Transcription failed"}, status=500)
+        return JsonResponse({
+            "message": "Uploaded + Transcribed",
+            "text": transcript.text
+        })
+    except Exception as e:
+        print("UPLOAD ERROR:", str(e))
+        traceback.print_exc()
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+
+
+
+ 

@@ -186,6 +186,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage",
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'NoteAppCore.CustomUser'
