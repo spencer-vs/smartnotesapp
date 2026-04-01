@@ -5,11 +5,44 @@ import { NavLink } from 'react-router-dom'
 import { GrAdd } from "react-icons/gr";
 import { FaSearch } from "react-icons/fa"
 import Footer from '../ui/Footer'
+import { useState, useEffect } from 'react';
+import {useNavigate,  } from 'react-router-dom'
+import api from '../api/axios';
 
 
 const LectureNotes = () => {
+  const [lectures, setLectures] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
   
+   
   
+
+  useEffect(() => {
+          setLoading(true)
+          api.get('notes/lectures/')
+          .then(res => {
+              setLoading(true)
+              console.log("Lectures:", res.data)
+              setLectures(res.data)
+              setLoading(false)
+          })
+          .catch(err => {
+              console.log("Failed to fetch task:", err.message)
+              setLoading(false)
+          })
+      }, [])
+    
+  
+
+
+   const truncateWords = (text, limit) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    return words.length > limit
+    ? words.slice(0, limit).join(" ") + "..."
+    : text;
+    };
   
   
   
@@ -38,22 +71,30 @@ const LectureNotes = () => {
 
             <div className={styles.all_lecture}>
                 <ul className={styles.lecture_list}>
-                    <li className={styles.list}>
-                       <NavLink className={styles.link}>
-                        <p>
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim repellendus odit quae temporibus, quo vel.
-                        </p>
-                        <p>30th-03-2026</p>
-
-                        <button className={styles.deleteBtn}>
+                 <li className={styles.list}>
+               <NavLink className={styles.link}>
+                 {lectures.length === 0 ? (
+                     <p className={styles.task_no}>Loading Lectures</p>
+                 )
+                    : (
+                            lectures.map(lecture => (
+                                <div className={styles.task_display} key={lecture.id}>
+                                 <p className={styles.display_title}>{lecture.created_at}</p>
+                                 <p className={styles.display_list}>{truncateWords(lecture.lecture, 10)}</p>
+                    
+                                 <button className={styles.deleteBtn}>
                             Delete
                         </button>
 
                         <button className={styles.shareBtn}>
                             Share
                         </button>
-                       </NavLink>
-                    </li>
+                                </div>
+                            ))
+                        )}
+                </NavLink>
+                </li>
+
                 </ul>
 
             </div>

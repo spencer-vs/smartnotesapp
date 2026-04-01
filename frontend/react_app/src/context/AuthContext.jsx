@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }) => {
             isAuthenticated: true,
             loading: false,
           });
+
         })
         .catch(() => logout());
     } else {
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (data) => {
     localStorage.setItem("access", data.access);
     localStorage.setItem("refresh", data.refresh);
+    localStorage.setItem("token", data.access);
     api.defaults.headers.Authorization = `Bearer ${data.access}`;
     const res = await api.get("/auth/user/");
     setAuth({

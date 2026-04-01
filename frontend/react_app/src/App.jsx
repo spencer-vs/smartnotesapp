@@ -24,6 +24,7 @@ import SUHeader from './user/SUHeader'
 import LectureNotes from './LectureNotes/LectureNotes'
 import CreateL from './LectureNotes/CreateL'
 import ViewL from './LectureNotes/ViewL'
+import LTranscript from './LectureNotes/LTranscript'
 
 
 
@@ -57,6 +58,7 @@ const App = () => {
       <Route path='/lecturenotes' element={<LectureNotes />}></Route>
       <Route path='/createlecture' element={<CreateL />}></Route>
       <Route path='/viewlecture' element={<ViewL />}></Route>
+      <Route path='/lecturetranscript' element={<LTranscript />}></Route>
   
 
 

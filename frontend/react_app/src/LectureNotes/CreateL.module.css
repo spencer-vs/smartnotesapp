@@ -229,3 +229,126 @@
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Lecture Notes
+**Lecture Notes: Creating an Animated Glowing Border with HTML and CSS**
+
+**I. Introduction**
+
+* In this lecture, we will create a beautiful animated glowing border using HTML and CSS.
+* We will use a rotating conic gradient and some cool blur effects to achieve this effect.
+
+**II. Basic HTML Structure**
+
+* Create a simple HTML structure with a div element and assign it the class "box".
+```html
+<div class="box"></div>
+```
+**III. Styling the Page and the Box**
+
+* Use CSS to style the page and the box.
+* Center everything on the page.
+* Give the box a clean background and some basic layout.
+```css
+.box {
+  width: 200px;
+  height: 200px;
+  background-color: #333;
+  margin: 0 auto;
+  position: relative;
+}
+```
+**IV. Creating the Glowing Border Effect**
+
+* Use the `:before` and `:after` pseudo-elements to create the glowing border effect.
+* Apply a rotating conic gradient and a blurred version for the glow.
+* The `:before` element will give us the clean, sharp gradient ring, and the `:after` element will give us the soft glow effect with a blur to animate the gradient's rotation.
+
+**V. Custom Property and Animation**
+
+* Declare a custom property using the new `@property` rule, supported in modern Chromium browsers.
+* This lets us animate a CSS variable like a regular numeric value.
+* Animate the custom property of `angle` from 0 degrees to 360 degrees using a keyframes animation.
+
+**VI. Code Snippet**
+
+```css
+.box {
+  width: 200px;
+  height: 200px;
+  background-color: #333;
+  margin: 0 auto;
+  position: relative;
+}
+
+.box::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+  animation: rotate 2s linear infinite;
+}
+
+.box::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+  filter: blur(10px);
+  animation: rotate 2s linear infinite;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  init: 0deg;
+}
+
+.box::before {
+  animation-name: rotate;
+}
+
+.box::after {
+  animation-name: rotate;
+}
+
+@keyframes rotate {
+  100% {
+    --angle: 360deg;
+  }
+}
+```
+
+**VII. Summary**
+
+* We created a beautiful animated glowing border using HTML and CSS.
+* We used a rotating conic gradient and some cool blur effects to achieve this effect.
+* We declared a custom property using the `@property` rule and animated it using a keyframes animation. */

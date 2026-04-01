@@ -13,7 +13,7 @@ from openai import OpenAI
 from django.http import JsonResponse
 import os
 from groq import Groq
-from .models import Task
+from .models import Task, Lecture
 import traceback
 import assemblyai as aai
 from django.views.decorators.csrf import csrf_exempt
@@ -212,19 +212,55 @@ def update_task(request, id):
         return JsonResponse({'error': 'Server error'}, status=500)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_lecture_detail(request, id):
+    try:
+        lecture = Lecture.objects.get(id=id, user=request.user, is_deleted=False)
+        return JsonResponse({
+            "id": lecture.id,
+            "lecture": lecture.lecture,
+            "created_at": lecture.created_at
+        })
+    except Lecture.DoesNotExist:
+        return JsonResponse({"error": "Lecture does not exist"}, status=404)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({"error": "Server Error"}, status=500)
+        
   
 
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_all_lectures(request):
+    try:
+        lectures = Lecture.objects.filter(user=request.user, is_deleted=False).order_by('-id')
+        data = [
+            {
+                "id": lecture.id,
+                "lecture": lecture.lecture,
+                "created_at": lecture.created_at
+            }
+            for lecture in lectures
+        ]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
 
 
 
 
 @csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def upload_audio(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=405)
     try:
+        print("USER:", request.user)
+        print("AUTH:", request.user.is_authenticated)
         audio_file = request.FILES.get("audio")
         if not audio_file:
             return JsonResponse({"error": "No audio file"}, status=400)
@@ -239,6 +275,7 @@ def upload_audio(request):
             for chunk in audio_file.chunks():
                 f.write(chunk)
         print("Audio saved at:", file_path)
+        
         # ✅ Check API key
         api_key = os.getenv("ASSEMBLYAI_API_KEY")
         if not api_key:
@@ -247,15 +284,26 @@ def upload_audio(request):
         aai.settings.api_key = api_key
         # ✅ Transcribe
         transcriber = aai.Transcriber()
-        transcript = transcriber.transcribe(file_path)
+        config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
+        transcript = transcriber.transcribe(file_path, config=config)
+        notes = generate_lecture_note(transcript.text)
         print("Transcript status:", transcript.status)
         if transcript.status == "error":
             print("AssemblyAI error:", transcript.error)
             return JsonResponse({"error": "Transcription failed"}, status=500)
+        new_lecture = Lecture.objects.create(
+            user=request.user,
+            lecture=notes
+            
+        )
+        new_lecture.save()
         return JsonResponse({
-            "message": "Uploaded + Transcribed",
-            "text": transcript.text
-        })
+            "id": new_lecture.id,
+            "text": transcript.text,
+            "lecture_notes": new_lecture.lecture,
+            
+        }, status=201)
+       
     except Exception as e:
         print("UPLOAD ERROR:", str(e))
         traceback.print_exc()
@@ -265,4 +313,38 @@ def upload_audio(request):
 
 
 
+
+
+def generate_lecture_note(transcription):
+    try:
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            print("Groq API key not found")
+            return None
+        client = Groq(api_key=api_key)
+        prompt = f"""
+        You are an expert academic assistant.
+        Convert the following transcript into well-structured lecture notes.
+        REQUIREMENTS:
+        - Use clear headings and subheadings
+        - Use bullet points where appropriate
+        - Highlight key concepts
+        - Keep it concise but complete
+        - Add a short summary at the end
+        Transcript:
+        {transcription}
+        Lecture Notes:
+        """
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.5,   # lower = more structured
+            max_tokens=1200,
+        )
+        return completion.choices[0].message.content.strip()
+    except Exception as e:
+        print("Groq error:", e)
+        return None
  
