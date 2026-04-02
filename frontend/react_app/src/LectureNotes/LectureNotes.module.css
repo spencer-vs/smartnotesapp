@@ -230,13 +230,13 @@
 }
 
 .list {
-    width: 15rem;
-    height: 15rem;
+    width: 13rem;
+    height: 30rem;
     
 }
 }
 
-@media (max-width: 1000px) {
+@media (min-width: 500px) and (max-width: 1000px){
    .list {
     width: 38rem;
     
@@ -244,3 +244,11 @@
     
 } 
 }
+
+@media (min-width: 1005px) and (max-width: 1030px){
+   .list {
+    width: 45rem;
+    
+   
+    
+} }

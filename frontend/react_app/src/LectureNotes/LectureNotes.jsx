@@ -81,7 +81,6 @@ const LectureNotes = () => {
                                  <ul className={styles.lecture_list}>
                                  <NavLink className={styles.link} to={`/viewlecture/${lecture.id}/`}>
                                  <li className={styles.list}>
-                                
                                  <p className={styles.date}>{lecture.created_at}</p>
                                  <p className={styles.truncate}>{truncateWords(lecture.lecture, 10)}</p>
                                  <button className={styles.deleteBtn}>
