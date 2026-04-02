@@ -16,8 +16,8 @@
     padding: 1rem 2rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
+    justify-content: center;
+    align-items: center;
 }
 
 .lecture_list {
@@ -227,5 +227,18 @@
     transform: scale(1.05);
 }
 
+.list {
+    width: 12rem;
+    height: 30rem;
+    
+}
+}
 
+@media (max-width: 1000px) {
+   .list {
+    width: 38rem;
+    
+   
+    
+} 
 }
