@@ -37,6 +37,8 @@
     box-shadow: 0 0 25px goldenrod;
     padding: 1rem 2rem;
     font-size: 1.5rem;
+    width: 60rem;
+    height: 15rem;
 }
 
 .link {
@@ -192,7 +194,7 @@
 
 
 
-@media (max-width: 500px) {
+@media (max-width: 500px)  {
     .icons {
     display: flex;
     flex-direction: row;
@@ -228,8 +230,8 @@
 }
 
 .list {
-    width: 12rem;
-    height: 30rem;
+    width: 15rem;
+    height: 15rem;
     
 }
 }
