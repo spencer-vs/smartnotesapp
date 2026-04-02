@@ -57,24 +57,32 @@ const NHeader = () => {
   
   <div  className={`${styles.menuOverlay} ${menuOpen ? styles.open : ""}`}>
     <ul className={styles.menuLinks}>
-      
-        <>
-          <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/" className={({ isActive }) =>
-                     `${styles.navLink} ${isActive ? styles.active : ''}`
-                      }>Home</NavLink></li>
-          <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/create_task" className={({ isActive }) =>
-                     `${styles.navLink} ${isActive ? styles.active : ''}`
-                      }>Create Task</NavLink></li>
-        <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/display_task/" className={({ isActive }) =>
-                     `${styles.navLink} ${isActive ? styles.active : ''}`
-                      }>Task</NavLink></li>
-        
-
-
-        <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
-                     `${styles.navLink} ${isActive ? styles.active : ''}`
-                      }>Lectures</NavLink></li>
-        </>
+      {auth.isAuthenticated ? (
+                  <>
+                <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/" className={({ isActive }) =>
+                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                            }>Notes</NavLink></li>
+                <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/display_task/" className={({ isActive }) =>
+                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                            }>Task</NavLink></li>
+                <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
+                                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                                            }>Lectures</NavLink></li>
+                <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/d" className={({ isActive }) =>
+                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                            }>Tutorials</NavLink></li>
+              </>
+            ) : (
+                  <>
+                <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/login" className={({ isActive }) =>
+                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                            }>Sign In</NavLink></li>
+                <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/signup" className={({ isActive }) =>
+                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                            }>Sign Up</NavLink></li>
+              
+              </>
+            )}
      
        
     </ul>

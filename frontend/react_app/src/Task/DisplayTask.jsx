@@ -11,6 +11,8 @@ import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
 import TaskHeader from './TaskHeader'
+import { GrAdd } from "react-icons/gr";
+import { FaSearch } from "react-icons/fa"
 
 const DisplayTask = () => {
    
@@ -62,7 +64,19 @@ const DisplayTask = () => {
     <div className={styles.display_con}>
     {loading && <div className={styles.loader}></div>}
 
-   
+    <div className={styles.icons}>
+           <div className={styles.search}>
+            <NavLink className={styles.icon} to="/">
+               <FaSearch />
+            </NavLink>
+           </div>
+         
+           <div className={styles.add}>
+            <NavLink className={styles.icon} to="/create_task">
+              <GrAdd />
+            </NavLink>
+           </div>
+          </div>
     
 
     

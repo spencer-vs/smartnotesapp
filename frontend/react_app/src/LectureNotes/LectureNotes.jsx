@@ -23,7 +23,7 @@ const LectureNotes = () => {
           api.get('notes/lectures/')
           .then(res => {
               setLoading(true)
-              console.log("Lectures:", res.data)
+              // console.log("Lectures:", res.data)
               setLectures(res.data)
               setLoading(false)
           })
@@ -32,8 +32,9 @@ const LectureNotes = () => {
               setLoading(false)
           })
       }, [])
+
+
     
-  
 
 
    const truncateWords = (text, limit) => {
@@ -47,13 +48,13 @@ const LectureNotes = () => {
   
   
     return (
-   <>
+
    <div className={styles.lecture_con}>
         <LHeader />
 
          <div className={styles.icons}>
            <div className={styles.search}>
-            <NavLink className={styles.icon} to="/createlecture">
+            <NavLink className={styles.icon} to="/">
                <FaSearch />
             </NavLink>
            </div>
@@ -69,40 +70,45 @@ const LectureNotes = () => {
            
             <h1 className={styles.heading}>Lecture Notes</h1>
 
-            <div className={styles.all_lecture}>
-                <ul className={styles.lecture_list}>
-                 <li className={styles.list}>
-               <NavLink className={styles.link}>
+            
                  {lectures.length === 0 ? (
-                     <p className={styles.task_no}>Loading Lectures</p>
+                        <div className={styles.loader}></div>
                  )
-                    : (
-                            lectures.map(lecture => (
-                                <div className={styles.task_display} key={lecture.id}>
-                                 <p className={styles.display_title}>{lecture.created_at}</p>
-                                 <p className={styles.display_list}>{truncateWords(lecture.lecture, 10)}</p>
-                    
+                    : (  
+                    <div className={styles.all_lecture}>
+                    {lectures.map(lecture => (
+                                <div className={styles.all_lecture} key={lecture.id}>
+                                 <ul className={styles.lecture_list}>
+                                 <NavLink className={styles.link} to={`/viewlecture/${lecture.id}/`}>
+                                 <li className={styles.list}>
+                                
+                                 <p className={styles.date}>{lecture.created_at}</p>
+                                 <p className={styles.truncate}>{truncateWords(lecture.lecture, 10)}</p>
                                  <button className={styles.deleteBtn}>
-                            Delete
-                        </button>
-
-                        <button className={styles.shareBtn}>
+                                  Delete
+                                 </button>
+                               <button className={styles.shareBtn}>
                             Share
                         </button>
-                                </div>
-                            ))
-                        )}
-                </NavLink>
-                </li>
-
-                </ul>
-
+                        
+                        </li>
+                         </NavLink>
+                        </ul>
+                         </div> 
+                         ))}
+                    </div>
+                    )}
+               
+                  
+              
+              
             </div>
-        </div>
+            <Footer />
+            </div>
+           
         
-    </div>
-    <Footer />
-    </>
+        
+    
 
   )
 }

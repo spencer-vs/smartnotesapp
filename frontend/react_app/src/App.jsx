@@ -57,7 +57,7 @@ const App = () => {
       <Route path='/suheader' element={<SUHeader />}></Route>
       <Route path='/lecturenotes' element={<LectureNotes />}></Route>
       <Route path='/createlecture' element={<CreateL />}></Route>
-      <Route path='/viewlecture' element={<ViewL />}></Route>
+      <Route path='/viewlecture/:id' element={<ViewL />}></Route>
       <Route path='/lecturetranscript' element={<LTranscript />}></Route>
   
 

@@ -19,6 +19,7 @@ import assemblyai as aai
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import uuid
+import threading
 
 # Create your views here.
 
@@ -264,46 +265,34 @@ def upload_audio(request):
         audio_file = request.FILES.get("audio")
         if not audio_file:
             return JsonResponse({"error": "No audio file"}, status=400)
-        # ✅ Create folder
         folder = os.path.join(settings.MEDIA_ROOT, "audio")
         os.makedirs(folder, exist_ok=True)
-        # ✅ Unique filename (VERY IMPORTANT)
-        file_name = f"{uuid.uuid4()}.webm"
-        file_path = os.path.join(folder, file_name)
-        # ✅ Save file
-        with open(file_path, "wb+") as f:
-            for chunk in audio_file.chunks():
-                f.write(chunk)
-        print("Audio saved at:", file_path)
+       # file_name = f"{uuid.uuid4()}.webm"
+        # # file_path = os.path.join(folder, file_name)
+        # with open(file_path, "wb+") as f:
+        #     for chunk in audio_file.chunks():
+        #         f.write(chunk)
+        # print("Audio saved at:", file_path)
         
-        # ✅ Check API key
-        api_key = os.getenv("ASSEMBLYAI_API_KEY")
-        if not api_key:
-            print("AssemblyAI key missing!")
-            return JsonResponse({"error": "API key missing"}, status=500)
-        aai.settings.api_key = api_key
-        # ✅ Transcribe
-        transcriber = aai.Transcriber()
-        config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
-        transcript = transcriber.transcribe(file_path, config=config)
-        notes = generate_lecture_note(transcript.text)
-        print("Transcript status:", transcript.status)
-        if transcript.status == "error":
-            print("AssemblyAI error:", transcript.error)
-            return JsonResponse({"error": "Transcription failed"}, status=500)
-        new_lecture = Lecture.objects.create(
-            user=request.user,
-            lecture=notes
-            
-        )
-        new_lecture.save()
-        return JsonResponse({
-            "id": new_lecture.id,
-            "text": transcript.text,
-            "lecture_notes": new_lecture.lecture,
-            
-        }, status=201)
+        lecture = Lecture.objects.create(
+           user=request.user,
+           audio_file=audio_file,
+           status="processing"
+       )
+        
+        threading.Thread(
+            target=process_audio,
+            args=(lecture.id,)
+        ).start()
+        
        
+        
+        return JsonResponse(
+            {
+                "message": "Processing started",
+                "lecture_id": lecture.id
+            }, status=202
+        )
     except Exception as e:
         print("UPLOAD ERROR:", str(e))
         traceback.print_exc()
@@ -311,7 +300,53 @@ def upload_audio(request):
 
 
 
-
+def process_audio(lecture_id):
+    try:
+        lecture = Lecture.objects.get(id=lecture_id)
+        api_key = os.getenv("ASSEMBLYAI_API_KEY")
+        if not api_key:
+            print("AssemblyAI key missing!")
+            lecture.status = "failed"
+            lecture.save()
+            return
+        aai.settings.api_key = api_key
+        transcriber = aai.Transcriber()
+        config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
+        transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
+        if transcript.status == "error":
+            print("AssemblyAI error:", transcript.error)
+            lecture.status = "failed"
+            lecture.save()
+            return
+        notes = generate_lecture_note(transcript.text)
+        lecture.lecture = notes
+        lecture.status = "completed"
+        lecture.save()
+    except Exception as e:
+        print("Audio processing error:", str(e))
+        traceback.print_exc()
+        try:
+            lecture = Lecture.objects.get(id=lecture_id)
+            lecture.status = "failed"
+            lecture.save()
+        except:
+            pass
+        
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def lecture_status(request, id):
+    try:
+        lecture = Lecture.objects.get(id=id, user=request.user)
+        return JsonResponse({
+            "id": lecture.id,
+            "status": lecture.status,
+            "lecture": lecture.lecture
+        })
+    except Lecture.DoesNotExist:
+        return JsonResponse({"error": "Not found"}, status=404)
+    
+    
 
 
 

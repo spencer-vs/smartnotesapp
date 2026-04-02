@@ -76,6 +76,8 @@ class Lecture(models.Model):
         related_name='Lecture'
     )
     lecture = models.TextField(null=True, blank=True) 
+    audio_file = models.FileField(upload_to='audio/', null=True, blank=True)
+    status=models.CharField(max_length=20, default="processing")
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     

@@ -89,6 +89,52 @@
    transform: scale(0.95);
 }
 
+
+
+.icons {
+    display: flex;
+    flex-direction: row;
+    padding: 1rem 2rem;
+    padding-right: 2rem;
+    gap: 2rem;
+    
+}
+
+.search {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+
+
+.add {   
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    
+}
+
+.icon {
+    font-size: 2rem;
+    border: 5px solid gold;
+    background-color: gold;
+    border-radius: 50%;
+    padding: 0.5rem 1rem;
+    color: black;
+    font-weight: 3oo;
+}
+
+.icon:hover {
+    transform: scale(1.05);
+}
+
+
+
+
+
 .loader {
    border: 6px solid #f3f3f3;
    border-top: 6px solid goldenrod;
@@ -109,4 +155,44 @@
    100% { 
       transform: rotate(360deg); 
    }
+}
+
+
+
+@media (max-width: 500px) {
+    .icons {
+    display: flex;
+    flex-direction: row;
+    
+}
+
+.search {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+
+
+.add {   
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    
+}
+
+.icon {
+    font-size: 1rem;
+    font-weight: 1oo;
+    background-color: none;
+    color: black;
+}
+
+.icon:hover {
+    transform: scale(1.05);
+}
+
+
 }
