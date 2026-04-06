@@ -28,6 +28,8 @@ import LTranscript from './LectureNotes/LTranscript'
 import CreateT from './Tutorial/CreateT'
 import Tutorials from './Tutorial/Tutorials'
 import ViewT from './Tutorial/ViewT'
+import SearchLectures from './LectureNotes/SearchLecture'
+import SearchTasks from './Task/SearchTasks'
 
 
 
@@ -65,6 +67,8 @@ const App = () => {
       <Route path='/tutorials' element={<Tutorials />}></Route>
       <Route path='/createtutorials' element={<CreateT />}></Route>
       <Route path='/viewtutorials/:id' element={<ViewT />}></Route>
+      <Route path='/searchlectures' element={<SearchLectures />}></Route>
+      <Route path='/searchtasks' element={<SearchTasks />}></Route>
   
 
 

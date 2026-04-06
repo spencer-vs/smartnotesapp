@@ -14,6 +14,7 @@ import TaskHeader from './TaskHeader'
 import { GrAdd } from "react-icons/gr";
 import { FaSearch } from "react-icons/fa"
 
+
 const DisplayTask = () => {
    
     const [tasks, setTask] = useState([])
@@ -66,7 +67,7 @@ const DisplayTask = () => {
 
     <div className={styles.icons}>
            <div className={styles.search}>
-            <NavLink className={styles.icon} to="/">
+            <NavLink className={styles.icon} to="/searchtasks">
                <FaSearch />
             </NavLink>
            </div>

@@ -54,7 +54,7 @@ const LectureNotes = () => {
 
          <div className={styles.icons}>
            <div className={styles.search}>
-            <NavLink className={styles.icon} to="/">
+            <NavLink className={styles.icon} to="/searchlectures">
                <FaSearch />
             </NavLink>
            </div>

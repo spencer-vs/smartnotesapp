@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import NoteSerializer, ContactSerializer, TaskSerializer
+from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -40,6 +40,33 @@ def search_notes(request):
     ).order_by('modified_at')
     serializer = NoteSerializer(notes, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_lectures(request):
+    query = request.GET.get('q', '').strip()
+    lectures = Lecture.objects.filter(user=request.user)
+    if query: 
+        lectures = lectures.filter(
+            Q(created_at__date=query) | Q(created__at__icontains=query)
+        )
+    lectures = lectures.order_by('-created_at')
+    serializer = LectureSerializer(lectures, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_tasks(request):
+    query = request.GET.get('q', '')
+    tasks = Task.objects.filter(user=request.user).filter(
+        Q(todo_title__icontains=query) | Q(todo_list__icontains=query)
+    ).order_by('created_at')
+    serializer = TaskSerializer(tasks, many=True)
+    return Response(serializer.data)
+
+
 
 
 class NoteListCreate(generics.ListCreateAPIView):
