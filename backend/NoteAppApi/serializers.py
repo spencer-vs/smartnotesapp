@@ -21,6 +21,8 @@ class ContactSerializer(serializers.ModelSerializer):
         
         
 class TaskSerializer(serializers.ModelSerializer):
+    
+   class Meta:   
     model = Task
     fields = ["id", "todo_title", "todo_list", "created_at"]
     read_only_fields = ["created_at"]
@@ -28,12 +30,15 @@ class TaskSerializer(serializers.ModelSerializer):
     
     
 class LectureSerializer(serializers.ModelSerializer):
-    model = Lecture
-    fields = ["id", "lecture", "created_at"]
-    read_only_fields = ["created_at"]
+   class Meta:
+        model = Lecture
+        fields = ["id", "lecture", "created_at"]
+        # read_only_fields = ["created_at"]
     
     
 class TutorialSerializer(serializers.ModelSerializer):
+    
+  class Meta:  
     model = Tutorial
-    fields = ["id", "youtube_title", "youtube_text", "youtube_link"]
-    read_only_fields = ["created_at"]
+    fields = ["id", "youtube_title", "youtube_text", "youtube_link", "created_at"]
+    # read_only_fields = ["created_at"]
