@@ -5,13 +5,16 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import Note, Contact
+from .models import Note, Contact, Tutorial
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
 from openai import OpenAI
 from django.http import JsonResponse
+import json
 import os
+import re
+import requests
 from groq import Groq
 from .models import Task, Lecture
 import traceback
@@ -383,3 +386,158 @@ def generate_lecture_note(transcription):
         print("Groq error:", e)
         return None
  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+@csrf_exempt
+def generate_tutorial(request):
+    if request.method != "POST":
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    try:
+        data = json.loads(request.body)
+        yt_link = data.get('link')
+        if not yt_link:
+            return JsonResponse({'error': 'No YouTube link provided'}, status=400)
+        print(f"Generating blog for: {yt_link}")
+        # Extract video ID
+        video_id = get_video_id(yt_link)
+        title = get_youtube_title(video_id)
+        print("Extracted video ID:", video_id)
+        if not video_id:
+            return JsonResponse({'error': 'Invalid YouTube URL'}, status=400)
+        # Get transcript
+        # transcription = transcription[:1200]
+        transcription = get_transcription(video_id)
+        if not transcription:
+            return JsonResponse({'error': 'Transcript not available for this video'}, status=500)
+        # Generate blog
+        tutorial = generate_tutorial_from_transcript(transcription)
+        if not tutorial:
+            return JsonResponse({'error': 'Failed to generate blog'}, status=500)
+        # Save blog to database
+        new_tutorial = Tutorial.objects.create(
+            user=request.user,
+            youtube_title=title,
+            youtube_link=yt_link,
+            youtube_text=tutorial,
+        )
+        new_tutorial.save()
+        
+        
+        
+        return JsonResponse({'content': tutorial})
+    except Exception as e:
+        print("SERVER ERROR:", e)
+        return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
+# ---------------- TRANSCRIPT FUNCTIONS ---------------- #
+def get_video_id(url):
+    try:
+        regex = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
+        match = re.search(regex, url)
+        if match:
+            return match.group(1)
+        return None
+    except Exception as e:
+        print("Video ID extraction error:", e)
+        return None
+    
+    
+def get_youtube_title(video_id):
+    try:
+        url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return data["title"]
+        return f"YouTube Video {video_id}"
+    except Exception as e:
+        print("Title fetch error:", e)
+        return f"YouTube Video {video_id}"
+    
+    
+    
+# ---------------- TRANSCRIPT FUNCTIONS ---------------- #
+def get_transcription(video_id):
+    # """Try YouTube transcript first. If unavailable, fallback to Proxy_Transcript or AssemblyAI."""
+    """Attempt to retrieve a transcript using YouTubeTranscriptApi.
+
+    If the YouTube API call fails (missing method, no transcript, etc.), we
+    fall back to AssemblyAI. This version avoids using
+    ``list_transcripts`` which may not exist in older installations.
+    """
+    proxy_transcript = get_transcription_proxy(video_id)
+    if proxy_transcript:
+        return proxy_transcript
+    
+
+    
+# ---------------- TRANSCRIPTION HELPERS ---------------- #
+
+def get_transcription_proxy(video_id):
+    """Fetch transcript using RapidAPI proxy"""
+    try:
+        url = "https://youtube-transcript3.p.rapidapi.com/api/transcript"
+        querystring = {"videoId": video_id}  # FIXED
+        headers = {
+            "X-RapidAPI-Key": os.getenv("RAPID_API_KEY"),
+            "X-RapidAPI-Host": "youtube-transcript3.p.rapidapi.com"
+        }
+        response = requests.get(url, headers=headers, params=querystring)
+        if response.status_code == 200:
+            data = response.json()
+            #print("RAPIDAPI_KEY:", os.getenv("RAPID_API_KEY"))
+            # Handle both possible formats
+            if isinstance(data, dict) and "transcript" in data:
+                transcript_list = data["transcript"]
+            elif isinstance(data, list):
+                transcript_list = data
+            else:
+                print("Unexpected API response:", data)
+                return None
+            transcript_text = " ".join(
+                [item["text"] for item in transcript_list]
+            )
+            return transcript_text
+        print("Proxy transcript API failed:", response.text)
+    except Exception as e:
+        print("Proxy transcript error:", e)
+        print("Proxy status:", response.status_code)
+        print("Proxy response:", response.text[:500])
+    return None
+
+
+
+#---------------- AI BLOG GENERATION ---------------- #
+def generate_tutorial_from_transcript(transcription):
+    try:
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            print("Groq API key not found")
+            return None
+        
+        
+        transcription = transcription[:1200]
+        client = Groq(api_key=api_key)
+        prompt = f"""
+        Based on the generated transcript, create lecture notes, covering all aspects of the video.
+        Transcript:
+        {transcription}
+        Article:
+        """
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.7,
+            max_tokens=1000,
+        )
+        return completion.choices[0].message.content.strip()
+    except Exception as e:
+        print("Groq error:", e)
+        return None

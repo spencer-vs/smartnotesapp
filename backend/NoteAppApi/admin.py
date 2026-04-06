@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Note, Contact, Task, Lecture
+from .models import Note, Contact, Task, Lecture, Tutorial
 
 # Register your models here.
 @admin.register(Note)
@@ -23,5 +23,11 @@ class TaskAdmin(admin.ModelAdmin):
 class LectureAdmin(admin.ModelAdmin):
     list_display = ("id", "lecture", "created_at")
     search_fields = ("Lectures",)
+    
+    
+@admin.register(Tutorial)
+class TutorialAdmin(admin.ModelAdmin):
+    list_display = ("id", "youtube_title", "youtube_text", "youtube_link")
+    search_fields = ("Tutorials", )
     
     

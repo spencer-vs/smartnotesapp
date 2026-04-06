@@ -74,7 +74,7 @@ const Welcome = () => {
         </button>
     </NavLink> 
 
-    <NavLink className={styles.card4} to="/">
+    <NavLink className={styles.card4} to="/tutorials">
         <p className={styles.text_1}>Turn tutorial videos into lecture notes for easy reading</p>
         <button className={styles.intro_btn}>
             Tutorials

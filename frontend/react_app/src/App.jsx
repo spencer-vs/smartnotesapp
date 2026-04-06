@@ -25,6 +25,9 @@ import LectureNotes from './LectureNotes/LectureNotes'
 import CreateL from './LectureNotes/CreateL'
 import ViewL from './LectureNotes/ViewL'
 import LTranscript from './LectureNotes/LTranscript'
+import CreateT from './Tutorial/CreateT'
+import Tutorials from './Tutorial/Tutorials'
+import ViewT from './Tutorial/ViewT'
 
 
 
@@ -59,6 +62,9 @@ const App = () => {
       <Route path='/createlecture' element={<CreateL />}></Route>
       <Route path='/viewlecture/:id' element={<ViewL />}></Route>
       <Route path='/lecturetranscript' element={<LTranscript />}></Route>
+      <Route path='/tutorials' element={<Tutorials />}></Route>
+      <Route path='/createtutorials' element={<CreateT />}></Route>
+      <Route path='/viewtutorials/:id' element={<ViewT />}></Route>
   
 
 

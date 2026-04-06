@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from . models import Note, Contact, Task, Lecture
+from . models import Note, Contact, Task, Lecture, Tutorial
 
 
 User = get_user_model
@@ -30,4 +30,10 @@ class TaskSerializer(serializers.ModelSerializer):
 class LectureSerializer(serializers.ModelSerializer):
     model = Lecture
     fields = ["id", "lecture", "created_at"]
+    read_only_fields = ["created_at"]
+    
+    
+class TutorialSerializer(serializers.ModelSerializer):
+    model = Tutorial
+    fields = ["id", "youtube_title", "youtube_text", "youtube_link"]
     read_only_fields = ["created_at"]

@@ -1,0 +1,56 @@
+.tutorials_con {
+  background-image:  url("../../src/assets/img/notes_14.jpg");
+  padding: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+
+.icons {
+    display: flex;
+    flex-direction: row;
+    padding: 1rem 2rem;
+    padding-right: 2rem;
+    gap: 2rem;
+    
+}
+
+.search {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+
+
+.add {   
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    
+}
+
+.icon {
+    font-size: 2rem;
+    border: 5px solid gold;
+    background-color: gold;
+    border-radius: 50%;
+    padding: 0.5rem 1rem;
+    color: black;
+    font-weight: 3oo;
+}
+
+.icon:hover {
+    transform: scale(1.05);
+}
+
