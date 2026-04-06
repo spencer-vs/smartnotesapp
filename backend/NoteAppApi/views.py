@@ -9,6 +9,7 @@ from .models import Note, Contact, Tutorial
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
+from datetime import datetime
 from openai import OpenAI
 from django.http import JsonResponse
 import json
@@ -42,29 +43,71 @@ def search_notes(request):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def search_lectures(request):
-    query = request.GET.get('q', '').strip()
-    lectures = Lecture.objects.filter(user=request.user)
-    if query: 
-        lectures = lectures.filter(
-            Q(created_at__date=query) | Q(created__at__icontains=query)
-        )
-    lectures = lectures.order_by('-created_at')
-    serializer = LectureSerializer(lectures, many=True)
-    return Response(serializer.data)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_tasks(request):
-    query = request.GET.get('q', '')
-    tasks = Task.objects.filter(user=request.user).filter(
-        Q(todo_title__icontains=query) | Q(todo_list__icontains=query)
-    ).order_by('created_at')
+    print("SEARCH VIEW HIT")
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return Response([])
+    tasks = Task.objects.filter(user=request.user)
+    try:
+        # Try date search
+        date_obj = datetime.strptime(query, "%Y-%m-%d").date()
+        tasks = tasks.filter(created_at__date=date_obj)
+    except ValueError:
+        # Text search
+        tasks = tasks.filter(
+            Q(todo_title__icontains=query) |
+            Q(todo_list__icontains=query)
+        )
+    tasks = tasks.order_by('-created_at')
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_lectures(request):
+    try:
+        query = request.GET.get('q', '').strip()
+        print("QUERY:", query)
+        if not query:
+            return Response([])
+        lectures = Lecture.objects.filter(user=request.user)
+        # ✅ Handle FULL DATE (YYYY-MM-DD)
+        if len(query) == 10:
+            try:
+                date_obj = datetime.strptime(query, "%Y-%m-%d").date()
+                lectures = lectures.filter(created_at__date=date_obj)
+            except ValueError:
+                lectures = Lecture.objects.none()
+        # ✅ Handle YEAR-MONTH (YYYY-MM)
+        elif len(query) == 7:
+            lectures = lectures.filter(created_at__startswith=query)
+        # ✅ Handle YEAR only (YYYY)
+        elif len(query) == 4:
+            lectures = lectures.filter(created_at__year=query)
+        # ✅ Otherwise → TEXT SEARCH
+        else:
+            lectures = lectures.filter(
+                Q(lecture__icontains=query)
+            )
+        lectures = lectures.order_by('-created_at')
+        serializer = LectureSerializer(lectures, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        print("SEARCH ERROR:", str(e))
+        traceback.print_exc()
+        return Response({"error": "Server error"}, status=500)
+
+
+
+
+
 
 
 
