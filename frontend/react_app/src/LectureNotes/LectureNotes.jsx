@@ -83,12 +83,7 @@ const LectureNotes = () => {
                                  <li className={styles.list}>
                                  <p className={styles.date}>{lecture.created_at}</p>
                                  <p className={styles.truncate}>{truncateWords(lecture.lecture, 10)}</p>
-                                 <button className={styles.deleteBtn}>
-                                  Delete
-                                 </button>
-                               <button className={styles.shareBtn}>
-                            Share
-                        </button>
+                                 
                         
                         </li>
                          </NavLink>

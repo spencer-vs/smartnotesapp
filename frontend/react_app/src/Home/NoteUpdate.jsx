@@ -60,6 +60,57 @@ const NoteUpdate = () => {
     console.error('Failed to update note:', err)
   })
 }
+
+
+
+
+const handleDelete = (id) => {
+    if(!window.confirm("Are you sure you want to delete this note.")) {
+      return
+    }
+
+    api.delete(`notes/${id}/delete/`)
+    .then(() => {
+      setNotes(prevNotes => prevNotes.filter(note => note.id !== id))
+      navigate("/")
+    })
+    .catch(error => {
+      console.error('Error deleting note:', error)
+    })
+  }
+
+  
+
+  const handleShare = async (note) => {
+  console.log("Sharing note:", note);
+  if (!note) return;
+
+  const content = `${note.title || "No Title"}\n\n${note.content || "No Content"}`;
+
+  const file = new File( [content],
+  `${(note.title || "note").replace(/\s+/g, "_")}.txt`,
+    { type: "text/plain" }
+  );
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: note.title,
+        text: note.content,
+        files: [file],
+      });
+    } catch {
+      console.log("Share cancelled");
+    }
+  } else {
+    const blobUrl = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+  }
+};
+
   
   
   
@@ -86,6 +137,15 @@ const NoteUpdate = () => {
         <button className={styles.updateBtn} onClick={handleUpdate}>
           Update  
         </button>
+
+        
+          <button onClick={() => handleDelete(note.id)}  className={styles.updateBtn}>
+              Delete
+        </button>
+
+          <button onClick={() => handleShare(note)}  className={styles.updateBtn}>
+                Share
+              </button>
     </div>
     <Footer />
      </>

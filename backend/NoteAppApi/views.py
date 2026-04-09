@@ -284,6 +284,22 @@ def update_task(request, id):
     except Exception:
         traceback.print_exc()
         return JsonResponse({'error': 'Server error'}, status=500)
+    
+    
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_task(request):
+    try:
+        todo_title = Task.objects.get(id=id, user=request.user)
+        todo_title.delete()
+        todo_list = Task.objects.get(id=id, user=request.user)
+        todo_list.delete()
+        return JsonResponse({"message": "Task deleted successfully"}, status=200)
+    except Task.DoesNotExist:
+        return JsonResponse({'error': 'Task not found'}, status=404)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
 
 
 @api_view(['GET'])
@@ -412,6 +428,24 @@ def process_audio(lecture_id):
             pass
         
         
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_lectures(request):
+    try:
+        lectures = Lecture.objects.get(id=id, user=request.user)
+        lectures.delete()
+        return JsonResponse({"message": "lecture deleted successfully"}, status=200)
+    except lectures.DoesNotExist:
+        return JsonResponse({"error": "lecture not found"}, status=404)
+    except Exception as e:
+        print("Error deleting lecture:", str(e))
+        traceback.print_exc()
+        return JsonResponse({"error": "Server Error"}, status=500)
+        
+
+        
+        
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lecture_status(request, id):
@@ -424,6 +458,7 @@ def lecture_status(request, id):
         })
     except Lecture.DoesNotExist:
         return JsonResponse({"error": "Not found"}, status=404)
+    
     
     
 

@@ -57,6 +57,7 @@
 
 
 .updateBtn {
+  margin-top: 4rem;
    font-size: 1.5rem;
    color: #fff;
    padding: 15px 30px;
@@ -91,6 +92,12 @@
 .updateBtn:active {
    transform: scale(0.95);
 }
+
+
+
+
+
+
 
 
 .loader {

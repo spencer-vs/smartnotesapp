@@ -39,14 +39,29 @@ const ViewL = () => {
        {loading ? (
          <div className={styles.loader}></div>
        ) : lecture ? (
+        <>
         <textarea 
         className={styles.text}
         value={lecture.lecture}
         readOnly
         />
+
+        <div className={styles.buttons}>
+        <button className={styles.deleteBtn}>
+            Delete
+        </button>
+        <button className={styles.shareBtn}>
+            Share
+        </button>
+        </div>
+        </>
+
+        
        ): (
         <p style={{ color: 'white', fontSize: '2rem'}}>No Lecture Found</p>
        )}
+
+      
 
         
       </div>
