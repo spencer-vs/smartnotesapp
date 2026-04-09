@@ -59,6 +59,9 @@ const LHeader = () => {
     <ul className={styles.menuLinks}>
       {auth.isAuthenticated ? (
             <>
+          <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
+                                     `${styles.navLink} ${isActive ? styles.active : ''}`
+                                      }>Lectures</NavLink></li>
           <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
                       }>Notes</NavLink></li>

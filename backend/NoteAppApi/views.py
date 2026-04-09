@@ -376,6 +376,7 @@ def upload_audio(request):
 def process_audio(lecture_id):
     try:
         lecture = Lecture.objects.get(id=lecture_id)
+        file_path = lecture.audio_file.path
         api_key = os.getenv("ASSEMBLYAI_API_KEY")
         if not api_key:
             print("AssemblyAI key missing!")
@@ -395,6 +396,11 @@ def process_audio(lecture_id):
         lecture.lecture = notes
         lecture.status = "completed"
         lecture.save()
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print('Audio file deleted successfully')
+            
     except Exception as e:
         print("Audio processing error:", str(e))
         traceback.print_exc()

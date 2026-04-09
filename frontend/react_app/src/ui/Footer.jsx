@@ -44,11 +44,11 @@ const footer = () => {
                       </li>
 
 
-                      <li className={styles.footerItem}>
+                      {/* <li className={styles.footerItem}>
                           <NavLink to="/features" className={styles.footerLink_3}>
                             Features
                           </NavLink>
-                      </li>
+                      </li> */}
 
 
 

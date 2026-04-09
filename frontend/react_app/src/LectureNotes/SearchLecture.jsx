@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import styles from "../Task/Search.module.css"
 
 
 function SearchLectures() {
@@ -32,18 +33,20 @@ function SearchLectures() {
     }
   };
   return (
-    <div>
+    <div className={styles.search_con}>
       {/* 🔥 You can switch this to type="date" */}
       <input
         type="text"
-        placeholder="Search lectures or date (YYYY-MM-DD)"
+        placeholder="Search lectures or date"
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
+        className={styles.search_input}
       />
       {results.map(lecture => (
         <div
           key={lecture.id}
           onClick={() => navigate(`/viewlecture/${lecture.id}`)}
+           className={styles.search_result}
         >
           {/* <p>{lecture.created_at}</p> */}
           <p>{lecture.created_at}  {lecture.lecture.slice(0, 80)}...</p>
