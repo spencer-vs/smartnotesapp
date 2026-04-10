@@ -20,6 +20,7 @@ const NoteUpdate = () => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
+  const [note, setNotes] = useState([]);
   const backgrounds = [bg1, bg2, bg3, bg4]
     const [index, setIndex] = useState(0)
       

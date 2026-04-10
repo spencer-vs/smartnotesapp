@@ -21,8 +21,8 @@ urlpatterns = [
    path("notes/lectures/<int:id>/", get_lecture_detail, name="lecture-detail"),
    path("notes/lectures/<int:id>/status/", lecture_status),
    path("notes/tutorials/", generate_tutorial, name="generate_tutorial"),
-   path("notes/<int:id>/delete_lectures/", delete_lectures, name="delete_lectures"),
-   path("notes/<int:id>/delete_task/", delete_task, name="delete_task")
+   path("notes/lectures/<int:id>/delete/", delete_lectures, name="delete_lectures"),
+   path("notes/task/<int:id>/delete/", delete_task, name="delete_task")
 ]
 
 

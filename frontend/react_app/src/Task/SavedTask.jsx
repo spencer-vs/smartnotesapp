@@ -68,6 +68,58 @@ const SavedTask = () => {
     }
 
 
+    const deleteTask = async (id) => {
+        if (!task) return;
+        if(!window.confirm("Are you sure you want to delete this task")) {
+            return;
+        }
+        api.delete(`notes/task/${id}/delete`)
+        .then(() => {
+            setTask(prev => prev.filter(task => task.id !== id))
+            navigate("/display_task/")
+        })
+        .catch(error => {
+             console.error('Error deleting task:', error)
+        })
+    }
+
+
+
+
+
+
+
+  
+  const shareTask = async (task) => {
+  console.log("Sharing Task:", task);
+  if (!task) return;
+
+  const content = `${task.todo_title || "No Title"}\n\n${task.todo_list || "No Content"}`;
+
+  const file = new File( [content],
+  `${(task.todo_title || "note").replace(/\s+/g, "_")}.txt`,
+    { type: "text/plain" }
+  );
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: task.todo_title ,
+        content: task.todo_list,
+        files: [file],
+      });
+    } catch {
+      console.log("Share cancelled");
+    }
+  } else {
+    const blobUrl = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+  }
+};
+
   if (loading) return <div className={styles.loader}></div>
 
   if (!task) return <p>Task not found</p>
@@ -114,11 +166,19 @@ return (
                 onChange={(e) => setTodo(e.target.value)}
             ></textarea>
         </div>
-
+         <div className={styles.buttons}>
         <button className={styles.updateTask} onClick={updateTask}>
-            Update Task
-        </button>  
+            Update
+        </button> 
 
+         <button className={styles.updateTask} onClick={deleteTask}>
+            Delete
+        </button> 
+
+         <button className={styles.updateTask} onClick={shareTask}>
+            Share
+        </button>  
+        </div>
         </div>
   
     <Footer />

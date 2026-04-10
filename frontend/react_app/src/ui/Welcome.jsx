@@ -58,7 +58,7 @@ const Welcome = () => {
         </button>
     </NavLink> 
 
-    <NavLink className={styles.card2} to="/">
+    <NavLink className={styles.card2} to="/display_task/">
         <p className={styles.text_1}>Use AI to generate timetables for your task or lectures</p>
         <button className={styles.intro_btn}>
             Task

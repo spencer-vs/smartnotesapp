@@ -141,6 +141,18 @@
 }
 
 
+
+.buttons {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   flex-direction: row;
+   margin-top: 2rem;
+   margin-bottom: 2rem;
+}
+
+
+
 .loader {
    border: 6px solid #f3f3f3;
    border-top: 6px solid goldenrod;

@@ -28,6 +28,50 @@ const ViewL = () => {
     })
   }, [id])
   
+
+  const deleteLectures = async (id) => {
+     if(!window.confirm("Are you sure you want to delete this lecture.")) {
+      return
+    }
+
+    api.delete(`notes/lectures/${id}/delete/`)
+    .then(() => {
+      setLecture(prev => prev.filter(lecture => lecture.id !== id))
+      navigate("/lecturesnotes")
+    })
+    .catch(error => {
+      console.error('Error deleting note:', error)
+    })
+  }
+
+  const shareLectures = async (lecture) => {
+    console.log("Sharing Lectures:", lecture)
+    if (!lecture) return;
+
+     const content = `${lecture.lecture || "No lecture"}`;
+
+  const file = new File( [content],
+  `${(lecture.lecture || "note").replace(/\s+/g, "_")}.txt`,
+    { type: "text/plain" }
+  );
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        lecture: lecture.lecture,
+        files: [file],
+      });
+    } catch {
+      console.log("Share cancelled");
+    }
+  } else {
+    const blobUrl = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+  }
+  }
   
   
   return (
@@ -47,10 +91,10 @@ const ViewL = () => {
         />
 
         <div className={styles.buttons}>
-        <button className={styles.deleteBtn}>
+        <button className={styles.deleteBtn} onClick={deleteLectures}>
             Delete
         </button>
-        <button className={styles.shareBtn}>
+        <button className={styles.shareBtn} onClick={shareLectures}>
             Share
         </button>
         </div>
