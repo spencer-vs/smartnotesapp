@@ -30,7 +30,7 @@ const CreateL = () => {
         console.log("Status:", data.status);
         if (data.status === "completed") {
           clearInterval(interval);
-          // ✅ redirect to view page
+          setLoading(false)
           navigate(`/viewlecture/${lectureId}`);
         }
         if (data.status === "failed") {
@@ -100,13 +100,11 @@ const handleSubmit = async () => {
     });
     const data = await response.json();
     const lectureId = data.lecture_id;
-    if (lectureId) {
-      navigate(`/viewlecture/${lectureId}`);
-    }
 
     if (!lectureId) {
       alert("No lecture ID returned")
     }
+    setLoading(true);
     checkStatus(lectureId)
   } catch (err) {
     console.error(err);

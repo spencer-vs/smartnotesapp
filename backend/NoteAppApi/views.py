@@ -290,10 +290,8 @@ def update_task(request, id):
 @permission_classes([IsAuthenticated])
 def delete_task(request, id):
     try:
-        todo_title = Task.objects.get(id=id, user=request.user)
-        todo_title.delete()
-        todo_list = Task.objects.get(id=id, user=request.user)
-        todo_list.delete()
+        task = Task.objects.get(id=id, user=request.user)
+        task.delete()
         return JsonResponse({"message": "Task deleted successfully"}, status=200)
     except Task.DoesNotExist:
         return JsonResponse({'error': 'Task not found'}, status=404)
@@ -436,7 +434,7 @@ def delete_lectures(request, id):
         lectures = Lecture.objects.get(id=id, user=request.user)
         lectures.delete()
         return JsonResponse({"message": "lecture deleted successfully"}, status=200)
-    except lectures.DoesNotExist:
+    except Lecture.DoesNotExist:
         return JsonResponse({"error": "lecture not found"}, status=404)
     except Exception as e:
         print("Error deleting lecture:", str(e))

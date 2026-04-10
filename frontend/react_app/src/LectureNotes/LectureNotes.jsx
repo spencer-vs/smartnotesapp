@@ -11,7 +11,7 @@ import api from '../api/axios';
 
 
 const LectureNotes = () => {
-  const [lectures, setLectures] = useState([]);
+  const [lectures, setLectures] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate()
   
@@ -22,14 +22,14 @@ const LectureNotes = () => {
           setLoading(true)
           api.get('notes/lectures/')
           .then(res => {
-              setLoading(true)
+              // setLoading(true)
               // console.log("Lectures:", res.data)
               setLectures(res.data)
-              setLoading(false)
+              // setLoading(false)
           })
           .catch(err => {
               console.log("Failed to fetch task:", err.message)
-              setLoading(false)
+              // setLoading(false)
           })
       }, [])
 
@@ -71,7 +71,7 @@ const LectureNotes = () => {
             <h1 className={styles.heading}>Lecture Notes</h1>
 
             
-                 {lectures.length === 0 ? (
+                 {/* {lectures.length === 0 ? (
                         <div className={styles.loader}></div>
                  )
                     : (  
@@ -93,7 +93,33 @@ const LectureNotes = () => {
                     </div>
                     )}
                
-                  
+                   */}
+
+
+
+
+                   {lectures === null ? (
+  <div className={styles.loader}></div>
+) : lectures.length === 0 ? (
+  <p style={{ color: "white" }}>No lectures found</p>
+) : (
+  <div className={styles.all_lecture}>
+    {lectures.map(lecture => (
+      <div className={styles.all_lecture} key={lecture.id}>
+        <ul className={styles.lecture_list}>
+          <NavLink className={styles.link} to={`/viewlecture/${lecture.id}/`}>
+            <li className={styles.list}>
+              <p className={styles.date}>{lecture.created_at}</p>
+              <p className={styles.truncate}>
+                {truncateWords(lecture.lecture, 10)}
+              </p>
+            </li>
+          </NavLink>
+        </ul>
+      </div>
+    ))}
+  </div>
+)}
               
               
             </div>

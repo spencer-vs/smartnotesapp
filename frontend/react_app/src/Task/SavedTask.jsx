@@ -75,7 +75,7 @@ const SavedTask = () => {
         }
         api.delete(`notes/task/${id}/delete`)
         .then(() => {
-            setTask(prev => prev.filter(task => task.id !== id))
+            setTask(null)
             navigate("/display_task/")
         })
         .catch(error => {
@@ -171,7 +171,7 @@ return (
             Update
         </button> 
 
-         <button className={styles.updateTask} onClick={deleteTask}>
+         <button className={styles.updateTask} onClick={() => deleteTask(task.id)}>
             Delete
         </button> 
 
