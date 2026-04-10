@@ -288,7 +288,7 @@ def update_task(request, id):
     
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def delete_task(request):
+def delete_task(request, id):
     try:
         todo_title = Task.objects.get(id=id, user=request.user)
         todo_title.delete()
@@ -431,7 +431,7 @@ def process_audio(lecture_id):
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def delete_lectures(request):
+def delete_lectures(request, id):
     try:
         lectures = Lecture.objects.get(id=id, user=request.user)
         lectures.delete()
