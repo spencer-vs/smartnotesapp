@@ -58,7 +58,7 @@ const CreateL = () => {
   if (!recording) {
     
     const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4"
-    mimeTypeRef = mimeType;
+    mimeTypeRef.current = mimeType;
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const mediaRecorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = mediaRecorder;
