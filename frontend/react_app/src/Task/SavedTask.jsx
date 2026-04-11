@@ -73,7 +73,7 @@ const SavedTask = () => {
         if(!window.confirm("Are you sure you want to delete this task")) {
             return;
         }
-        api.delete(`notes/task/${id}/delete`)
+        api.delete(`notes/task/${id}/delete/`)
         .then(() => {
             setTask(null)
             navigate("/display_task/")

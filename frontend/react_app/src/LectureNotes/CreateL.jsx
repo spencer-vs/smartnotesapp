@@ -47,10 +47,17 @@ const CreateL = () => {
 
 
   const handleRecordClick = async () => {
+  
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    alert("Recording not supported on this device/browser");
+    return;
+  }
+  
   if (!recording) {
     
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4"
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mediaRecorder = new MediaRecorder(stream);
+    const mediaRecorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = mediaRecorder;
     audioChunksRef.current = [];
     mediaRecorder.ondataavailable = (event) => {
@@ -85,7 +92,7 @@ const handleSubmit = async () => {
     return;
   }
   const audioBlob = new Blob(audioChunksRef.current, {
-    type: "audio/webm",
+    type: mimeType,
   });
   const formData = new FormData();
   formData.append("audio", audioBlob, "lecture.webm");

@@ -48,7 +48,7 @@ const LectureNotes = () => {
   
   
     return (
-
+  <>
    <div className={styles.lecture_con}>
         <LHeader />
 
@@ -123,9 +123,10 @@ const LectureNotes = () => {
               
               
             </div>
-            <Footer />
-            </div>
            
+            </div>
+           <Footer />
+           </> 
         
         
     
