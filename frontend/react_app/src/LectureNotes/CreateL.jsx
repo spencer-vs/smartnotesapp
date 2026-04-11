@@ -9,6 +9,7 @@ const CreateL = () => {
   const [loading, setLoading] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const mimeTypeRef = useRef("audio/webm")
   const navigate = useNavigate();
   const [paused, setPaused] = useState(false)
   const [hasRecording, setHasRecording] = useState(false)
@@ -21,7 +22,7 @@ const CreateL = () => {
   const checkStatus = (lectureId) => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/notes/lectures/${lectureId}/status/`, {
+        const res = await fetch(`https://smartnoteapi.onrender.com/api/notes/lectures/${lectureId}/status/`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access")}`,
           },
@@ -37,6 +38,7 @@ const CreateL = () => {
           alert("Processing failed");
           clearInterval(interval);
         }
+       
       } catch (err) {
         console.error("Polling error:", err);
         clearInterval(interval);
@@ -56,6 +58,7 @@ const CreateL = () => {
   if (!recording) {
     
     const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4"
+    mimeTypeRef = mimeType;
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const mediaRecorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = mediaRecorder;
@@ -91,20 +94,24 @@ const handleSubmit = async () => {
     alert("No recording available");
     return;
   }
+  
   const audioBlob = new Blob(audioChunksRef.current, {
-    type: mimeType,
+    type: mimeTypeRef.current,
   });
   const formData = new FormData();
   formData.append("audio", audioBlob, "lecture.webm");
   try {
     const token = localStorage.getItem("access");
-    const response = await fetch("http://127.0.0.1:8000/api/notes/upload-audio/", {
+    const response = await fetch("https://smartnoteapi.onrender.com/api/notes/upload-audio/", {
       method: "POST",
       body: formData,
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+     if(!response.ok) {
+          throw new Error("Upload failed");
+    }
     const data = await response.json();
     const lectureId = data.lecture_id;
 

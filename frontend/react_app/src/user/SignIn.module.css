@@ -1,5 +1,7 @@
 .container {
   background-image:  url("../../src/assets/img/notes_3.jpg");
+  background-position: fixed;
+  background-color: #000;
   min-height: 100vh;
   display: flex;
   align-items: center;

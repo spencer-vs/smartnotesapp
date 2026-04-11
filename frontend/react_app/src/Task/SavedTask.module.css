@@ -5,7 +5,8 @@
     font-size: 2rem;
     font-family: Arial, Helvetica, sans-serif;
     color: #a51010dc;
-    /* background: linear-gradient(to bottom, #131111 30%, #575555 70%); */
+    background-color: #000;
+    background-position: fixed;
     background-image:  url("../../src/assets/img/notes_6.jpg");
     display: flex;
   justify-content: center;

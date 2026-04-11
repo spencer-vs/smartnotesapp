@@ -6,8 +6,8 @@
     font-family: Arial, Helvetica, sans-serif;
     color: black;
     background-image:  url("../../src/assets/img/notes_6.jpg");
-   
-    
+    background-color: #000;
+    background-position: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
