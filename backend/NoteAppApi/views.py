@@ -9,7 +9,8 @@ from .models import Note, Contact, Tutorial
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
-from datetime import datetime, time
+from datetime import datetime
+import time
 from openai import OpenAI
 from django.http import JsonResponse
 import json
@@ -529,30 +530,36 @@ def lecture_status(request, id):
     
     
     
- 
- 
- 
+    
+    
+import requests
+import os
 def generate_lecture_note(transcription):
     try:
         api_key = os.getenv("GROQ_API_KEY")
-        client = Groq(api_key=api_key)
-        prompt = f"Convert this into structured lecture notes:\n{transcription}"
-        for attempt in range(3):  # 🔥 retry 3 times
-            try:
-                completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.5,
-                    max_tokens=1200,
-                    timeout=60
-                )
-                return completion.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"⚠️ Attempt {attempt+1} failed:", repr(e))
-                time.sleep(2)
-        return None
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        prompt = f"Convert this into structured lecture notes:\n{transcription[:3000]}"
+        payload = {
+            "model": "llama-3.1-8b-instant",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.5,
+            "max_tokens": 1200,
+        }
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+        print("STATUS CODE:", response.status_code)
+        print("RAW RESPONSE:", response.text)
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print("❌ GROQ FINAL ERROR:", repr(e))
+        print("❌ HTTP GROQ ERROR:", repr(e))
         return None
  
  
