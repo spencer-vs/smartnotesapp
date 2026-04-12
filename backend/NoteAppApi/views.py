@@ -9,7 +9,7 @@ from .models import Note, Contact, Tutorial
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
-from datetime import datetime
+from datetime import datetime, time
 from openai import OpenAI
 from django.http import JsonResponse
 import json
@@ -37,6 +37,16 @@ User = get_user_model()
 #             ],
 # )
 # print(res.choices[0].message.content)
+
+
+import socket
+# Force IPv4
+def force_ipv4():
+    orig_getaddrinfo = socket.getaddrinfo
+    def new_getaddrinfo(*args, **kwargs):
+        return [res for res in orig_getaddrinfo(*args, **kwargs) if res[0] == socket.AF_INET]
+    socket.getaddrinfo = new_getaddrinfo
+force_ipv4()
 
 
 @api_view(['GET'])
@@ -481,46 +491,69 @@ def lecture_status(request, id):
 
 
 
+# def generate_lecture_note(transcription):
+#     try:
+#         api_key = os.getenv("GROQ_API_KEY")
+#         if not api_key:
+#             print("Groq API key not found")
+#             return None
+#         print("Grok key found sending request...")
+#         client = Groq(api_key=api_key)
+#         prompt = f"""
+#         You are an expert academic assistant.
+#         Convert the following transcript into well-structured lecture notes.
+#         REQUIREMENTS:
+#         - Use clear headings and subheadings
+#         - Use bullet points where appropriate
+#         - Highlight key concepts
+#         - Keep it concise but complete
+#         - Add a short summary at the end
+#         Transcript:
+#         {transcription}
+#         Lecture Notes:
+#         """
+#         completion = client.chat.completions.create(
+#             model="llama-3.1-8b-instant",
+#             messages=[
+#                 {"role": "user", "content": prompt[:3000]},
+#             ],
+#             temperature=0.5,   # lower = more structured
+#             max_tokens=1200,
+#             timeout=60
+#         )
+#         print("Grok response received")
+#         return completion.choices[0].message.content.strip()
+#     except Exception as e:
+#         print("Groq error:", repr(e))
+#         return None
+    
+    
+    
+ 
+ 
+ 
 def generate_lecture_note(transcription):
     try:
         api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            print("Groq API key not found")
-            return None
-        print("Grok key found sending request...")
         client = Groq(api_key=api_key)
-        prompt = f"""
-        You are an expert academic assistant.
-        Convert the following transcript into well-structured lecture notes.
-        REQUIREMENTS:
-        - Use clear headings and subheadings
-        - Use bullet points where appropriate
-        - Highlight key concepts
-        - Keep it concise but complete
-        - Add a short summary at the end
-        Transcript:
-        {transcription}
-        Lecture Notes:
-        """
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "user", "content": prompt[:3000]},
-            ],
-            temperature=0.5,   # lower = more structured
-            max_tokens=1200,
-            timeout=60
-        )
-        print("Grok response received")
-        return completion.choices[0].message.content.strip()
-    except Exception as e:
-        print("Groq error:", repr(e))
+        prompt = f"Convert this into structured lecture notes:\n{transcription}"
+        for attempt in range(3):  # 🔥 retry 3 times
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.5,
+                    max_tokens=1200,
+                    timeout=60
+                )
+                return completion.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"⚠️ Attempt {attempt+1} failed:", repr(e))
+                time.sleep(2)
         return None
-    
-    
-    
- 
- 
+    except Exception as e:
+        print("❌ GROQ FINAL ERROR:", repr(e))
+        return None
  
  
  
