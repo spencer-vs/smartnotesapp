@@ -536,7 +536,9 @@ import requests
 import os
 def generate_lecture_note(transcription):
     try:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY", " ").strip()
+        print("Key Lenght", len(api_key))
+        print("Last Five", repr(api_key[-5]))
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
