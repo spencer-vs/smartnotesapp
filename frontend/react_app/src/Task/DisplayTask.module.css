@@ -160,7 +160,13 @@
 
 
 @media (max-width: 500px) {
-    .icons {
+
+.display_con {
+    background-position: fixed;
+}
+
+
+.icons {
     display: flex;
     flex-direction: row;
     

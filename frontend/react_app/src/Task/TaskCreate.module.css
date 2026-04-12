@@ -125,7 +125,12 @@
 
 
 @media (min-width: 300px) and (max-width: 500px) {
-   .task_heading {
+
+.task_container {
+   background-position: fixed;
+}
+
+.task_heading {
     font-size: 1rem;
     color: #a51010dc;
     text-align: center;

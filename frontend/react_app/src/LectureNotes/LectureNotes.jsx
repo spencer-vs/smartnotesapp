@@ -71,30 +71,7 @@ const LectureNotes = () => {
             <h1 className={styles.heading}>Lecture Notes</h1>
 
             
-                 {/* {lectures.length === 0 ? (
-                        <div className={styles.loader}></div>
-                 )
-                    : (  
-                    <div className={styles.all_lecture}>
-                    {lectures.map(lecture => (
-                                <div className={styles.all_lecture} key={lecture.id}>
-                                 <ul className={styles.lecture_list}>
-                                 <NavLink className={styles.link} to={`/viewlecture/${lecture.id}/`}>
-                                 <li className={styles.list}>
-                                 <p className={styles.date}>{lecture.created_at}</p>
-                                 <p className={styles.truncate}>{truncateWords(lecture.lecture, 10)}</p>
-                                 
-                        
-                        </li>
-                         </NavLink>
-                        </ul>
-                         </div> 
-                         ))}
-                    </div>
-                    )}
-               
-                   */}
-
+                
 
 
 

@@ -189,6 +189,11 @@
 
 @media (max-width: 500px) {
 
+  .create_con {
+   background-position: fixed;
+  }
+  
+  
    .create {
       padding: 1rem 2rem;
    }

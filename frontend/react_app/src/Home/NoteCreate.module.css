@@ -120,6 +120,8 @@
   .createContainer {
     padding: 1rem;
     font-size: 1.1rem;
+    background-position: fixed;
+    
   }
   .createTitle {
     margin-left: 0;

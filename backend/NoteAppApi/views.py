@@ -29,6 +29,15 @@ import threading
 
 User = get_user_model()
 
+# client = Groq(api_key="")
+# res = client.chat.completions.create(
+#     model="llama-3.1-8b-instant",
+#             messages=[
+#                 {"role": "user", "content": "Who are you"}
+#             ],
+# )
+# print(res.choices[0].message.content)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -367,10 +376,12 @@ def upload_audio(request):
            status="processing"
        )
         
-        threading.Thread(
-            target=process_audio,
-            args=(lecture.id,)
-        ).start()
+        # threading.Thread(
+        #     target=process_audio,
+        #     args=(lecture.id,)
+        # ).start()
+        
+        process_audio(lecture.id)
         
        
         
@@ -406,7 +417,15 @@ def process_audio(lecture_id):
             lecture.status = "failed"
             lecture.save()
             return
-        notes = generate_lecture_note(transcript.text)
+        short_text = transcript.text[:3000]
+        notes = generate_lecture_note(short_text)
+        
+        if not notes:
+            print("Grok failed, no notes generated")
+            lecture.status= "failed"
+            lecture.save()
+            return
+    
         lecture.lecture = notes
         lecture.status = "completed"
         lecture.save()
@@ -468,6 +487,7 @@ def generate_lecture_note(transcription):
         if not api_key:
             print("Groq API key not found")
             return None
+        print("Grok key found sending request...")
         client = Groq(api_key=api_key)
         prompt = f"""
         You are an expert academic assistant.
@@ -485,15 +505,20 @@ def generate_lecture_note(transcription):
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "user", "content": prompt},
+                {"role": "user", "content": prompt[:3000]},
             ],
             temperature=0.5,   # lower = more structured
             max_tokens=1200,
+            timeout=60
         )
+        print("Grok response received")
         return completion.choices[0].message.content.strip()
     except Exception as e:
-        print("Groq error:", e)
+        print("Groq error:", repr(e))
         return None
+    
+    
+    
  
  
  

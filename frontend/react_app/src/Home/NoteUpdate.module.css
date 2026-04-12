@@ -129,6 +129,7 @@
   .updateContainer {
     padding: 1rem;
     font-size: 1.1rem;
+    background-position: fixed;
   }
   .updateTitle {
     margin-left: 0;
@@ -153,6 +154,7 @@
 @media (min-width: 601px) and (max-width: 1024px) {
   .updateContainer {
     padding: 2rem;
+    background-position: fixed;
   }
   .updateTitle {
     margin-left: 1rem;
@@ -172,7 +174,12 @@
 }
 
 @media (min-width: 300px) and (max-width: 599px)  {
-    .updateTitle {
+    
+  .updateContainer {
+    background-position: fixed;
+  }
+  
+  .updateTitle {
     margin-left: 1rem;
     width: 70%;
     font-size: 1.3rem;

@@ -174,6 +174,14 @@
 
 
 @media (min-width: 300px) and (max-width: 500px){
+
+
+.view_con {
+   background-position: fixed;
+}
+
+
+
 .text {
     display: flex;
     justify-content: flex-start;
@@ -193,6 +201,12 @@
 
 
 @media (min-width: 501px) and (max-width: 1024px) {
+
+.view_con {
+   background-position: fixed;
+}
+
+
 .text {
     display: flex;
     justify-content: flex-start;
