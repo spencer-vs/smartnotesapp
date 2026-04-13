@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom"
 import styles from "./SignUp.module.css"
 import Header from '../ui/Header'
 import { NavLink } from 'react-router-dom'
+import { IoMdEye } from "react-icons/io"; 
+import { IoMdEyeOff } from "react-icons/io"; 
 
 const SignUp = () => {
   
@@ -14,7 +16,14 @@ const SignUp = () => {
   const [email, setEmail] = useState("")
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+
+
+
+  const togglePassword = () => {
+    setShowPassword((prev) => !prev);
+  }
 
 
 
@@ -89,9 +98,10 @@ if (loading) return <div className={styles.loader}></div>
         className={styles.error}
         >{errors.username}</p>}
 
-        <input 
+       <div className={styles.passwordBox}>
+         <input 
         className={styles.signupPassword}
-        type="password"
+        type={showPassword ? "text" : "password"}
         placeholder="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -101,6 +111,11 @@ if (loading) return <div className={styles.loader}></div>
         className={styles.error}
         >{errors.password}</p>}
 
+        <button className={styles.eyecons} type="button" onClick={togglePassword}>
+           {showPassword ? <IoMdEye /> : <IoMdEyeOff />}
+        </button>
+
+       </div>
 
 
         <input 

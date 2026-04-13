@@ -8,6 +8,33 @@
   justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.passwordWrapper {
+  position: relative;
+  width: 100%;
+}
+
+
+
+
+.eyecon {
+  background: none;
+  border: none;
+  width: 10%;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  color: gold;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+
+}
+
+
+
 .formWrapper {
   background: rgba(255, 0, 0, 0.05);
   border: 5px solid goldenrod;
@@ -51,6 +78,8 @@
   background: black;
   color: white;
   transition: 0.3s ease;
+  width: 86%;
+  padding-right: 40px;
 }
 .signinPassword:focus {
   outline: none;
@@ -108,7 +137,7 @@
 
 
 
-@media (max-width: 600px) {
+@media (min-width: 300px) and (max-width: 600px) {
   .container {
     padding: 1rem;
   }
@@ -128,12 +157,36 @@
   border: 1px solid black;
 }
 
+
+
+.signinPassword {
+  width: 79%;
+}
+
+.eyecon {
+  right: 10px;
+  
+}
+
 }
 @media (min-width: 601px) and (max-width: 1024px) {
   .formWrapper {
     padding: 30px;
     max-width: 500px;
   }
+
+
+.signinPassword {
+  width: 95%;
+}
+
+.eyecon {
+  right: 10px;
+  
+}
+
+
+
   .loginHeader {
     font-size: 1.7rem;
   }

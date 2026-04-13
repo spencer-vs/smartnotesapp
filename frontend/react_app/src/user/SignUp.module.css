@@ -18,6 +18,33 @@
   box-shadow: 0 0 25px black;
   perspective: 500px;
 }
+
+
+.passwordBox {
+  position: relative;
+  width: 100%;
+}
+
+
+
+.eyecons {
+  background: none;
+  border: none;
+  width: 10%;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  color: gold;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+
+}
+
+
+
 .registerHeader {
   font-size: 2rem;
   color: gold;
@@ -54,6 +81,8 @@ form {
   background: black;
   color: white;
   transition: 0.3s ease;
+   width: 86%;
+  padding-right: 40px;
 }
 .signupPassword:focus {
   outline: none;
@@ -196,6 +225,19 @@ form {
   .registerHeader {
     font-size: 1.7rem;
   }
+
+  
+  .signupPassword {
+  width: 95%;
+}
+
+.eyecons {
+  right: 10px;
+  
+}
+
+
+
 
   .signupMail {
     font-size: 1.1rem;

@@ -5,18 +5,32 @@ import { useNavigate } from "react-router-dom"
 import styles from "./SignIn.module.css"
 import Header from "../ui/Header"
 import { AuthContext } from "../context/AuthContext"
-import SIHeader from "./SIHeader"
 import { NavLink } from "react-router-dom"
+import { IoMdEye } from "react-icons/io"; 
+import { IoMdEyeOff } from "react-icons/io"; 
+{/* <IoMdEye />
+<IoMdEyeOff /> */}
+
+
 
 export const SignIn = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const { login } = useContext(AuthContext);
 
 
 
+  
+ 
+   const togglePassword = () => {
+    setShowPassword((prev) => !prev);
+  }
+ 
+  
+  
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -46,11 +60,16 @@ export const SignIn = () => {
    
     <div className={styles.container}>
       
-     <form className={styles.formWrapper}>
+     <form className={styles.formWrapper} onSubmit={handleLogin}>
       <h2 className={styles.loginHeader}>Login</h2>
       <input className={styles.signinName} placeholder="Username" onChange={(e) => setUsername(e.target.value)}/>
-      <input className={styles.signinPassword} type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
-      <button className={styles.signinBTN} onClick={handleLogin}>
+      <div className={styles.passwordWrapper}>
+      <input className={styles.signinPassword} type={showPassword ? "text" : "password"} placeholder="Password" onChange={(e) => setPassword(e.target.value)}/>
+      <button className={styles.eyecon} onClick={togglePassword} type="button">
+        {showPassword  ? <IoMdEye /> : <IoMdEyeOff /> }
+      </button>
+      </div>
+      <button className={styles.signinBTN}  type="submit">
         Login
       </button>
       {loading && (
