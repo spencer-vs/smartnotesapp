@@ -634,7 +634,7 @@ def generate_tutorial(request):
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request method'}, status=405)
     try:
-        data = json.loads(request.body)
+        data = json.loads(request.body or "{}")
         yt_link = data.get('link')
         if not yt_link:
             return JsonResponse({'error': 'No YouTube link provided'}, status=400)
@@ -708,6 +708,8 @@ def get_transcription(video_id):
     proxy_transcript = get_transcription_proxy(video_id)
     if proxy_transcript:
         return proxy_transcript
+    print("No transcript found")
+    return None
     
 
     

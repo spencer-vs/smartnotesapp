@@ -11,32 +11,22 @@ const CreateT = () => {
   const navigate = useNavigate();
 
 
-  // useEffect = () => {
-  //   setLoading(true)
-  //   api.post("notes/generate_tutorials/")
-  //   .then(res => {
-  //     console.log(res.data);
-  //     setTutorial(res.data);
-  //     setLoading(false);
-  //     navigate("/tutorials");
-
-  //   })
-  //   .catch(res => {
-  //     console.log(res.error);
-  //     alert("Failed to generate tutorial");
-  //     setLoading(false);
-  //   })
-  // }
+ 
 
   const generateLecture = async () => {
     try {
-      const res = await api.post("notes/generate_tutorials/")
-      setTutorial(res.data);
+      setLoading(true);
+      const res = await api.post("notes/generate_tutorials/", {
+        link: tutorial
+      })
+      setTutorial(res.data.content);
       setLoading(false);
       navigate("/tutorials");
     } catch (error) {
       console.log(error);
       alert("Failed to generate tutorial");
+      
+    } finally {
       setLoading(false);
     }
   }
@@ -61,7 +51,7 @@ const CreateT = () => {
         className={styles.link_box}
         onChange={(e) => setTutorial(e.target.value)}
         />
-        <button type="submit" onClick={generateLecture} className={styles.generate_btn}>
+        <button type="submit" onClick={generateLecture} className={styles.generate_btn} disabled={!tutorial}>
           Generate 
         </button>
         </div>
