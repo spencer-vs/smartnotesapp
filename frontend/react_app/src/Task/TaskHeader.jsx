@@ -69,7 +69,7 @@ const TaskHeader = () => {
                 <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
                            `${styles.navLink} ${isActive ? styles.active : ''}`
                             }>Lectures</NavLink></li>
-              <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/" className={({ isActive }) =>
+              <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/tutorials" className={({ isActive }) =>
                            `${styles.navLink} ${isActive ? styles.active : ''}`
                             }>Tutorials</NavLink></li>
               </>

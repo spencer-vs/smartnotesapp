@@ -563,8 +563,67 @@ def generate_lecture_note(transcription):
     except Exception as e:
         print("❌ HTTP GROQ ERROR:", repr(e))
         return None
+    
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_tutorial(request):
+    try: 
+        tutorial = Tutorial.objects.get(id=id, user=request.user)
+        tutorial.delete()
+        return JsonResponse({"message": "Tutorial Deleted"}, status=200)
+    except tutorial.DoesNotExist:
+        return JsonResponse({"error": "Tutorial not found"}, status=404)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
+
+
+    
+    
+    
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_tutorial_details(request):
+    try: 
+        tutorials = Tutorial.objects.filter(user=request.user, is_deleted=False).order_by('-id')
+        data = [
+        {
+            "id": tutorial.id,
+            "title": tutorial.youtube_title,
+            "text": tutorial.youtube_text,
+            "link": tutorial.youtube_link
+        }
+        for tutorial in tutorials
+        ]
+        return JsonResponse(data, safe=False) 
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
+
+
+    
  
- 
+
+@api_view(["GET"]) 
+@permission_classes([IsAuthenticated])
+def get_all_tutorials(request):
+    try:
+        tutorials = Tutorial.objects.filter(user=request.user, is_deleted=False).order_by('-id')
+        data = [
+            {
+                "id": tutorial.id,
+                "title": tutorial.youtube_title,
+                "text": tutorial.youtube_text
+            }
+            for tutorial in tutorials
+        ]
+        return JsonResponse(data, safe=False)
+    except Exception:
+        traceback.print_exc()
+        return JsonResponse({'error': 'Server error'}, status=500)
+
+
  
  
  
@@ -700,7 +759,7 @@ def generate_tutorial_from_transcript(transcription):
         transcription = transcription[:1200]
         client = Groq(api_key=api_key)
         prompt = f"""
-        Based on the generated transcript, create lecture notes, covering all aspects of the video.
+        Based on the generated transcript, create lecture notes, covering all relevant aspects of the video.
         Transcript:
         {transcription}
         Article:

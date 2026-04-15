@@ -68,7 +68,7 @@ const LHeader = () => {
           <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/display_task/" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
                       }>Task</NavLink></li>
-        <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/display_task/" className={({ isActive }) =>
+        <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/tutorials" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
                       }>Tutorials</NavLink></li>
         </>

@@ -146,6 +146,7 @@
 @media (min-width: 601px) and (max-width: 1024px) {
   .createContainer {
     padding: 2rem;
+    background-position: fixed;
   }
   .createTitle {
     margin-left: 1rem;
@@ -179,5 +180,9 @@
   .createBtn {
     width: 40%;
     font-size: 1.3rem;
+  }
+
+  .createContainer {
+    background-position: fixed;
   }
 }

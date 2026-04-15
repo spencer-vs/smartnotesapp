@@ -244,7 +244,11 @@
 }
 
 @media (min-width: 500px) and (max-width: 1000px){
-   .list {
+   .lecture_con {
+    background-position: fixed;
+   }
+   
+    .list {
     width: 38rem;
     height: auto;
     
@@ -260,4 +264,9 @@
     
    
     
-} }
+}
+.lecture_con {
+    background-position: fixed;
+}
+
+}

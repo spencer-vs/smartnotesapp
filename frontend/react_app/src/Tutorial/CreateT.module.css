@@ -1,3 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Dancing+Script:wght@400..700&family=New+Rocker&display=swap');
+
+
+
 .createT_con {
   background-image:  url("../../src/assets/img/notes_14.jpg");
   padding: 0;
@@ -10,4 +14,193 @@
   margin: 0;
   box-sizing: border-box;
   font-family: Arial, Helvetica, sans-serif;
+  
+}
+
+
+.create {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 5rem;
+ 
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 5px solid goldenrod;
+  border-radius: 20px;
+  width: 50%;
+  height: 20rem;
+  margin-bottom: 2rem;
+  gap: 2rem;
+  transform: translateY(70px);
+  transition: all ease-in;
+  opacity: 0;
+  transition: all ease-in;
+  animation: slideIn 1s ease-in forwards;
+}
+
+
+
+@keyframes slideIn {
+  from {
+  transform: translateY(70px);
+  opacity: 0;
+  }
+
+  to {
+  transform: translateY(0);
+  opacity: 1;
+  }
+}
+
+.create_header {
+   font-family: "New Rocker", sans-serif;
+    font-weight: 200;
+    font-optical-sizing: auto;
+    font-size: 3rem;
+    color: goldenrod;
+}
+
+.link_box {
+   border-radius: 10px;
+  width: 20rem;
+  height: 0.5rem;
+  padding: 1rem 2rem;
+  border: 2px solid goldenrod;
+  background-color: black;
+  color: white;
+  font-size: 1.5rem;
+}
+
+
+
+.generate_btn {
+   font-size: 1.5rem;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid gold;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+.generate_btn::before {
+   content: "";
+   position: absolute;
+   top: -50%;
+   left: -50%;
+   width: 200%;
+   height: 200%;
+   background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(0, 255, 255, 0) 70%);
+   transition: 0.4s;
+   transform: scale(0);
+}
+.generate_btn:hover::before {
+   transform: scale(1);
+}
+.generate_btn:hover {
+   color: #000;
+   background: gold;
+   box-shadow: 0 0 3px gold, 0 0 10px gold, 0 0 20px gold;
+}
+.generate_btn:active {
+   transform: scale(0.95);
+}
+
+
+@media (min-width: 300px) and (max-width: 500px) {
+  .card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 80%;
+  height: 25rem;
+  margin-bottom: 2rem;
+  gap: 4rem;
+  
+}
+
+
+
+
+.create_header {
+   font-family: "New Rocker", sans-serif;
+    font-weight: 200;
+    font-optical-sizing: auto;
+    font-size: 2rem;
+    color: goldenrod;
+}
+
+.link_box {
+   border-radius: 10px;
+  width: 13rem;
+  height: 0.5rem;
+  padding: 1rem 2rem;
+  border: 2px solid goldenrod;
+  background-color: black;
+  color: white;
+  font-size: 1.5rem;
+}
+
+
+
+.generate_btn {
+   font-size: 1rem;
+}
+}
+
+
+
+
+
+@media (min-width: 501px) and (max-width: 1024px) {
+  .card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 80%;
+  height: 25rem;
+  margin-bottom: 2rem;
+  gap: 4rem;
+  
+}
+
+
+
+
+.create_header {
+   font-family: "New Rocker", sans-serif;
+    font-weight: 200;
+    font-optical-sizing: auto;
+    font-size: 2.5rem;
+    color: goldenrod;
+}
+
+.link_box {
+   border-radius: 10px;
+  width: 25rem;
+  height: 0.5rem;
+  padding: 1rem 2rem;
+  border: 2px solid goldenrod;
+  background-color: black;
+  color: white;
+  font-size: 1.5rem;
+}
+
+
+
+.generate_btn {
+   font-size: 1rem;
+}
 }
