@@ -54,6 +54,8 @@ const CreateT = () => {
         <button type="submit" onClick={generateLecture} className={styles.generate_btn} disabled={!tutorial}>
           Generate 
         </button>
+        {/* {loading ? "Generating..." : "Generated"}  */}
+        {loading && <div className={styles.loader}></div>}
         </div>
        </div>
     </div>
@@ -63,3 +65,13 @@ const CreateT = () => {
 }
 
 export default CreateT
+
+
+
+//  {loading ? (
+//           <div className={styles.loader}></div>
+//         ): (
+//           <button type="button" onClick={generateLecture} className={styles.generate_btn}>
+//             Generate
+//           </button>
+//         )}

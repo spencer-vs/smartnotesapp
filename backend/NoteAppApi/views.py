@@ -750,31 +750,34 @@ def get_transcription_proxy(video_id):
 
 
 #---------------- AI BLOG GENERATION ---------------- #
+import time
 def generate_tutorial_from_transcript(transcription):
     try:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY", "").strip()
         if not api_key:
             print("Groq API key not found")
             return None
-        
-        
-        transcription = transcription[:1200]
         client = Groq(api_key=api_key)
+        transcription = transcription[:1200]
         prompt = f"""
         Based on the generated transcript, create lecture notes, covering all relevant aspects of the video.
         Transcript:
         {transcription}
         Article:
         """
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.7,
-            max_tokens=1000,
-        )
-        return completion.choices[0].message.content.strip()
+        for attempt in range(3):  # ✅ retry 3 times
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.7,
+                    max_tokens=1000,
+                )
+                return completion.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"Groq attempt {attempt+1} failed:", e)
+                time.sleep(2)
+        return None
     except Exception as e:
-        print("Groq error:", e)
+        print("Groq fatal error:", e)
         return None
