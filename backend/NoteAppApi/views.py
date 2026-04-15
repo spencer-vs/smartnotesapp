@@ -571,7 +571,7 @@ def delete_tutorial(request):
         tutorial = Tutorial.objects.get(id=id, user=request.user)
         tutorial.delete()
         return JsonResponse({"message": "Tutorial Deleted"}, status=200)
-    except tutorial.DoesNotExist:
+    except Tutorial.DoesNotExist:
         return JsonResponse({"error": "Tutorial not found"}, status=404)
     except Exception:
         traceback.print_exc()
@@ -632,10 +632,11 @@ def get_all_tutorials(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_tutorial(request):
+  
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request method'}, status=405)
     try:
-        
+        print("User:", request.user)
         yt_link = request.data.get('link')
         if not yt_link:
             return JsonResponse({'error': 'No YouTube link provided'}, status=400)
