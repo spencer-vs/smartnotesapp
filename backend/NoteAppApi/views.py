@@ -629,13 +629,14 @@ def get_all_tutorials(request):
  
  
  
-@csrf_exempt
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def generate_tutorial(request):
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request method'}, status=405)
     try:
-        data = json.loads(request.body or "{}")
-        yt_link = data.get('link')
+        
+        yt_link = request.data.get('link')
         if not yt_link:
             return JsonResponse({'error': 'No YouTube link provided'}, status=400)
         print(f"Generating blog for: {yt_link}")
