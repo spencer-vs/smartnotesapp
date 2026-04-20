@@ -99,7 +99,7 @@ class Tutorial(models.Model):
     youtube_text = models.TextField(null=True, blank=True)
     youtube_link = models.CharField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    is_deleted = models.BooleanField(default=False)
     
     def __str__(self):
         return self.youtube_title or "Tutorials"
