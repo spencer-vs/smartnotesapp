@@ -23,7 +23,7 @@ urlpatterns = [
    path("notes/generate_tutorials/", generate_tutorial, name="generate_tutorial"),
    path("notes/lectures/<int:id>/delete/", delete_lectures, name="delete_lectures"),
    path("notes/task/<int:id>/delete/", delete_task, name="delete_task"),
-   path("notes/tutorials", get_all_tutorials, name="get_tutorials"),
+   path("notes/tutorials/", get_all_tutorials, name="get_tutorials"),
    path("notes/tutorial/<int:id>/", get_tutorial_details, name="get_tutorial_details"),
    path("notes/tutorial/<int:id>/delete/", delete_tutorial, name="delete_tutorial"),
 ]

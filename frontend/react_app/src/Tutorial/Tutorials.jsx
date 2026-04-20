@@ -79,19 +79,25 @@ const Tutorials = () => {
           <h1 className={styles.tutorial_header}>All Tutorials</h1>
           
               {tutorials.length === 0 ? (
-                  <p className={styles.tutorial_no}>Loading Tutorials</p>
-              ) : (
-                  tutorials.map(task => (
-                      <div className={styles.tutorial_display} key={task.id}>
-                       <h3 className={styles.display_title}>{tutorials.youtube_title}</h3>
-                       <p className={styles.display_list}>{truncateWords(tutorials.youtube_text, 10)}</p>
-          
-                       <button onClick={() => navigate(`/tutorials/${tutorials.id}`)} className={styles.display_btn}>
-                          View Tutorials
-                      </button>
-                      </div>
-                  ))
-              )}
+  <p className={styles.tutorial_no}>No Tutorials Found</p>
+) : (
+  tutorials.map((tutorial) => (
+    <div className={styles.tutorial_display} key={tutorial.id}>
+      <h3 className={styles.display_title}>
+        {tutorial.title}
+      </h3>
+      <p className={styles.display_list}>
+        {truncateWords(tutorial.text, 10)}
+      </p>
+      <button
+        onClick={() => navigate(`/tutorials/${tutorial.id}`)}
+        className={styles.display_btn}
+      >
+        View Tutorial
+      </button>
+    </div>
+  ))
+)}
                   
 
         

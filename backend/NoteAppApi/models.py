@@ -93,7 +93,7 @@ class Tutorial(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='Tutorials'
+        related_name='Tutorial'
     )
     youtube_title = models.CharField(max_length=100, null=True, blank=True)
     youtube_text = models.TextField(null=True, blank=True)
@@ -102,4 +102,4 @@ class Tutorial(models.Model):
     
     
     def __str__(self):
-        return self.Tutorials or "Tutorials"
+        return self.youtube_title or "Tutorials"

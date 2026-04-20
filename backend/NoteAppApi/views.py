@@ -532,8 +532,7 @@ def lecture_status(request, id):
     
     
     
-import requests
-import os
+
 def generate_lecture_note(transcription):
     try:
         api_key = os.getenv("GROQ_API_KEY", " ").strip()
@@ -566,7 +565,7 @@ def generate_lecture_note(transcription):
     
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def delete_tutorial(request):
+def delete_tutorial(request, id):
     try: 
         tutorial = Tutorial.objects.get(id=id, user=request.user)
         tutorial.delete()
@@ -584,9 +583,9 @@ def delete_tutorial(request):
     
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_tutorial_details(request):
+def get_tutorial_details(request, id):
     try: 
-        tutorials = Tutorial.objects.filter(user=request.user, is_deleted=False).order_by('-id')
+        tutorials = Tutorial.objects.filter(id=id, user=request.user, is_deleted=False).order_by('-id')
         data = [
         {
             "id": tutorial.id,
@@ -597,6 +596,8 @@ def get_tutorial_details(request):
         for tutorial in tutorials
         ]
         return JsonResponse(data, safe=False) 
+    except Tutorial.DoesNotExist:
+        return JsonResponse({"error": "Tutorial not found"}, status=404)
     except Exception:
         traceback.print_exc()
         return JsonResponse({'error': 'Server error'}, status=500)

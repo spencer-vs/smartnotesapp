@@ -28,6 +28,6 @@ class LectureAdmin(admin.ModelAdmin):
 @admin.register(Tutorial)
 class TutorialAdmin(admin.ModelAdmin):
     list_display = ("id", "youtube_title", "youtube_text", "youtube_link")
-    search_fields = ("youtube_text", )
+    search_fields = ("Tutorials", )
     
     
