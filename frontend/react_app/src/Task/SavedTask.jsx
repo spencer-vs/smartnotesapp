@@ -27,12 +27,7 @@ const SavedTask = () => {
     const [index, setIndex] = useState(0)
             
             
-        useEffect(() => {
-        const interval = setInterval(() => {
-        setIndex((prev) => (prev + 1) % backgrounds.length);
-        }, 4000);
-        return () => clearInterval(interval);
-        }, []);
+        
 
     useEffect(() => {
         api.get(`notes/task/${id}/`)

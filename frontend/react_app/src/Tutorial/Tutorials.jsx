@@ -75,13 +75,13 @@ const Tutorials = () => {
           </div>
 
 
-
-          <h1 className={styles.tutorial_header}>All Tutorials</h1>
+    <div className={styles.tutorials}>
+    <h1 className={styles.tutorial_header}>All Tutorials</h1>
           
               {tutorials.length === 0 ? (
-  <p className={styles.tutorial_no}>No Tutorials Found</p>
-) : (
-  tutorials.map((tutorial) => (
+    <p className={styles.tutorial_no}>No Tutorials Found</p>
+     ) : (
+   tutorials.map((tutorial) => (
     <div className={styles.tutorial_display} key={tutorial.id}>
       <h3 className={styles.display_title}>
         {tutorial.title}
@@ -90,15 +90,16 @@ const Tutorials = () => {
         {truncateWords(tutorial.text, 10)}
       </p>
       <button
-        onClick={() => navigate(`/tutorials/${tutorial.id}`)}
+        onClick={() => navigate(`/viewtutorials/${tutorial.id}/`)}
         className={styles.display_btn}
       >
         View Tutorial
       </button>
     </div>
-  ))
-)}
-                  
+   
+     ))
+    )}
+    </div>                
 
         
     </div>

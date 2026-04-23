@@ -584,25 +584,28 @@ def delete_tutorial(request, id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_tutorial_details(request, id):
-    try: 
-        tutorials = Tutorial.objects.filter(id=id, user=request.user, is_deleted=False).order_by('-id')
-        data = [
-        {
+    try:
+        tutorial = Tutorial.objects.get(
+            id=id,
+            user=request.user
+        )
+        return JsonResponse({
             "id": tutorial.id,
             "title": tutorial.youtube_title,
             "text": tutorial.youtube_text,
-            "link": tutorial.youtube_link
-        }
-        for tutorial in tutorials
-        ]
-        return JsonResponse(data, safe=False) 
+            "video_link": tutorial.youtube_link
+        })
     except Tutorial.DoesNotExist:
-        return JsonResponse({"error": "Tutorial not found"}, status=404)
+        return JsonResponse(
+            {"error": "Tutorial not found"},
+            status=404
+        )
     except Exception:
         traceback.print_exc()
-        return JsonResponse({'error': 'Server error'}, status=500)
-
-
+        return JsonResponse(
+            {"error": "Server error"},
+            status=500
+        )
     
  
 
