@@ -25,11 +25,13 @@ const ViewT = () => {
       <div className={styles.viewTots}>
         <THeader />
         {loading ? (
-          <p>Loading...</p>
+          <div className={styles.loader}></div>
         ) : tutorial ? (
           <>
-            <h1>{tutorial.title}</h1>
-            <p>{tutorial.text}</p>
+            <div className={styles.tutorials}>
+            <h1 className={styles.tots_header}>{tutorial.title}</h1>
+            <p className={styles.tots_text}>{tutorial.text}</p>
+            </div>
           </>
         ) : (
           <p>No tutorial found</p>

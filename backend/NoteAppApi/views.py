@@ -659,7 +659,7 @@ def generate_tutorial(request):
         # Generate blog
         tutorial = generate_tutorial_from_transcript(transcription)
         if not tutorial:
-            return JsonResponse({'error': 'Failed to generate blog'}, status=500)
+            return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
         # Save blog to database
         new_tutorial = Tutorial.objects.create(
             user=request.user,
@@ -766,7 +766,7 @@ def generate_tutorial_from_transcript(transcription):
         client = Groq(api_key=api_key)
         transcription = transcription[:1200]
         prompt = f"""
-        Based on the generated transcript, create lecture notes, covering all relevant aspects of the video.
+        Based on the generated transcript, create lecture notes, covering all relevant aspects of the video, it should be easily readable and well structured in paragraphs, with each paragraph explaining a new point and finally a conclusion.
         Transcript:
         {transcription}
         Article:

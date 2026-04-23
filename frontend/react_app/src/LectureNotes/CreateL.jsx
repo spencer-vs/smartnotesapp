@@ -90,10 +90,12 @@ const handleStop = () => {
   }
 };
 const handleSubmit = async () => {
+  
   if (audioChunksRef.current.length === 0) {
     alert("No recording available");
     return;
   }
+  setLoading(true)
   
   const audioBlob = new Blob(audioChunksRef.current, {
     type: mimeTypeRef.current,
@@ -117,11 +119,13 @@ const handleSubmit = async () => {
 
     if (!lectureId) {
       alert("No lecture ID returned")
+      setLoading(false);
     }
-    setLoading(true);
+    
     checkStatus(lectureId)
   } catch (err) {
     console.error(err);
+    setLoading(false);
   }
 };
  
@@ -160,8 +164,15 @@ const handleSubmit = async () => {
       Submit
     </button>
   )}
-
-  {loading && <p style={{ color: "white" }}>Processing audio...</p>}
+ 
+  {loading && (
+   
+    <>
+    <div className={styles.loader}></div>
+    </>
+    
+  )}
+  
 </div>
           </div>
         </div>
@@ -183,81 +194,6 @@ export default CreateL;
 
 
 
-
-
-
-{/* <div className={styles.btn}>
-              {!recording ? (
-                <button className={styles.deleteBtn} onClick={startRecording}>
-                  Start
-                </button>
-              ) : (
-                <button className={styles.shareBtn} onClick={stopRecording}>
-                  Pause
-                </button>
-              )}
-               <button className={styles.shareBtn} onClick={generateLecture}>
-                  Submit
-               </button>
-              {loading && <p style={{ color: "white" }}>Processing audio...</p>}
-            </div> */}
-
-
-//  const startRecording = async () => {
-//     try {
-//       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//       const mediaRecorder = new MediaRecorder(stream);
-//       mediaRecorderRef.current = mediaRecorder;
-//       audioChunksRef.current = [];
-//       mediaRecorder.ondataavailable = (event) => {
-//         audioChunksRef.current.push(event.data);
-//       };
-//       mediaRecorder.start();
-//       setRecording(true);
-//     } catch (err) {
-//       console.error("Microphone error:", err);
-//     }
-//   };
-//   const stopRecording = async () => {
-//     mediaRecorderRef.current.stop();
-//     setRecording(false);
-//     setLoading(true);
-//     mediaRecorderRef.current.onstop = async () => {
-//       const audioBlob = new Blob(audioChunksRef.current, {
-//         type: "audio/webm",
-//       });
-//       const formData = new FormData();
-//       formData.append("audio", audioBlob, "recording.webm");
-     
-//     };
-// };
-
-
-
-// const generateLecture = async () => {
-//            try {
-//         const token = localStorage.getItem("access");
-//         const response = await fetch("http://127.0.0.1:8000/api/notes/upload-audio/", {
-//           method: "POST",
-//           body: formData,
-//           headers: {
-//             Authorization: `Bearer ${token}`
-//           },
-//         });
-//         const data = await response.json();
-//         console.log("Upload response:", data);
-//         // ✅ FIX: get lectureId HERE
-//         const lectureId = data.lecture_id;
-//         if (!lectureId) {
-//           alert("No lecture ID returned");
-//           return;
-//         }
-//         // ✅ start polling
-//         checkStatus(lectureId);
-//       } catch (error) {
-//         console.error("Upload error:", error);
-//       }
-//     }
 
 
 
