@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import styles from "Resetassword.module.css"
+import styles from "./ResetPassword.module.css"
 
 
 const ResetPassword = () => {
