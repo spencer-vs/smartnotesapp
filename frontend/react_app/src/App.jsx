@@ -27,6 +27,8 @@ import Tutorials from './Tutorial/Tutorials'
 import ViewT from './Tutorial/ViewT'
 import SearchLectures from './LectureNotes/SearchLecture'
 import SearchTasks from './Task/SearchTasks'
+import ResetPassword from './user/ResetPassword'
+import ForgotPassword from './user/ForgotPassword'
 
 
 
@@ -63,6 +65,8 @@ const App = () => {
       <Route path='/viewtutorials/:id' element={<ViewT />}></Route>
       <Route path='/searchlectures' element={<SearchLectures />}></Route>
       <Route path='/searchtasks' element={<SearchTasks />}></Route>
+      <Route path='/reset-password/:uid/:token' element={<ResetPassword />}></Route>
+      <Route path='/forgot-password' element={<ForgotPassword />}></Route>
   
 
 
