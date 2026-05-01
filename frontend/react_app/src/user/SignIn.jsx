@@ -79,6 +79,10 @@ export const SignIn = () => {
       <div>
         Don't have an account <NavLink to='/signup' className={styles.option}>Sign Up</NavLink>
       </div>
+
+      <div>
+        Forgot your password? click <NavLink to='/forgot-password' className={styles.option}>Here</NavLink>
+      </div>
      </form>
 
     </div>
