@@ -52,7 +52,7 @@ const ForgotPassword = () => {
            />
 
            <button className={styles.mail_btn} type="submit" disabled={loading}>
-             {loading ? "SEnding..." : "Send Link"}
+             {loading ? "Sending..." : "Send Link"}
            </button>
        </form>
     </div>
