@@ -51,32 +51,21 @@ const ViewL = () => {
 
   const shareLectures = async (lecture) => {
   if (!lecture) return;
-  const shareText = lecture.lecture || "No Lecture Content";
-  const file = new File(
-    [shareText],
-    `Lecture_Note.txt`,
-    { type: "text/plain" }
-  );
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
+  const shareText = `Lecture Notes\n\n${lecture.lecture || "No Content"}`;
+  try {
+    if (navigator.share) {
       await navigator.share({
         title: "Lecture Notes",
         text: shareText,
-        files: [file],
       });
-    } catch {
-      console.log("Share cancelled");
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      alert("Lecture copied to clipboard");
     }
-  } else {
-    const blobUrl = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = file.name;
-    a.click();
-      URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.log("Share cancelled", err);
   }
 };
-
 
   return (
     <>

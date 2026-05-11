@@ -83,35 +83,25 @@ const handleDelete = (id) => {
 
   
 
-  const handleShare = async () => {
-  const shareText = `${title}\n\n${content}`;
-  const file = new File(
-    [shareText],
-    `${(title || "note").replace(/\s+/g, "_")}.txt`,
-    { type: "text/plain" }
-  );
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
+  const handleShare = async (note) => {
+  if (!note) return;
+  const shareText = `${note.title || "No Title"}\n\n${note.content || "No Content"}`;
+  try {
+    
+    if (navigator.share) {
       await navigator.share({
-        title: title,
+        title: note.title || "Note",
         text: shareText,
-        files: [file],
       });
-    } catch {
-      console.log("Share cancelled");
+    } else {
+      
+      await navigator.clipboard.writeText(shareText);
+      alert("Note copied to clipboard");
     }
-  } else {
-    const blobUrl = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = file.name;
-    a.click();
-    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.log("Share cancelled", err);
   }
 };
-  
-  
-  
   
   return (
    <>
@@ -141,9 +131,12 @@ const handleDelete = (id) => {
               Delete
         </button>
 
-          <button onClick={handleShare}  className={styles.updateBtn}>
-                Share
-              </button>
+        <button onClick={() => handleShare({
+            title,
+            content
+          })} className={styles.updateBtn}>
+          Share
+        </button>
     </div>
     <Footer />
      </>

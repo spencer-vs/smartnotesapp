@@ -23,35 +23,23 @@ const ViewT = () => {
 
 
 
-  const shareTutorial = async () => {
+  const shareTutorial = async (tutorial) => {
   if (!tutorial) return;
   const shareText = `${tutorial.title || "No Title"}\n\n${tutorial.text || "No Content"}`;
-  const file = new File(
-    [shareText],
-    `${(tutorial.title || "Tutorial").replace(/\s+/g, "_")}.txt`,
-    { type: "text/plain" }
-  );
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
+  try {
+    if (navigator.share) {
       await navigator.share({
-        title: tutorial.title,
+        title: tutorial.title || "Tutorial",
         text: shareText,
-        files: [file],
       });
-    } catch {
-      console.log("Share cancelled");
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      alert("Tutorial copied to clipboard");
     }
-  } else {
-    const blobUrl = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = file.name;
-    a.click();
-    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.log("Share cancelled", err);
   }
 };
-
-
 
   return (
     <>
@@ -65,9 +53,12 @@ const ViewT = () => {
             <h1 className={styles.tots_header}>{tutorial.title}</h1>
             <p className={styles.tots_text}>{tutorial.text}</p>
 
-            <button className={styles.shareBtn} onClick={shareTutorial}>
-                Share
-            </button>
+           <button
+  className={styles.shareBtn}
+  onClick={() => shareTutorial(tutorial)}
+>
+  Share
+</button>
             </div>
           </>
         ) : (

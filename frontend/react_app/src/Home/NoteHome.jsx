@@ -62,6 +62,15 @@ const NoteHome = () => {
   }, [auth])
 
 
+   const truncateWords = (text, limit) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    return words.length > limit
+    ? words.slice(0, limit).join(" ") + "..."
+    : text;
+    };
+
+
   
   // if (auth.loading) {
   //   return <AuthSpinner />
@@ -112,7 +121,9 @@ const NoteHome = () => {
             <li className={styles.noteList} key={note.id}>
               <Link className={styles.noteLink} to={`/notes/${note.id}/update`}>
                 <h2 className={styles.noteTitle}>{note.title}</h2>
-                <p className={styles.noteText}>{note.content}</p>
+                <p className={styles.noteText}>
+                  {truncateWords(note.content, 15)}
+                </p>
                
                <div className={styles.noteBtn}>
               {/* <button className={styles.updateNote} onClick={() => navigate(`/notes/${note.id}/update`)}>

@@ -85,30 +85,21 @@ const SavedTask = () => {
 
 
   
- const shareTask = async () => {
-  const shareText = `${todo_title || "No Title"}\n\n${todo_list || "No Content"}`;
-  const file = new File(
-    [shareText],
-    `${(todo_title || "Task").replace(/\s+/g, "_")}.txt`,
-    { type: "text/plain" }
-  );
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
+ const shareTask = async (task) => {
+  if (!task) return;
+  const shareText = `${task.todo_title || "No Title"}\n\n${task.todo_list || "No Content"}`;
+  try {
+    if (navigator.share) {
       await navigator.share({
-        title: todo_title,
+        title: task.todo_title || "Task",
         text: shareText,
-        files: [file],
       });
-    } catch {
-      console.log("Share cancelled");
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      alert("Task copied to clipboard");
     }
-  } else {
-    const blobUrl = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = file.name;
-    a.click();
-    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.log("Share cancelled", err);
   }
 };
 
@@ -167,9 +158,12 @@ return (
             Delete
         </button> 
 
-         <button className={styles.updateTask} onClick={shareTask}>
-            Share
-        </button>  
+         <button
+  className={styles.updateTask}
+  onClick={() => shareTask(task)}
+>
+  Share
+</button>
         </div>
         </div>
   
