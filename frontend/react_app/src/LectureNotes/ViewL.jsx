@@ -45,34 +45,39 @@ const ViewL = () => {
       console.error('Error deleting lecture:', error);
     }
   };
-  // ✅ FIX 3: SHARE (pass lecture properly)
+  
+  
+  
+
   const shareLectures = async (lecture) => {
-    if (!lecture) return;
-    const content = lecture.lecture || "No lecture";
-    const file = new File(
-      [content],
-      `${content.slice(0, 20).replace(/\s+/g, "_")}.txt`,
-      { type: "text/plain" }
-    );
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          title: "Lecture Notes",
-          text: content,
-          files: [file],
-        });
-      } catch {
-        console.log("Share cancelled");
-      }
-    } else {
-      const blobUrl = URL.createObjectURL(file);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = file.name;
-      a.click();
-      URL.revokeObjectURL(blobUrl);
+  if (!lecture) return;
+  const shareText = lecture.lecture || "No Lecture Content";
+  const file = new File(
+    [shareText],
+    `Lecture_Note.txt`,
+    { type: "text/plain" }
+  );
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: "Lecture Notes",
+        text: shareText,
+        files: [file],
+      });
+    } catch {
+      console.log("Share cancelled");
     }
-  };
+  } else {
+    const blobUrl = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = file.name;
+    a.click();
+      URL.revokeObjectURL(blobUrl);
+  }
+};
+
+
   return (
     <>
       <div className={styles.view_con}>

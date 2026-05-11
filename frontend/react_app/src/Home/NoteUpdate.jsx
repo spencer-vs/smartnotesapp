@@ -39,6 +39,7 @@ const NoteUpdate = () => {
       setLoading(true)
      setTitle(res.data.title)
      setContent(res.data.content)
+     setNotes(res.data)
      setLoading(false)
     })
     .catch(err => {
@@ -82,21 +83,18 @@ const handleDelete = (id) => {
 
   
 
-  const handleShare = async (note) => {
-  console.log("Sharing note:", note);
-  if (!note) return;
-
-  const content = `${note.title || "No Title"}\n\n${note.content || "No Content"}`;
-
-  const file = new File( [content],
-  `${(note.title || "note").replace(/\s+/g, "_")}.txt`,
+  const handleShare = async () => {
+  const shareText = `${title}\n\n${content}`;
+  const file = new File(
+    [shareText],
+    `${(title || "note").replace(/\s+/g, "_")}.txt`,
     { type: "text/plain" }
   );
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
-        title: note.title,
-        text: note.content,
+        title: title,
+        text: shareText,
         files: [file],
       });
     } catch {
@@ -111,7 +109,6 @@ const handleDelete = (id) => {
     URL.revokeObjectURL(blobUrl);
   }
 };
-
   
   
   
@@ -144,7 +141,7 @@ const handleDelete = (id) => {
               Delete
         </button>
 
-          <button onClick={() => handleShare(note)}  className={styles.updateBtn}>
+          <button onClick={handleShare}  className={styles.updateBtn}>
                 Share
               </button>
     </div>

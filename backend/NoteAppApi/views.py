@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .models import Note, Contact, Tutorial
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
 from datetime import datetime
@@ -39,6 +39,7 @@ User = get_user_model()
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def request_password_reset(request):
     email = request.data.get("email")
     try:
@@ -59,6 +60,7 @@ def request_password_reset(request):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def reset_password(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()

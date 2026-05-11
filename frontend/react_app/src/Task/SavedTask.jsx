@@ -85,21 +85,18 @@ const SavedTask = () => {
 
 
   
-  const shareTask = async (task) => {
-  console.log("Sharing Task:", task);
-  if (!task) return;
-
-  const content = `${task.todo_title || "No Title"}\n\n${task.todo_list || "No Content"}`;
-
-  const file = new File( [content],
-  `${(task.todo_title || "note").replace(/\s+/g, "_")}.txt`,
+ const shareTask = async () => {
+  const shareText = `${todo_title || "No Title"}\n\n${todo_list || "No Content"}`;
+  const file = new File(
+    [shareText],
+    `${(todo_title || "Task").replace(/\s+/g, "_")}.txt`,
     { type: "text/plain" }
   );
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
-        title: task.todo_title ,
-        content: task.todo_list,
+        title: todo_title,
+        text: shareText,
         files: [file],
       });
     } catch {
