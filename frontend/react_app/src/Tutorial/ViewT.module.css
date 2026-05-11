@@ -91,5 +91,5 @@
    box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
 }
 .shareBtn:active {
-   transform: scale(0.95);
+   transform: scale(0.96);
 }
