@@ -34,8 +34,8 @@
   flex-direction: column;
   border: 5px solid goldenrod;
   border-radius: 20px;
-  width: 50%;
-  height: auto;
+  width: 55%;
+  height: 35rem;
   margin-bottom: 2rem;
   gap: 2rem;
   transform: translateY(70px);
@@ -147,8 +147,8 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  width: 80%;
-  height: 25rem;
+  width: 90%;
+  height: 35rem;
   margin-bottom: 2rem;
   gap: 4rem;
   
@@ -194,7 +194,7 @@
   justify-content: center;
   flex-direction: column;
   width: 80%;
-  height: 25rem;
+  height: 38rem;
   margin-bottom: 2rem;
   gap: 4rem;
   
