@@ -38,25 +38,51 @@ User = get_user_model()
 
 
 
+def test_email(request):
+    send_mail(
+        subject="Test Email",
+        message="This is a test email from SmartNote.",
+        from_email=None,  # Uses DEFAULT_FROM_EMAIL
+        recipient_list=["myunity23@gmail.com"],
+        fail_silently=False,
+    )
+    return JsonResponse({"success": True})
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def request_password_reset(request):
-    email = request.data.get("email")
     try:
-        user = User.objects.get(email=email)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        reset_link = f"https://https://smartnoteapi.onrender.com/reset-password/{uid}/{token}/"
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email is required"},
+                status=400
+            )
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response(
+                {"error": "User not found"},
+                status=404
+            )
+            
+        print("EMAIL_HOST =", settings.EMAIL_HOST)
+        print("EMAIL_PORT =", settings.EMAIL_PORT)
+        print("EMAIL_USER =", settings.EMAIL_HOST_USER)
         send_mail(
             subject="Password Reset",
-            message=f"Click here to reset your password:\n{reset_link}",
-            from_email="your@email.com",
+            message="Your password reset link here",
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
+            fail_silently=False,
         )
-        return JsonResponse({"message": "Reset link sent"})
-    except User.DoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
-
+        return Response({
+            "message": "Reset email sent"
+        })
+    except Exception as e:
+        print("EMAIL ERROR:", e)
+        return Response({
+            "error": str(e)
+        }, status=500)
 
 
 @api_view(["POST"])
