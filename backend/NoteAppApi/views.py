@@ -68,6 +68,9 @@ def request_password_reset(request):
         print("EMAIL_HOST =", settings.EMAIL_HOST)
         print("EMAIL_PORT =", settings.EMAIL_PORT)
         print("EMAIL_USER =", settings.EMAIL_HOST_USER)
+        print("TLS:", settings.EMAIL_USE_TLS)
+        print("User:", settings.EMAIL_HOST_USER)
+        print("PASSWORD EXISTS:", bool(settings.EMAIL_HOST_PASSWORD))
         send_mail(
             subject="Password Reset",
             message="Your password reset link here",
