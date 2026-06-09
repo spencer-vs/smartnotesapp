@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, request_password_reset, reset_password, test_email
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, request_password_reset, reset_password, test_email, smtp_test
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -29,6 +29,7 @@ urlpatterns = [
    path("auth/forgot-password/", request_password_reset),
    path("auth/reset-password/<uidb64>/<token>/", reset_password),
    path("test-email/", test_email, name="test_email"),
+   path("smtp-test/", smtp_test, name="smtp-test"),
 ]
 
 

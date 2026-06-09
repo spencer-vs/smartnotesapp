@@ -38,6 +38,28 @@ User = get_user_model()
 
 
 
+import smtplib
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+@api_view(["GET"])
+def smtp_test(request):
+    try:
+        server = smtplib.SMTP(
+            "smtp-relay.brevo.com",
+            587,
+            timeout=10
+        )
+        server.starttls()
+        server.quit()
+        return JsonResponse({"status": "success"})
+    except Exception as e:
+        return JsonResponse({
+            "status": "failed",
+            "error": str(e)
+        })
+
+
+
 def test_email(request):
     send_mail(
         subject="Test Email",
