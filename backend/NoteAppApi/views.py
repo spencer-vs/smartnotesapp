@@ -109,6 +109,9 @@ def test_email(request):
 
 resend.api_key = settings.RESEND_API_KEY
 
+@csrf_exempt
+@permission_classes([AllowAny])
+@api_view(["POST"])
 def send_reset_email(to_email, reset_link):
     resend.Emails.send({
         "from": settings.FROM_EMAIL,

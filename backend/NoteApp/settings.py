@@ -197,9 +197,13 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage",
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# CSRF_TRUSTED_ORIGINS = [
-#     ""
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://smartnotesfrontend.onrender.com",
+    "http://localhost:5173",
+]
+
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
 
 CORS_ALLOW_CREDENTIALS = True
 
