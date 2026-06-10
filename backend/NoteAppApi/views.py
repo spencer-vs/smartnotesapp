@@ -115,6 +115,7 @@ def request_password_reset(request):
         print("EMAIL_PORT =", settings.EMAIL_PORT)
         print("EMAIL_USER =", settings.EMAIL_HOST_USER)
         print("TLS:", settings.EMAIL_USE_TLS)
+        print("TLS:", settings.EMAIL_USE_SSL)
         print("User:", settings.EMAIL_HOST_USER)
         print("PASSWORD EXISTS:", bool(settings.EMAIL_HOST_PASSWORD))
         send_mail(
