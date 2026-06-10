@@ -37,6 +37,10 @@ import smtplib
 import socket
 from django.core.mail import get_connection
 
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+
 # Create your views here.
 
 User = get_user_model()
@@ -107,11 +111,55 @@ def test_email(request):
 #         }, status=500)
 
 
+
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def request_password_reset(request):
+    try:
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email is required"},
+                status=400
+            )
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response(
+                {"error": "No account found with this email"},
+                status=404
+            )
+        # Generate uid and token
+        uidb64 = urlsafe_base64_encode(
+            force_bytes(user.pk)
+        )
+        token = default_token_generator.make_token(user)
+        # Frontend reset page URL
+        reset_link = (
+            f"https://smartnotesfrontend.onrender.com/"
+            f"reset-password/{uidb64}/{token}/"
+        )
+        # Send email using Resend
+        send_reset_email(
+            to_email=user.email,
+            reset_link=reset_link
+        )
+        return Response({
+            "message": "Password reset email sent successfully"
+        })
+    except Exception as e:
+        print("PASSWORD RESET ERROR:", str(e))
+        return Response(
+            {"error": str(e)},
+            status=500
+        )
+
+
+
 resend.api_key = settings.RESEND_API_KEY
 
-@csrf_exempt
-@permission_classes([AllowAny])
-@api_view(["POST"])
+
 def send_reset_email(to_email, reset_link):
     resend.Emails.send({
         "from": settings.FROM_EMAIL,
@@ -122,6 +170,9 @@ def send_reset_email(to_email, reset_link):
         <p>Click the link below to reset your password</p>
         <a href="{reset_link}">{reset_link}</a>"""
     })
+
+
+
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
