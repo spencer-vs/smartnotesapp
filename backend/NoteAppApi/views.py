@@ -31,6 +31,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_decode
+from .email_utils import send_brevo_email
 
 # Create your views here.
 
@@ -45,57 +46,18 @@ from django.core.mail import get_connection
 
 
 @api_view(["GET"])
-def smtp_test(request):
-    try:
-        host = settings.EMAIL_HOST
-        port = settings.EMAIL_PORT
-        
-        sock = socket.create_connection(
-            (host, port),
-            timeout=10
-        )
-        sock.close()
-        
-        return Response({
-            "success": True,
-            "host": host,
-            "port": port
-        })
-    except Exception as e:
-       return JsonResponse({"success": False, "error": str(e)}, status=500)
-    
-    
-    
-    
-    # try:
-    #     server = smtplib.SMTP(
-    #         "smtp-relay.brevo.com",
-    #         587,
-    #         timeout=10
-    #     )
-    #     server.starttls()
-    #     server.quit()
-    #     return JsonResponse({"status": "success"})
-    # except Exception as e:
-    #     return JsonResponse({
-    #         "status": "failed",
-    #         "error": str(e)
-    #     })
-    
-    
-
-
-
 def test_email(request):
-    send_mail(
-        subject="Test Email",
-        message="This is a test email from SmartNote.",
-        from_email=None,  # Uses DEFAULT_FROM_EMAIL
-        recipient_list=["myunity23@gmail.com"],
-        fail_silently=False,
+    response = send_brevo_email(
+        recipient_email="myunity23@gmail.com",
+        subject="Brevo API Test",
+        html_content="<h1>Email API Works!</h1>"
     )
-    return JsonResponse({"success": True})
-
+    return Response({
+        "status_code": response.status_code,
+        "response": response.text
+    })
+    
+    
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def request_password_reset(request):
@@ -120,13 +82,17 @@ def request_password_reset(request):
         print("SSL:", settings.EMAIL_USE_SSL)
         print("User:", settings.EMAIL_HOST_USER)
         print("PASSWORD EXISTS:", bool(settings.EMAIL_HOST_PASSWORD))
-        send_mail(
+        send_brevo_email(
+            recipient_email=email,
             subject="Password Reset",
-            message="Your password reset link here",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
+            html_content="""
+                <h2>Password Reset</h2>
+                <p>Click the link below to reset your password.</p>
+                <a href="https://smartnotesfrontend.onrender.com/reset-password">
+                Reset Password
+                </a>
+                """
+            )
         return Response({
             "message": "Reset email sent"
         })
