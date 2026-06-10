@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, request_password_reset, reset_password, test_email
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -26,7 +26,7 @@ urlpatterns = [
    path("notes/tutorials/", get_all_tutorials, name="get_tutorials"),
    path("notes/tutorial/<int:id>/", get_tutorial_details, name="get_tutorial_details"),
    path("notes/tutorial/<int:id>/delete/", delete_tutorial, name="delete_tutorial"),
-   path("auth/forgot-password/", request_password_reset),
+   path("auth/forgot-password/", send_reset_email),
    path("auth/reset-password/<uidb64>/<token>/", reset_password),
    path("test-email/", test_email, name="test_email"),
    
