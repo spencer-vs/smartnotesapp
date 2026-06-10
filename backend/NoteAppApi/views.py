@@ -39,24 +39,37 @@ User = get_user_model()
 
 
 import smtplib
-from rest_framework.decorators import api_view
-from django.http import JsonResponse
+import socket
+
 @api_view(["GET"])
 def smtp_test(request):
-    try:
-        server = smtplib.SMTP(
-            "smtp-relay.brevo.com",
-            587,
+    try: 
+        s = socket.create_connection(
+            ("smtp-relay.brevo.com", 587),
             timeout=10
         )
-        server.starttls()
-        server.quit()
-        return JsonResponse({"status": "success"})
+        s.close()
+        return JsonResponse({"message": "SMTP reachable"})
     except Exception as e:
-        return JsonResponse({
-            "status": "failed",
-            "error": str(e)
-        })
+        return JsonResponse({"error": str(e)}, status=500)
+    
+    
+    # try:
+    #     server = smtplib.SMTP(
+    #         "smtp-relay.brevo.com",
+    #         587,
+    #         timeout=10
+    #     )
+    #     server.starttls()
+    #     server.quit()
+    #     return JsonResponse({"status": "success"})
+    # except Exception as e:
+    #     return JsonResponse({
+    #         "status": "failed",
+    #         "error": str(e)
+    #     })
+    
+    
 
 
 
