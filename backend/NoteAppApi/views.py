@@ -113,7 +113,7 @@ def test_email(request):
 
 
 
-
+@csrf_exempt
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def request_password_reset(request):
