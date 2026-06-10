@@ -36,11 +36,13 @@ from django.utils.http import urlsafe_base64_decode
 
 User = get_user_model()
 
-
-
 import smtplib
 import socket
 from django.core.mail import get_connection
+
+
+
+
 
 @api_view(["GET"])
 def smtp_test(request):
@@ -115,7 +117,7 @@ def request_password_reset(request):
         print("EMAIL_PORT =", settings.EMAIL_PORT)
         print("EMAIL_USER =", settings.EMAIL_HOST_USER)
         print("TLS:", settings.EMAIL_USE_TLS)
-        print("TLS:", settings.EMAIL_USE_SSL)
+        print("SSL:", settings.EMAIL_USE_SSL)
         print("User:", settings.EMAIL_HOST_USER)
         print("PASSWORD EXISTS:", bool(settings.EMAIL_HOST_PASSWORD))
         send_mail(
