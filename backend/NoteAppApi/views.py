@@ -40,18 +40,29 @@ User = get_user_model()
 
 import smtplib
 import socket
+from django.core.mail import get_connection
 
 @api_view(["GET"])
 def smtp_test(request):
-    try: 
-        s = socket.create_connection(
-            ("smtp-relay.brevo.com", 587),
-            timeout=10
-        )
-        s.close()
-        return JsonResponse({"message": "SMTP reachable"})
+    try:
+        connection = get_connection()
+        connection.open()
+        return Response({"message": "SMTP connection successful"})
+    
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+       return JsonResponse({"error": str(e)}, status=500)
+    
+    
+    
+    # try: 
+    #     s = socket.create_connection(
+    #         ("smtp-relay.brevo.com", 587),
+    #         timeout=10
+    #     )
+    #     s.close()
+    #     return JsonResponse({"message": "SMTP reachable"})
+    # except Exception as e:
+    #     return JsonResponse({"error": str(e)}, status=500)
     
     
     # try:
