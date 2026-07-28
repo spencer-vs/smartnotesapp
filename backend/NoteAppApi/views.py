@@ -387,14 +387,39 @@ def generate_todo_list(user_input):
             return None
         client = Groq(api_key=api_key)
         prompt = f"""
-        Create a timetable based on the list of items inputed by the user, the timetable should be spread according to the days of the week exluding sunday with each item taking 2 hours.
-        """
+            Create a study timetable using these tasks:
+            {user_input}
+            Requirements:
+            - Monday to Saturday only.
+            - Sunday should be excluded.
+            - Every task lasts exactly 2 hours.
+            - Begin each day at 8:00 AM.
+            - Each day should contain no more than two task.
+            - Use this format:
+            ## Monday
+            8:00 AM - 10:00 AM: Task
+            10:00 AM - 12:00 PM: Task
+            ## Tuesday
+            ...
+            Return only the timetable.
+            Do not write code.
+            Do not explain how you generated it.
+            """
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "user", "content": prompt},
+                {"role": "system", 
+                 "content": ("You are a timetable generator. " 
+                             "Never write Python code"
+                             "Only return a completed timetable in Markdown"
+                             ),
+                 },
+                {
+                    "role": "user",
+                    "content": prompt
+                },
             ],
-            temperature=0.7,
+            temperature=0.4,
             max_tokens=800,
         )
         return completion.choices[0].message.content.strip()
