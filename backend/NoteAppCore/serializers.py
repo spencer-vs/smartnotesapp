@@ -32,6 +32,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-        user.phone = phone   # if using profile model
+        user.phone = phone  
         user.save()
         return user

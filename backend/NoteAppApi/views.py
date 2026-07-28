@@ -904,7 +904,9 @@ def get_transcription_proxy(video_id):
                 print("Unexpected API response:", data)
                 return None
             transcript_text = " ".join(
-                [item["text"] for item in transcript_list]
+                str(item.get("text", ""))
+                for item in transcript_list
+                if item.get("text") is not None
             )
             return transcript_text
         print("Proxy transcript API failed:", response.text)
