@@ -387,7 +387,7 @@ def generate_todo_list(user_input):
             return None
         client = Groq(api_key=api_key)
         prompt = f"""
-        Create a simple todo for, based on the items the user inputed, each item should be numbered and contain a time and day, it should be spread according to the days of the week depending on the number of items and should only contain items imputed by the user.
+        Create a timetable based on the list of items inputed by the user, the timetable should be spread according to the days of the week exluding sunday with each item taking 2 hours.
         """
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
