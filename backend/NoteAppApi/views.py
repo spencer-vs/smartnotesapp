@@ -394,6 +394,7 @@ def generate_todo_list(user_input):
             - Sunday should be excluded.
             - Every task lasts exactly 2 hours.
             - Begin each day at 8:00 AM.
+            - Give a 1 hour break between tasks.
             - Each day should contain no more than two task.
             - Use this format:
             ## Monday
