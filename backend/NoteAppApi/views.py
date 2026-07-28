@@ -387,9 +387,7 @@ def generate_todo_list(user_input):
             return None
         client = Groq(api_key=api_key)
         prompt = f"""
-        Create a simple todo for:
-        {user_input}
-        it should be simple, each item should be numbered and contain a time and day, it should be spread according to the days of the week depending on the number of items and should only contain items from {user_input}.
+        Create a simple todo for, based on the items the user inputed, each item should be numbered and contain a time and day, it should be spread according to the days of the week depending on the number of items and should only contain items imputed by the user.
         """
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -929,7 +927,7 @@ def generate_tutorial_from_transcript(transcription):
         client = Groq(api_key=api_key)
         transcription = transcription[:1200]
         prompt = f"""
-        Based on the generated transcript, create lecture notes, covering all relevant aspects of the video, it should be easily readable and well structured in paragraphs, with each paragraph explaining a new point and finally a conclusion.
+        Based on the generated transcript, create lecture notes, covering all relevant aspects of the video, it should be easily readable and well structured in paragraphs, with each paragraph explaining a particular section of the video, do not give a simple summary instead dive into deep explanations of the points mentioned in the video and finally a conclusion.
         Transcript:
         {transcription}
         Article:
