@@ -122,7 +122,7 @@ const NoteHome = () => {
               <Link className={styles.noteLink} to={`/notes/${note.id}/update`}>
                 <h2 className={styles.noteTitle}>{note.title}</h2>
                 <p className={styles.noteText}>
-                  {truncateWords(note.content, 15)}
+                  {truncateWords(note.content, 8)}
                 </p>
                
                <div className={styles.noteBtn}>

@@ -192,8 +192,14 @@
   .noteLink {
     padding: 1rem 1.2rem;
   }
+
+  .noteTitle {
+    font-size: 2rem;
+    overflow: hidden;
+  }
   .noteText {
-    font-size: 1.1rem;
+    font-size: 0.8rem;
+    overflow: hidden;
   }
   .deleteNote {
     width: 100%;
@@ -230,7 +236,8 @@
     padding: 1.5rem 2rem;
   }
   .noteText {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    overflow: hidden;
   }
   .deleteNote {
     width: 20%;
@@ -267,7 +274,7 @@
   
 }
 
-@media (min-width: 300px) and (max-width: 500px) {
+/* @media (min-width: 300px) and (max-width: 500px) {
  
   .noteContainer {
     background-position: fixed;
@@ -301,5 +308,10 @@
   padding: 1rem;
   margin-bottom: 2rem;
 }
-  
+
+.noteText {
+  font-size: 0.8rem;
+    overflow: hidden;
 }
+  
+} */

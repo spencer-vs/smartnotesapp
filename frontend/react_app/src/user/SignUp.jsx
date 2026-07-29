@@ -71,7 +71,7 @@ const SignUp = () => {
       alert("Registration failed");
     }
     setLoading(false)
-  }
+  } 
 };
  
 

@@ -141,7 +141,7 @@ const handleSubmit = async () => {
         <div className={styles.create}>
           <div className={styles.message}>
             <p className={styles.text}>
-              Click the start button to record your lectures and turn them into lecture notes using AI
+              Click the start button to record your lectures and turn them into lectures notes using AI
             </p>
             <div className={`${styles.record} ${recording ? styles.animate : ""}`}>
               <span></span>
