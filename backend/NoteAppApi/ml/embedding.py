@@ -1,10 +1,17 @@
 from sentence_transformers import SentenceTransformer
 
-# Load the model once when the application starts
-model = SentenceTransformer("all-MiniLM-L6-v2")
+_model = None
+
+
+def get_model():
+    global _model
+
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    return _model
+
 
 def generate_embedding(text):
-    """
-    Generate a semantic embedding for the given text.
-    """
+    model = get_model()
     return model.encode(text)
