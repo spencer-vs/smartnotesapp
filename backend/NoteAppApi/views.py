@@ -40,6 +40,7 @@ from django.core.mail import get_connection
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from NoteAppApi.ml.indexing import index_note
 
 # Create your views here.
 
@@ -66,52 +67,6 @@ def test_email(request):
         
     
     
-# @api_view(["POST"])
-# @permission_classes([AllowAny])
-# def request_password_reset(request):
-#     try:
-#         email = request.data.get("email")
-#         if not email:
-#             return Response(
-#                 {"error": "Email is required"},
-#                 status=400
-#             )
-#         user = User.objects.filter(email=email).first()
-#         if not user:
-#             return Response(
-#                 {"error": "User not found"},
-#                 status=404
-#             )
-            
-#         print("EMAIL_HOST =", settings.EMAIL_HOST)
-#         print("EMAIL_PORT =", settings.EMAIL_PORT)
-#         print("EMAIL_USER =", settings.EMAIL_HOST_USER)
-#         print("TLS:", settings.EMAIL_USE_TLS)
-#         print("SSL:", settings.EMAIL_USE_SSL)
-#         print("User:", settings.EMAIL_HOST_USER)
-#         print("PASSWORD EXISTS:", bool(settings.EMAIL_HOST_PASSWORD))
-#         send_brevo_email(
-#             recipient_email=email,
-#             subject="Password Reset",
-#             html_content="""
-#                 <h2>Password Reset</h2>
-#                 <p>Click the link below to reset your password.</p>
-#                 <a href="https://smartnotesfrontend.onrender.com/reset-password">
-#                 Reset Password
-#                 </a>
-#                 """
-#             )
-#         return Response({
-#             "message": "Reset email sent"
-#         })
-#     except Exception as e:
-#         print("EMAIL ERROR:", e)
-#         return Response({
-#             "error": str(e)
-#         }, status=500)
-
-
-
 
 @csrf_exempt
 @api_view(["POST"])
@@ -302,7 +257,9 @@ class NoteListCreate(generics.ListCreateAPIView):
             is_deleted=False
         ).order_by("-created_at")
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        note = serializer.save(user=self.request.user)
+
+        index_note(note)
         
         
 class ContactListCreate(generics.ListCreateAPIView):
