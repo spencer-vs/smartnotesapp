@@ -257,9 +257,9 @@ class NoteListCreate(generics.ListCreateAPIView):
             is_deleted=False
         ).order_by("-created_at")
     def perform_create(self, serializer):
-        note = serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user)
 
-        index_note(note)
+        # index_note(note)
         
         
 class ContactListCreate(generics.ListCreateAPIView):
