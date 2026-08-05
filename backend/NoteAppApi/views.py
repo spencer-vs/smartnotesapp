@@ -40,7 +40,7 @@ from django.core.mail import get_connection
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from NoteAppApi.ml.indexing import index_note
+# from NoteAppApi.ml.indexing import index_note
 
 # Create your views here.
 
