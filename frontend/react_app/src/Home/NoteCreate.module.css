@@ -10,6 +10,15 @@
     min-height: 100vh;
     box-sizing: border-box;
 }
+
+
+.top {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: row;
+  gap: 3.5rem;
+
+}
 .createTitle {
     display: flex;
     justify-content: flex-start;
@@ -56,7 +65,7 @@
 
 
 
-.createBtn {
+.createBtn1 {
    font-size: 1.5rem;
    color: #fff;
    padding: 15px 30px;
@@ -69,7 +78,25 @@
    position: relative;
    overflow: hidden;
 }
-.createBtn::before {
+
+
+.createBtnph {
+   display: none;
+   font-size: 1.5rem;
+   color: #fff;
+   padding: 15px 30px;
+   margin: 10px;
+   border: 2px solid #0ff;
+   border-radius: 4rem;
+   background: transparent;
+   cursor: pointer;
+   transition: 0.3s ease-in-out;
+   position: relative;
+   overflow: hidden;
+}
+
+
+.createBtn1::before {
    content: "";
    position: absolute;
    top: -50%;
@@ -80,15 +107,41 @@
    transition: 0.4s;
    transform: scale(0);
 }
-.createBtn:hover::before {
+.createBtn1:hover::before, .createBtn2:hover::before  {
    transform: scale(1);
 }
-.createBtn:hover {
+
+.createBtnph::before {
+   content: "";
+   position: absolute;
+   top: -50%;
+   left: -50%;
+   width: 200%;
+   height: 200%;
+   background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(0, 255, 255, 0) 70%);
+   transition: 0.4s;
+   transform: scale(0);
+}
+.createBtnph:hover::before  {
+   transform: scale(1);
+}
+
+
+.createBtn1:hover, .createBtn2:hover {
    color: #000;
    background: #0ff;
    box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
 }
-.createBtn:active {
+.createBtn1:active, .createBtn2:active {
+   transform: scale(0.95);
+}
+
+.createBtnph:hover{
+   color: #000;
+   background: #0ff;
+   box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+}
+.createBtnph:active {
    transform: scale(0.95);
 }
 
@@ -117,6 +170,19 @@
 
 
 @media (max-width: 600px) {
+
+  .createBtn1 {
+  display: none;
+  }
+  
+  .createBtnph {
+    display: flex;
+    width: 100%;
+    font-size: 1.1rem;
+    margin-top: 2rem;
+  }
+
+
   .createContainer {
     padding: 1rem;
     font-size: 1.1rem;
@@ -137,11 +203,7 @@
     font-size: 1.1rem;
     padding: 0.7rem 1rem;
   }
-  .createBtn {
-    width: 100%;
-    font-size: 1.1rem;
-    margin-top: 2rem;
-  }
+  
 }
 @media (min-width: 601px) and (max-width: 1024px) {
   .createContainer {
@@ -159,9 +221,16 @@
     min-height: 500px;
     font-size: 1.3rem;
   }
-  .createBtn {
-    width: 40%;
-    font-size: 1.3rem;
+   .createBtn1 {
+  display: none;
+  }
+  
+  .createBtnph {
+    display: flex;
+    align-items: center;
+    width: 20%;
+    font-size: 1.1rem;
+    margin-top: 2rem;
   }
 }
 
@@ -177,9 +246,15 @@
     min-height: 500px;
     font-size: 1.3rem;
   }
-  .createBtn {
+   .createBtn1 {
+  display: none;
+  }
+  
+  .createBtnph {
+    display: flex;
     width: 40%;
     font-size: 1.3rem;
+    margin-top: 2rem;
   }
 
   .createContainer {

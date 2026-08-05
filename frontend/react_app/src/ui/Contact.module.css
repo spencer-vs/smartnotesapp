@@ -20,18 +20,18 @@
 .contactWrapper {
  
   background: rgba(255, 0, 0, 0.05);
-  border: 2px solid red;
+  border: 2px solid goldenrod;
   padding: 40px;
   width: 100%;
   max-width: 720px;
   height: 100%;
   min-height: 100%;
   border-radius: 15px;
-  box-shadow: 0 0 25px rgba(255, 0, 0, 0.4);
+  box-shadow: 0 0 25px gold;
 }
 .contactHeader {
   font-size: 2rem;
-  color: red;
+  color: gold;
   text-align: center;
   margin-bottom: 25px;
 }
@@ -43,7 +43,7 @@ form {
 .contactName {
   font-size: 1.2rem;
   padding: 12px 15px;
-  border: 2px solid red;
+  border: 2px solid goldenrod;
   border-radius: 10px;
   background: black;
   color: white;
@@ -51,8 +51,8 @@ form {
 }
 .contactName:focus {
   outline: none;
-  border-color: rgba(0, 255, 255, 0.705);
-  box-shadow: 0 0 10px #0ff;
+  border-color: gold;
+  box-shadow: 0 0 10px gold;
 }
 
 
@@ -60,7 +60,7 @@ form {
 .contactMessage {
   font-size: 1.2rem;
   padding: 12px 15px;
-  border: 2px solid red;
+  border: 2px solid goldenrod;
   border-radius: 10px;
   background: black;
   color: white;
@@ -69,8 +69,8 @@ form {
 }
 .contactMessage:focus {
   outline: none;
-  border-color: rgba(0, 255, 255, 0.705);
-  box-shadow: 0 0 10px #0ff;
+  border-color: gold;
+  box-shadow: 0 0 10px gold;
 }
 
 
@@ -79,7 +79,7 @@ form {
 .contactPhone {
   font-size: 1.2rem;
   padding: 12px 15px;
-  border: 2px solid red;
+  border: 2px solid goldenrod;
   border-radius: 10px;
   background: black;
   color: white;
@@ -87,8 +87,8 @@ form {
 }
 .contactPhone:focus {
   outline: none;
-  border-color: rgba(0, 255, 255, 0.705);
-  box-shadow: 0 0 10px #0ff;
+  border-color: gold;
+  box-shadow: 0 0 10px gold;
 }
 
 
@@ -97,7 +97,7 @@ form {
 .contactMail {
   font-size: 1.2rem;
   padding: 12px 15px;
-  border: 2px solid red;
+  border: 2px solid goldenrod;
   border-radius: 10px;
   background: black;
   color: white;
@@ -105,14 +105,14 @@ form {
 }
 .contactMail:focus {
   outline: none;
-  border-color: rgba(0, 255, 255, 0.705);
-  box-shadow: 0 0 10px #0ff;
+  border-color: gold;
+  box-shadow: 0 0 10px gold;
 }
 .contactBTN {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   padding: 12px;
   border-radius: 10px;
-  background: red;
+  background: goldenrod;
   color: black;
   border: none;
   cursor: pointer;
@@ -122,8 +122,8 @@ form {
 .contactBTN:hover {
   background-color: black;
   color: white;
-  box-shadow: 0 0 15px #0ff;
-  border: 1px solid rgba(0, 255, 255, 0.705);
+  box-shadow: 0 0 15px gold;
+  border: 1px solid gold;
    
 }
 

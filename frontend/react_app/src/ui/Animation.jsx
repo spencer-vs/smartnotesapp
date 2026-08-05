@@ -23,7 +23,7 @@ const Animations = () => {
       
        <div className={styles.card}>
         <div className={`${styles.card_face} ${styles.front}`}>Welcome to SmartNotes where note taking brings joy</div>
-        <div className={`${styles.card_face} ${styles.back}`}>Create, update and share notes with ease</div>
+        <div className={`${styles.card_face} ${styles.back}`}>Your all-in-one AI companion</div>
         
       </div>
      </div>

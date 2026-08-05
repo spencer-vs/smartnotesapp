@@ -70,7 +70,7 @@ const NoteCreate = () => {
          <NHeader /> 
          <div className={styles.createContainer} >
           {/* {loading && <div className={styles.loader}></div>} style={{ backgroundImage: `url(${backgrounds[index]})`}}*/}
-        
+        <div className={styles.top}>
         <textarea
           type="text"
           className={styles.createTitle}
@@ -80,6 +80,10 @@ const NoteCreate = () => {
          
          ></textarea>
 
+         <button className={styles.createBtn1} onClick={createNote}>
+          Create
+        </button>
+       </div>
 
         <textarea
           type="text"
@@ -89,7 +93,7 @@ const NoteCreate = () => {
           onChange={(e) => setContent(e.target.value)}
          
          ></textarea>
-        <button className={styles.createBtn} onClick={createNote}>
+        <button className={styles.createBtnph} onClick={createNote}>
           Create
         </button>
       </div>

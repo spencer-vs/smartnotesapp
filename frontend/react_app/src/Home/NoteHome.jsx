@@ -7,7 +7,6 @@ import api from "../api/axios"
 import { Link, useNavigate } from 'react-router-dom'
 import { GrAdd } from "react-icons/gr";
 import { Navigate } from 'react-router-dom'
-import Carousels from '../ui/Carousels'
 import Animation from '../ui/Animation'
 import { AuthContext } from "../context/AuthContext"
 import { FaSearch } from "react-icons/fa"

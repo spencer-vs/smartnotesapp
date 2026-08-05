@@ -6,7 +6,6 @@ import NoteCreate from './Home/NoteCreate'
 import { BrowserRouter, Route } from 'react-router-dom'
 import { Routes } from 'react-router-dom'
 import NoteUpdate from './Home/NoteUpdate'
-import Carousels from './ui/Carousels'
 import SignIn from './user/SignIn'
 import SignUp from "./user/SignUp"
 import ProtectedRoute from './context/ProtectedRoute'
@@ -45,7 +44,6 @@ const App = () => {
       <Route path="/" element={<NoteHome />}></Route>
       <Route path="/create" element={<ProtectedRoute><NoteCreate /></ProtectedRoute>}></Route>
       <Route path='/notes/:id/update' element={<ProtectedRoute><NoteUpdate /></ProtectedRoute>}></Route>
-      <Route path='/carousel' element={<Carousels />}></Route>
       <Route path='/login' element={<SignIn />}></Route>
       <Route path='/signup' element={<SignUp />}></Route>
       <Route path='/about' element={<About />}></Route>
