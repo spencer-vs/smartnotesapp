@@ -202,23 +202,26 @@ def search_tasks(request):
     tasks = tasks.order_by('-created_at')
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data)
+from django.db.models import Q
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_tutorials(request):
-    print("SEARCH VIEW HIT")
-    query = request.GET.get('q', '').strip()
+    query = request.GET.get("q", "").strip()
+
     if not query:
         return Response([])
-    tutorials = Tutorial.objects.filter(user=request.user)
-    try:
-       tutorials = tutorials.filter(
-            Q(youtube_title_icontains=query) |
-            Q(youtube_text_icontains=query)
-            )
-    except ValueError:
-        return JsonResponse({'error': 'Tutorial not found'}, status=404)
-    tutorials = tutorials.order_by('-created_at')
+
+    tutorials = (
+        Tutorial.objects
+        .filter(user=request.user)
+        .filter(
+            Q(youtube_title__icontains=query) |
+            Q(youtube_text__icontains=query)
+        )
+        .order_by("-created_at")
+    )
+
     serializer = TutorialSerializer(tutorials, many=True)
     return Response(serializer.data)
 
