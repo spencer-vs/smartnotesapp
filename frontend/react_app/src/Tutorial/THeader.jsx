@@ -59,7 +59,9 @@ const THeader = () => {
     <ul className={styles.menuLinks}>
       
         {auth.isAuthenticated ? (
-            <>
+        <><li className={styles.navItem}><NavLink onClick={toggleMenu} to="/tutorials" className={({ isActive }) =>
+                     `${styles.navLink} ${isActive ? styles.active : ''}`
+                      }>Home</NavLink></li>
           <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
                       }>Notes</NavLink></li>
@@ -69,6 +71,7 @@ const THeader = () => {
         <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
                       }>Lectures</NavLink></li>
+        
         </>
       ) : (
             <>

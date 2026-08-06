@@ -25,7 +25,7 @@ function SearchNotes() {
   }
   return (
     <>
-    <Header />
+    {/* <Header /> */}
     
     <div className={styles.searchPage}>
 
