@@ -1,8 +1,12 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 
 # Create your models here.
+
+
+
 
 class Note(models.Model):
     user = models.ForeignKey(
@@ -103,3 +107,45 @@ class Tutorial(models.Model):
     
     def __str__(self):
         return self.youtube_title or "Tutorials"
+    
+    
+    
+    
+    
+def default_trial_end():
+    return timezone.now() + timedelta(days=14)
+
+class Subscription(models.Model):
+    STATUS_CHOICES = [
+        ("trial", "Trial"),
+        ("active", "Active"),
+        ("expired", "Expired"),
+        ("cancelled", "Cancelled"),
+    ]
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="Subscription"
+    )
+    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="trial"
+        )
+    
+    trial_start = models.DateTimeField(default=timezone.now)
+    
+    trial_end = models.DateTimeField(default=default_trial_end)
+    
+    subscription_start =  models.DateTimeField(null=True, blank=True)
+    
+    subscription_end = models.DateTimeField(null=True, blank=True)
+    
+    paystack_customer_code = models.CharField(max_length=255, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user} ({self.status})"
