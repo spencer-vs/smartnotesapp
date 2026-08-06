@@ -2,7 +2,7 @@ import React from 'react'
 import Header from './Header'
 import Footer from "./Footer"
 import styles from "./About.module.css"
-import header_1 from "../assets/img/header_1.png"
+import upwork from "../assets/img/upwork_2.png"
 import logo from "../assets/img/logo.png"
 
 const About = () => {
@@ -15,7 +15,7 @@ const About = () => {
       <div className={styles.aboutSite}>
         
         <div className={styles.siteImg}>
-         <img src={header_1} alt="Header"  className={styles.img__1}/>
+         <img src={upwork} alt="Header"  className={styles.img__1}/>
         </div>
 
 

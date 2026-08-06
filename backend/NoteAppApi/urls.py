@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset, search_tutorials
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -10,6 +10,7 @@ urlpatterns = [
    path("notes/search/", search_notes),
    path("notes/search_lectures/", search_lectures),
    path("notes/search_tasks/", search_tasks),
+   path("notes/search_tutorials/", search_tutorials),
    path("notes/contact/", ContactListCreate.as_view(), name="contact_us"),
    path("notes/task/", views.create_task, name="task_create"),
    path("notes/task/<int:id>/", task_detail, name="task-detail"),

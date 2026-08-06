@@ -62,7 +62,7 @@ const Tutorials = () => {
         
          <div className={styles.icons}>
            <div className={styles.search}>
-            <NavLink className={styles.icon} to="/createtutorials">
+            <NavLink className={styles.icon} to="/searchtutorial">
                <FaSearch />
             </NavLink>
            </div>

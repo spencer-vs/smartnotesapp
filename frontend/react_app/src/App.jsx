@@ -28,6 +28,7 @@ import SearchLectures from './LectureNotes/SearchLecture'
 import SearchTasks from './Task/SearchTasks'
 import ResetPassword from './user/ResetPassword'
 import ForgotPassword from './user/ForgotPassword'
+import SearchT from './Tutorial/SearchT'
 
 
 
@@ -65,6 +66,8 @@ const App = () => {
       <Route path='/searchtasks' element={<SearchTasks />}></Route>
       <Route path='/reset-password/:uid/:token' element={<ResetPassword />}></Route>
       <Route path='/forgot-password' element={<ForgotPassword />}></Route>
+       <Route path='/searchtutorial' element={<SearchT />}></Route>
+
   
 
 

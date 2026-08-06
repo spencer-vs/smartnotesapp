@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer
+from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer, TutorialSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -203,6 +203,24 @@ def search_tasks(request):
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_tutorials(request):
+    print("SEARCH VIEW HIT")
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return Response([])
+    tutorials = Tutorial.objects.filter(user=request.user)
+    try:
+       tutorials = tutorials.filter(
+            Q(youtube_title_icontains=query) |
+            Q(youtube_text_icontains=query)
+            )
+    except ValueError:
+        return JsonResponse({'error': 'Tutorial not found'}, status=404)
+    tutorials = tutorials.order_by('-created_at')
+    serializer = TutorialSerializer(tutorials, many=True)
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
