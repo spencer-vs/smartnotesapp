@@ -45,39 +45,51 @@ class TutorialSerializer(serializers.ModelSerializer):
     # read_only_fields = ["created_at"]
     
     
+from rest_framework import serializers
+from .models import Subscription
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
-    days_left = serializers.SerializerMethodField()
-    premium = serializers.SerializerMethodField()
+
+    plan_name = serializers.CharField(
+        source="get_plan_display",
+        read_only=True
+    )
+
+    status_name = serializers.CharField(
+        source="get_status_display",
+        read_only=True
+    )
     
+    
+    
+    
+
     class Meta:
         model = Subscription
+
         fields = [
+            "plan",
+            "plan_name",
+
             "status",
-            "trial_end",
-            "subscription_end",
+            "status_name",
+
+            "premium",
             "days_left",
-            "premium"
+
+            "trial_start",
+            "trial_end",
+
+            "subscription_start",
+            "subscription_end",
+            
+            "renewal_date",
+
+            "is_trial",
+            "is_active",
+            "is_expired",
+            "is_cancelled",
         ]
         
-    def get_days_left(self, obj):
-        now = timezone.now()
-        
-        if obj.status == "trial":
-            delta = obj.trial_end - now
-        elif obj.status == "active" and obj.subscription_end:
-            delta = obj.subscription_end - now
-        else:
-            return 0
-        return max(delta.days, 0)
-    
-    
-    def get_premium(self, obj):
-        now = timezone.now()
-        
-        if obj.status == "active":
-            return obj.subscription_end and obj.subscription_end > now
-        if obj.status == "trial":
-            return obj.trial_end > now
-        return False
-            
-        
+   

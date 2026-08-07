@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 import re
+from NoteAppApi.serializers import SubscriptionSerializer
 User = get_user_model()
 
 
@@ -35,3 +36,29 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.phone = phone  
         user.save()
         return user
+    
+    
+    
+    
+
+
+User = get_user_model()
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    subscription = SubscriptionSerializer(read_only=True)
+
+    class Meta:
+        model = User
+
+        fields = [
+            "id",
+            "username",
+            "email",
+            "phone",
+            "city",
+            "state",
+            "address",
+            "subscription",
+        ]

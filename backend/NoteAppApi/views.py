@@ -757,7 +757,7 @@ def get_all_tutorials(request):
  
  
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
+@permission_classes([IsAuthenticated])
 def generate_tutorial(request):
   
     if request.method != "POST":
