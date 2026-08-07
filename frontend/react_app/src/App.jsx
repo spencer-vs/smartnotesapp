@@ -29,6 +29,8 @@ import SearchTasks from './Task/SearchTasks'
 import ResetPassword from './user/ResetPassword'
 import ForgotPassword from './user/ForgotPassword'
 import SearchT from './Tutorial/SearchT'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 
@@ -39,6 +41,8 @@ const App = () => {
   
   
   return (
+   <>
+   <ToastContainer />
    <Routes>
    
      
@@ -75,7 +79,7 @@ const App = () => {
 
    
     </Routes>
- 
+    </>
    )
 
   

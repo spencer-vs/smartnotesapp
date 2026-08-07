@@ -11,7 +11,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     class Meta:
         model = User
-        fields = ['username', 'password', 'email', 'phone']
+        fields = ['username', 'password', 'email', 'phone', 'address']
         extra_kwargs = {'password': {'write_only': True}}
     def validate_password(self, value):
         if not re.search(r'[A-Za-z]', value) or not re.search(r'\d', value):

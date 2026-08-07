@@ -125,6 +125,24 @@ form {
   border-color: white;
   box-shadow: 0 0 10px goldenrod;
 }
+
+
+.signupAddress {
+  font-size: 1.2rem;
+  padding: 12px 15px;
+  border: 2px solid goldenrod;
+  border-radius: 10px;
+  background: black;
+  color: white;
+  transition: 0.3s ease;
+}
+.signupAddress:focus {
+  outline: none;
+  border-color: white;
+  box-shadow: 0 0 10px goldenrod;
+}
+
+
 .signupBTN {
   font-size: 1.2rem;
   padding: 12px;

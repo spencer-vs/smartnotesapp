@@ -7,13 +7,14 @@ import Header from '../ui/Header'
 import { NavLink } from 'react-router-dom'
 import { IoMdEye } from "react-icons/io"; 
 import { IoMdEyeOff } from "react-icons/io"; 
-
+import { toast } from 'react-toastify';
 const SignUp = () => {
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
+  const [address, setAddress] = useState("")
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -59,8 +60,9 @@ const SignUp = () => {
       password,
       phone,
       email,
+      address
     });
-    alert("Account created successfully. Please login.");
+    toast.success("Account created successfully. Please login.");
     navigate("/login");
     setLoading(false)
   } catch (err) {
@@ -68,7 +70,7 @@ const SignUp = () => {
     if (backendErrors) {
       setErrors(backendErrors);
     } else {
-      alert("Registration failed");
+      toast.error("Registration failed");
     }
     setLoading(false)
   } 
@@ -76,6 +78,7 @@ const SignUp = () => {
  
 
 if (loading) return <div className={styles.loader}></div>
+if (loading) return toast("Account will be created in a few seconds");
 
 
   return (
@@ -142,7 +145,19 @@ if (loading) return <div className={styles.loader}></div>
         {errors.email && <p
         className={styles.error}
         >{errors.email}</p>}
+        
 
+        <input 
+        className={styles.signupAddress}
+        type='text'
+        placeholder="Address"
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+        
+        />
+        {errors.address && <p
+        className={styles.error}
+        >{errors.address}</p>}
       
           
       <button type="submit" className={styles.signupBTN}>

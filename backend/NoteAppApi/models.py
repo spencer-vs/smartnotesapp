@@ -232,13 +232,17 @@ class Subscription(models.Model):
     
     @property
     def renewal_date(self):
-        if self.status == "trial":
-            return self.trial_end
 
-        if self.status == "active":
-           return self.subscription_end
+       if self.status in ["trial", "expired"]:
+        return self.trial_end
 
-        return None
+       if self.status == "active":
+        return self.subscription_end
+
+       if self.status == "cancelled":
+        return self.subscription_end
+
+       return None
 
     def activate_monthly(self):
         now = timezone.now()
