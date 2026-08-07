@@ -36,10 +36,11 @@ import resend
 import smtplib
 import socket
 from django.core.mail import get_connection
-
+from .permissions import HasPremiumSubscription
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from .subscription import user_has_premium
 # from NoteAppApi.ml.indexing import index_note
 
 # Create your views here.
@@ -756,7 +757,7 @@ def get_all_tutorials(request):
  
  
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
 def generate_tutorial(request):
   
     if request.method != "POST":
@@ -913,8 +914,11 @@ def generate_tutorial_from_transcript(transcription):
         return None
     
     
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def subscription_status(request):
-    serializer = SubscriptionSerializer(request.user.subscription)
+    subscription, _ = Subscription.objects.get_or_create(user=request.user)
+    serializer = SubscriptionSerializer(subscription)
     return Response(serializer.data)
