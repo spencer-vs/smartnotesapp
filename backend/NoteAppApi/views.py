@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer, TutorialSerializer
+from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer, TutorialSerializer, SubscriptionSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import Note, Contact, Tutorial
+from .models import Note, Contact, Tutorial, Subscription
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
@@ -653,47 +653,6 @@ def lecture_status(request, id):
     
     
 
-
-
-# def generate_lecture_note(transcription):
-#     try:
-#         api_key = os.getenv("GROQ_API_KEY")
-#         if not api_key:
-#             print("Groq API key not found")
-#             return None
-#         print("Grok key found sending request...")
-#         client = Groq(api_key=api_key)
-#         prompt = f"""
-#         You are an expert academic assistant.
-#         Convert the following transcript into well-structured lecture notes.
-#         REQUIREMENTS:
-#         - Use clear headings and subheadings
-#         - Use bullet points where appropriate
-#         - Highlight key concepts
-#         - Keep it concise but complete
-#         - Add a short summary at the end
-#         Transcript:
-#         {transcription}
-#         Lecture Notes:
-#         """
-#         completion = client.chat.completions.create(
-#             model="llama-3.1-8b-instant",
-#             messages=[
-#                 {"role": "user", "content": prompt[:3000]},
-#             ],
-#             temperature=0.5,   # lower = more structured
-#             max_tokens=1200,
-#             timeout=60
-#         )
-#         print("Grok response received")
-#         return completion.choices[0].message.content.strip()
-#     except Exception as e:
-#         print("Groq error:", repr(e))
-#         return None
-    
-    
-    
-    
     
 
 def generate_lecture_note(transcription):
@@ -952,3 +911,10 @@ def generate_tutorial_from_transcript(transcription):
     except Exception as e:
         print("Groq fatal error:", e)
         return None
+    
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def subscription_status(request):
+    serializer = SubscriptionSerializer(request.user.subscription)
+    return Response(serializer.data)
