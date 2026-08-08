@@ -31,6 +31,7 @@ import ForgotPassword from './user/ForgotPassword'
 import SearchT from './Tutorial/SearchT'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Profile from './user/Profile'
 
 
 
@@ -70,7 +71,8 @@ const App = () => {
       <Route path='/searchtasks' element={<SearchTasks />}></Route>
       <Route path='/reset-password/:uid/:token' element={<ResetPassword />}></Route>
       <Route path='/forgot-password' element={<ForgotPassword />}></Route>
-       <Route path='/searchtutorial' element={<SearchT />}></Route>
+      <Route path='/searchtutorial' element={<SearchT />}></Route>
+      <Route path='/profile' element={<Profile />}></Route>
 
   
 

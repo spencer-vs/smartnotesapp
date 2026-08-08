@@ -3,6 +3,9 @@ import React, { useState, useContext } from 'react';
 import styles from "./TaskHeader.module.css";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from "../context/AuthContext";
+import { FaUser } from "react-icons/fa";
+import { Link } from "react-router-dom";
+
 
 
 
@@ -47,7 +50,13 @@ const TaskHeader = () => {
       )}
     
     </div>  
+
+    <Link to="/profile" className={styles.profileButton}>
+        <FaUser />
+        </Link>
+
     <div className={styles.rightside}>
+    
     <button className={styles.logout} onClick={handleLogout}>
               Logout
     </button>

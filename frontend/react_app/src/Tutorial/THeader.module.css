@@ -124,6 +124,32 @@
   color: black; */
   transform: scale(1.02);
 }
+
+.profileButton {
+     color: cyan;
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    text-decoration: none;
+
+    font-size: 45px;
+
+    
+
+    transition: transform 0.2s ease;
+}
+
+.profileButton:hover {
+    transform: scale(1.08);
+}
+
+
 /* ================= RESPONSIVE TUNING ================= */
 @media (min-width: 550px) and (max-width: 900px) {
  

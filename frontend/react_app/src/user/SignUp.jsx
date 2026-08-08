@@ -78,7 +78,7 @@ const SignUp = () => {
 };
  
 
-if (loading) return <div className={styles.loader}></div>
+// if (loading) return <div className={styles.loader}></div>
 // if (loading) return toast("Account will be created in a few seconds");
 
 
@@ -118,6 +118,10 @@ if (loading) return <div className={styles.loader}></div>
         <button className={styles.eyecons} type="button" onClick={togglePassword}>
            {showPassword ? <IoMdEye /> : <IoMdEyeOff />}
         </button>
+
+        {loading && (
+        <div className={styles.loader}></div>
+        )}
 
        </div>
 
