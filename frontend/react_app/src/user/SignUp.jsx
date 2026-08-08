@@ -55,6 +55,7 @@ const SignUp = () => {
   setLoading(false)
   try {
     setLoading(true)
+    toast("Account will be created in a few seconds")
     await api.post("auth/register/", {
       username,
       password,
@@ -78,7 +79,7 @@ const SignUp = () => {
  
 
 if (loading) return <div className={styles.loader}></div>
-if (loading) return toast("Account will be created in a few seconds");
+// if (loading) return toast("Account will be created in a few seconds");
 
 
   return (
