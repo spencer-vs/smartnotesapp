@@ -983,6 +983,13 @@ def initialize_payment(request):
 
         response_data = response.json()
         
+        print(
+        "PAYSTACK KEY:",
+        settings.PAYSTACK_SECRET_KEY[:12]
+        if settings.PAYSTACK_SECRET_KEY
+        else "MISSING"
+        )
+        
         print("USER:", request.user)
         print("EMAIL:", request.user.email)
         print("PLAN:", plan_name)
