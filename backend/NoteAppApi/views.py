@@ -982,6 +982,12 @@ def initialize_payment(request):
         )
 
         response_data = response.json()
+        
+        print("USER:", request.user)
+        print("EMAIL:", request.user.email)
+        print("PLAN:", plan_name)
+        print("PAYSTACK STATUS:", response.status_code)
+        print("PAYSTACK RESPONSE:", response_data)
 
     except requests.RequestException:
         return Response(

@@ -211,7 +211,7 @@ AUTH_USER_MODEL = 'NoteAppCore.CustomUser'
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=120),
-    "REFRESH_TOKEN_LIFTIME": timedelta(days=1)
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
 PAYSTACK_SECRET_KEY=os.getenv("PAYSTACK_SECRET_KEY")
