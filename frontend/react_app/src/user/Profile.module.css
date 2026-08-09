@@ -112,6 +112,24 @@
     font-size: 24px;
 }
 
+.upgradeButton {
+    display: inline-block;
+    padding: 12px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 600;
+    color: black;
+    background-color: #f3f3f3;
+    border: 5px solid black;
+    transition: all .3s;
+
+}
+
+.upgradeButton:hover {
+    transform: scale(1.03);
+}
+
 .status {
     padding: 7px 14px;
     border-radius: 20px;

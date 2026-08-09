@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import styles from "./Profile.module.css";
-
+import { Link } from "react-router-dom";
 function Profile() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -130,11 +130,11 @@ function Profile() {
             </p>
         )}
 
-        <button>
+        <Link to='/pricing' className={styles.upgradeButton}>
             {profile.subscription.premium
                 ? "Upgrade Plan"
                 : "Upgrade to Premium"}
-        </button>
+        </Link>
 
     </section>
 
