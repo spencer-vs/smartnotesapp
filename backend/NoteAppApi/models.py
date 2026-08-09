@@ -178,6 +178,19 @@ class Subscription(models.Model):
         max_length=255,
         blank=True,
     )
+    
+    paystack_reference = models.CharField(
+    max_length=255,
+    blank=True,
+    unique=True,
+    null=True
+    )
+
+    paystack_transaction_id = models.CharField(
+    max_length=255,
+    blank=True,
+    null=True
+    )
 
     created_at = models.DateTimeField(
         auto_now_add=True

@@ -6,7 +6,7 @@ from .models import Subscription
 
 User = get_user_model()
 
-# print("Signals loaded")
+
 @receiver(post_save, sender=User)
 def create_user_subscription(sender, instance, created, **kwargs):
     if created:

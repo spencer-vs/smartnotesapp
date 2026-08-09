@@ -41,6 +41,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from .subscription import user_has_premium
+from django.utils import timezone
 # from NoteAppApi.ml.indexing import index_note
 
 # Create your views here.
@@ -922,3 +923,98 @@ def subscription_status(request):
     subscription, _ = Subscription.objects.get_or_create(user=request.user)
     serializer = SubscriptionSerializer(subscription)
     return Response(serializer.data)
+
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def initialize_payment(request):
+    
+    if not request.user.email:
+        return Response(
+        {"detail": "Please add an email address before subscribing."},
+        status=400
+       )
+    
+    plan_name = request.data.get("plan")
+
+    if plan_name not in settings.PAYSTACK_PLANS:
+        return Response(
+            {"detail": "Invalid subscription plan."},
+            status=400
+        )
+
+    plan = settings.PAYSTACK_PLANS[plan_name]
+
+    try:
+        subscription = request.user.subscription
+    except Subscription.DoesNotExist:
+        subscription = Subscription.objects.create(
+            user=request.user
+        )
+
+    reference = f"SN-{request.user.id}-{int(timezone.now().timestamp())}"
+
+    amount = plan["amount"] * 100
+
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    data = {
+        "email": request.user.email,
+        "amount": amount,
+        "reference": reference,
+        "metadata": {
+            "user_id": request.user.id,
+            "plan": plan_name,
+        },
+    }
+
+    try:
+        response = requests.post(
+            "https://api.paystack.co/transaction/initialize",
+            json=data,
+            headers=headers,
+            timeout=30,
+        )
+
+        response_data = response.json()
+
+    except requests.RequestException:
+        return Response(
+            {"detail": "Unable to connect to Paystack."},
+            status=503
+        )
+
+    if not response_data.get("status"):
+        return Response(
+            {
+                "detail": response_data.get(
+                    "message",
+                    "Unable to initialize payment."
+                )
+            },
+            status=400
+        )
+
+    subscription.paystack_reference = reference
+    subscription.plan = plan_name
+    subscription.save(
+        update_fields=[
+            "paystack_reference",
+            "plan",
+            "updated_at",
+        ]
+    )
+
+    return Response(
+        {
+            "authorization_url": response_data["data"]["authorization_url"],
+            "access_code": response_data["data"]["access_code"],
+            "reference": reference,
+        },
+        status=200
+    )

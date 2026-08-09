@@ -57,8 +57,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "phone",
-            "city",
-            "state",
             "address",
             "subscription",
         ]

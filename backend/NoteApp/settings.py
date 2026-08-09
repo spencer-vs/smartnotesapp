@@ -214,6 +214,21 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFTIME": timedelta(days=1)
 }
 
+PAYSTACK_SECRET_KEY=os.getenv("PAYSTACK_SECRET_KEY")
+PAYSTACK_PUBLIC_KEY=os.getenv("PAYSTACK_PUBLIC_KEY")
+
+
+PAYSTACK_PLANS = {
+    "monthly": {
+        "amount": 3000,
+        "duration_days": 30,
+    },
+    "yearly": {
+        "amount": 30000,
+        "duration_days": 365,
+    },
+}
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
