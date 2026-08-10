@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView, get_all_task, task_detail, search_notes, ContactListCreate, create_task, update_task, upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, delete_task, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -32,9 +32,12 @@ urlpatterns = [
    path("test-email/", test_email, name="test_email"),
    path("subscription/", views.subscription_status),
    path("initialize_payment/", initialize_payment, name="initialize-payment"),
-   path("verify/<str:reference>/", verify_payment, name='verify-payment')
+   path("verify/<str:reference>/", verify_payment, name='verify-payment'),
+   path("paystack_webhook/", paystack_webhook, name="paystack-webhook")
    
 ]
+
+
 
 
 

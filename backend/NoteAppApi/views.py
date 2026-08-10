@@ -43,6 +43,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from .subscription import user_has_premium
 from django.utils import timezone
+import hashlib
+import hmac
 # from NoteAppApi.ml.indexing import index_note
 
 # Create your views here.
@@ -1109,32 +1111,17 @@ def verify_payment(request, reference):
             },
             status=400
         )
+        
+    try:
+       activate_subscription(subscription, transaction)
 
-    plan = subscription.plan
-
-    now = timezone.now()
-
-    if plan == "monthly":
-        subscription_end = now + timedelta(days=30)
-
-    elif plan == "yearly":
-        subscription_end = now + timedelta(days=365)
-
-    else:
+    except ValueError as e:
         return Response(
-            {"detail": "Invalid subscription plan."},
-            status=400
+        {"detail": str(e)},
+        status=400
         )
 
-    subscription.status = "active"
-    subscription.subscription_start = now
-    subscription.subscription_end = subscription_end
-
-    subscription.paystack_transaction_id = str(
-        transaction.get("id")
-    )
-
-    subscription.save()
+   
 
     return Response(
         {
@@ -1144,4 +1131,125 @@ def verify_payment(request, reference):
             "subscription_start": subscription.subscription_start,
             "subscription_end": subscription.subscription_end,
         }
+    )
+    
+    
+    
+def activate_subscription(subscription, transaction):
+    plan = subscription.plan
+    
+    now = timezone.now()
+    
+    if plan == "monthly":
+        subscription_end = now + timedelta(days=30)
+    
+    elif plan == "yearly":
+        subscription_end = now + timedelta(days=365)
+    
+    else:
+        return Response(
+           {"detail": "Invalid subscription plan."},
+            status=400
+        )
+    
+    subscription.status = "active"
+    subscription.subscription_start = now
+    subscription.subscription_end = subscription_end
+    
+    subscription.paystack_transaction_id = str(
+        transaction.get("id")
+    )
+    
+   
+    
+    transaction_id = transaction.get("id")
+
+    if transaction_id:
+        subscription.paystack_transaction_id = str(transaction_id)
+
+    subscription.save()
+
+    return subscription
+
+
+
+
+@api_view(["POST"])
+def paystack_webhook(request):
+
+    signature = request.headers.get("x-paystack-signature")
+
+    if not signature:
+        return Response(
+            {"detail": "Missing Paystack signature."},
+            status=400
+        )
+
+    secret_key = settings.PAYSTACK_SECRET_KEY
+
+    computed_signature = hmac.new(
+        secret_key.encode("utf-8"),
+        request.body,
+        hashlib.sha512
+    ).hexdigest()
+
+    if not hmac.compare_digest(
+        computed_signature,
+        signature
+    ):
+        return Response(
+            {"detail": "Invalid signature."},
+            status=400
+        )
+
+    event = request.data
+
+    if event.get("event") != "charge.success":
+        return Response(
+            {"message": "Event ignored."},
+            status=200
+        )
+
+    transaction = event.get("data", {})
+
+    reference = transaction.get("reference")
+
+    if not reference:
+        return Response(
+            {"detail": "Missing transaction reference."},
+            status=400
+        )
+
+    try:
+        subscription = Subscription.objects.get(
+            paystack_reference=reference
+        )
+
+    except Subscription.DoesNotExist:
+        return Response(
+            {"detail": "Subscription not found."},
+            status=404
+        )
+
+    if subscription.status == "active":
+        return Response(
+            {"message": "Subscription already active."},
+            status=200
+        )
+
+    try:
+        activate_subscription(
+            subscription,
+            transaction
+        )
+
+    except ValueError as e:
+        return Response(
+            {"detail": str(e)},
+            status=400
+        )
+
+    return Response(
+        {"message": "Payment processed successfully."},
+        status=200
     )
