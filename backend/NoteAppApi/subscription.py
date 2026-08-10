@@ -26,7 +26,9 @@ def has_premium_access(subscription):
     return subscription.status == "trial"
 
 def user_has_premium(user):
-    subscription, _ = Subscription.objects.get_or_create(user=user)
+    subscription, created = Subscription.objects.get_or_create(
+    user=user
+    )
     return has_premium_access(subscription)
 
 

@@ -1136,6 +1136,7 @@ def verify_payment(request, reference):
     
     
 def activate_subscription(subscription, transaction):
+    
     plan = subscription.plan
     
     now = timezone.now()
@@ -1176,6 +1177,10 @@ def activate_subscription(subscription, transaction):
 
 @api_view(["POST"])
 def paystack_webhook(request):
+    
+    print("PAYSTACK WEBHOOK RECEIVED")
+    print("BODY:", request.body)
+    print("SIGNATURE:", request.headers.get("x-paystack-signature"))
 
     signature = request.headers.get("x-paystack-signature")
 
