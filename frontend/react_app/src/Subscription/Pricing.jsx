@@ -13,7 +13,7 @@ function Pricing() {
     try {
         setLoadingPlan(plan);
 
-        const response = await api.post("payment/initialize/",
+        const response = await api.post("initialize_payment/",
             {
                 plan: plan,
             }

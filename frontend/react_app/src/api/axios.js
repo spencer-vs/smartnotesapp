@@ -10,6 +10,13 @@ api.interceptors.request.use(
     config => {
         const access = localStorage.getItem("access");
 
+          console.log(
+            "API REQUEST:",
+            config.url,
+            "Has token:",
+            !!access
+        );
+
         if (access) {
             config.headers.Authorization = `Bearer ${access}`;
         }
