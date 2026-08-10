@@ -11,6 +11,7 @@ from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
 from datetime import datetime
 import time
+from datetime import timedelta
 from openai import OpenAI
 from django.http import JsonResponse
 import json
@@ -936,6 +937,19 @@ def initialize_payment(request):
         {"detail": "Please add an email address before subscribing."},
         status=400
        )
+        
+    subscription = request.user.subscription
+    
+    if (
+    subscription.status == "active"
+    and subscription.subscription_end
+    and subscription.subscription_end > timezone.now()
+    ):
+     return Response(
+        {"detail": "You already have an active subscription."},
+        status=400
+     )
+
     
     plan_name = request.data.get("plan")
 
@@ -983,18 +997,18 @@ def initialize_payment(request):
 
         response_data = response.json()
         
-        print(
-        "PAYSTACK KEY:",
-        settings.PAYSTACK_SECRET_KEY[:12]
-        if settings.PAYSTACK_SECRET_KEY
-        else "MISSING"
-        )
+        # print(
+        # "PAYSTACK KEY:",
+        # settings.PAYSTACK_SECRET_KEY[:12]
+        # if settings.PAYSTACK_SECRET_KEY
+        # else "MISSING"
+        # )
         
-        print("USER:", request.user)
-        print("EMAIL:", request.user.email)
-        print("PLAN:", plan_name)
-        print("PAYSTACK STATUS:", response.status_code)
-        print("PAYSTACK RESPONSE:", response_data)
+        # print("USER:", request.user)
+        # print("EMAIL:", request.user.email)
+        # print("PLAN:", plan_name)
+        # print("PAYSTACK STATUS:", response.status_code)
+        # print("PAYSTACK RESPONSE:", response_data)
 
     except requests.RequestException:
         return Response(
@@ -1030,4 +1044,104 @@ def initialize_payment(request):
             "reference": reference,
         },
         status=200
+    )
+    
+    
+    
+    
+    
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def verify_payment(request, reference):
+    try:
+        subscription = request.user.subscription
+    except Subscription.DoesNotExist:
+        return Response(
+            {"detail": "Subscription not found."},
+            status=404
+        )
+
+    if subscription.paystack_reference != reference:
+        return Response(
+            {"detail": "Invalid payment reference."},
+            status=400
+        )
+
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.get(
+            f"https://api.paystack.co/transaction/verify/{reference}",
+            headers=headers,
+            timeout=30,
+        )
+
+        response_data = response.json()
+
+    except requests.RequestException:
+        return Response(
+            {"detail": "Unable to connect to Paystack."},
+            status=503
+        )
+
+    if not response_data.get("status"):
+        return Response(
+            {
+                "detail": response_data.get(
+                    "message",
+                    "Payment verification failed."
+                )
+            },
+            status=400
+        )
+
+    transaction = response_data.get("data", {})
+
+    if transaction.get("status") != "success":
+        return Response(
+            {
+                "detail": "Payment was not successful.",
+                "status": transaction.get("status"),
+            },
+            status=400
+        )
+
+    plan = subscription.plan
+
+    now = timezone.now()
+
+    if plan == "monthly":
+        subscription_end = now + timedelta(days=30)
+
+    elif plan == "yearly":
+        subscription_end = now + timedelta(days=365)
+
+    else:
+        return Response(
+            {"detail": "Invalid subscription plan."},
+            status=400
+        )
+
+    subscription.status = "active"
+    subscription.subscription_start = now
+    subscription.subscription_end = subscription_end
+
+    subscription.paystack_transaction_id = str(
+        transaction.get("id")
+    )
+
+    subscription.save()
+
+    return Response(
+        {
+            "message": "Payment verified successfully.",
+            "plan": subscription.plan,
+            "status": subscription.status,
+            "subscription_start": subscription.subscription_start,
+            "subscription_end": subscription.subscription_end,
+        }
     )
