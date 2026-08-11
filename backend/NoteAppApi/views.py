@@ -987,7 +987,7 @@ def initialize_payment(request):
             "user_id": request.user.id,
             "plan": plan_name,
         },
-        "callback_url": f"{settings.FRONTEND_URL}/payment/callback",
+        "callback_url": f"{settings.FRONTEND_URL}payment/callback",
     }
 
     try:
