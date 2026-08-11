@@ -76,7 +76,7 @@ const App = () => {
       <Route path='/searchtutorial' element={<ProtectedRoute><SearchT /></ProtectedRoute>}></Route>
       <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
       <Route path='/pricing' element={<ProtectedRoute><Pricing /></ProtectedRoute>}></Route>
-      <Route path='/callback' element={<ProtectedRoute><Callback /></ProtectedRoute>}></Route>
+      <Route path='payment/callback' element={<ProtectedRoute><Callback /></ProtectedRoute>}></Route>
 
 
   
