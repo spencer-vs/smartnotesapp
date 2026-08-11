@@ -1,0 +1,13 @@
+{
+    "event": "charge.success",
+    "data": {
+        "id": 6443837185,
+        "status": "success",
+        "reference": "SN-1-1786363020",
+        "amount": 500000,
+        "currency": "NGN",
+        "customer": {
+            "email": "isaacharu17@gmail.com"
+        }
+    }
+}

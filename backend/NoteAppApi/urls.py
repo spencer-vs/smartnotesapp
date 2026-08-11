@@ -31,9 +31,9 @@ urlpatterns = [
    path("auth/reset-password/<uidb64>/<token>/", reset_password),
    path("test-email/", test_email, name="test_email"),
    path("subscription/", views.subscription_status),
-   path("initialize_payment/", initialize_payment, name="initialize-payment"),
-   path("verify/<str:reference>/", verify_payment, name='verify-payment'),
-   path("paystack_webhook/", paystack_webhook, name="paystack-webhook")
+   path("payment/initialize_payment/", initialize_payment, name="initialize-payment"),
+   path("payment/verify/<str:reference>/", verify_payment, name='verify-payment'),
+   path("payment/paystack_webhook/", paystack_webhook, name="paystack-webhook")
    
 ]
 
