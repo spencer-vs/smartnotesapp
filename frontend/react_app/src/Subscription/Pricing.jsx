@@ -57,7 +57,7 @@ function Pricing() {
 
                     <div className={styles.price}>
                         <span>₦</span>
-                        <strong>2,000</strong>
+                        <strong>3,000</strong>
                         <small>/month</small>
                     </div>
 
@@ -90,7 +90,7 @@ function Pricing() {
 
                     <div className={styles.price}>
                         <span>₦</span>
-                        <strong>20,000</strong>
+                        <strong>30,000</strong>
                         <small>/year</small>
                     </div>
 

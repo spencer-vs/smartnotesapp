@@ -2,94 +2,145 @@ import React, { useEffect, useState, useContext } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
+import styles from "./Callback.module.css";
 
 const PaymentCallback = () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const { refreshUser } = useContext(AuthContext);
+const [searchParams] = useSearchParams();
+const navigate = useNavigate();
+const { refreshUser } = useContext(AuthContext);
 
-    const [status, setStatus] = useState("verifying");
-    const [message, setMessage] = useState("");
 
-    useEffect(() => {
-        const verifyPayment = async () => {
-            const reference = searchParams.get("reference");
+const [status, setStatus] = useState("verifying");
+const [message, setMessage] = useState("");
 
-            if (!reference) {
-                setStatus("error");
-                setMessage("Payment reference was not found.");
-                return;
-            }
+useEffect(() => {
+    const verifyPayment = async () => {
+        const reference = searchParams.get("reference");
 
-            try {
-                const response = await api.get(`payment/verify/${reference}/`)
+        if (!reference) {
+            setStatus("error");
+            setMessage("Payment reference was not found.");
+            return;
+        }
 
-                console.log(
-                    "Payment verification:",
-                    response.data
-                );
+        try {
+            const response = await api.get(
+                `payment/verify/${reference}/`
+            );
 
-                await refreshUser();
+            console.log(
+                "Payment verification:",
+                response.data
+            );
 
-                setStatus("success");
-                setMessage(
-                    "Payment successful! Your subscription is now active."
-                );
+            await refreshUser();
 
-            } catch (error) {
-                console.error(
-                    "Payment verification failed:",
-                    error
-                );
+            setStatus("success");
 
-                setStatus("error");
+            setMessage(
+                "Payment successful! Your subscription is now active."
+            );
 
-                setMessage(
-                    error.response?.data?.detail ||
-                    "We could not verify your payment."
-                );
-            }
-        };
+        } catch (error) {
+            console.error(
+                "Payment verification failed:",
+                error
+            );
 
-        verifyPayment();
-    }, [searchParams]);
+            setStatus("error");
 
-    return (
-        <div>
-            {status === "verifying" && (
-                <div>
-                    <h2>Verifying your payment...</h2>
-                    <p>Please wait while we confirm your payment.</p>
+            setMessage(
+                error.response?.data?.detail ||
+                "We could not verify your payment."
+            );
+        }
+    };
+
+    verifyPayment();
+}, [searchParams, refreshUser]);
+
+return (
+    <div className={styles.container}>
+
+        {status === "verifying" && (
+            <div className={styles.card}>
+
+                <div className={styles.spinner}></div>
+
+                <h2>Verifying Your Payment</h2>
+
+                <p>
+                    Please wait while we confirm your payment.
+                </p>
+
+                <span className={styles.subText}>
+                    This may take a few moments.
+                </span>
+
+            </div>
+        )}
+
+
+        {status === "success" && (
+            <div className={`${styles.card} ${styles.success}`}>
+
+                <div className={styles.icon}>
+                    ✓
                 </div>
-            )}
 
-            {status === "success" && (
-                <div>
-                    <h2>Payment Successful!</h2>
-                    <p>{message}</p>
+                <h2>Payment Successful!</h2>
 
-                    <button
-                        onClick={() => navigate("/profile")}
-                    >
-                        View Profile
-                    </button>
+                <p>
+                    {message}
+                </p>
+
+                <div className={styles.details}>
+                    Your SmartNotes premium subscription
+                    is now active.
                 </div>
-            )}
 
-            {status === "error" && (
-                <div>
-                    <h2>Payment Verification Failed</h2>
-                    <p>{message}</p>
+                <button
+                    className={styles.primaryButton}
+                    onClick={() => navigate("/profile")}
+                >
+                    View Profile
+                </button>
 
-                    <button
-                        onClick={() => navigate("/pricing")}
-                    >
-                        Return to Pricing
-                    </button>
+            </div>
+        )}
+
+
+        {status === "error" && (
+            <div className={`${styles.card} ${styles.error}`}>
+
+                <div className={styles.errorIcon}>
+                    !
                 </div>
-            )}
-        </div>
-    );
+
+                <h2>Payment Verification Failed</h2>
+
+                <p>
+                    {message}
+                </p>
+
+                <div className={styles.details}>
+                    If you completed the payment, please
+                    try again or contact support.
+                </div>
+
+                <button
+                    className={styles.primaryButton}
+                    onClick={() => navigate("/pricing")}
+                >
+                    Return to Pricing
+                </button>
+
+            </div>
+        )}
+
+    </div>
+);
+
 };
 
 export default PaymentCallback;

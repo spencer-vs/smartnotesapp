@@ -1,0 +1,376 @@
+.container {
+min-height: 100vh;
+width: 100%;
+box-sizing: border-box;
+
+background:
+    linear-gradient(rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.9)),
+    url("../../src/assets/img/notes_14.jpg");
+
+background-size: cover;
+background-position: center;
+background-attachment: fixed;
+
+padding: 70px 30px;
+color: #ffffff;
+
+display: flex;
+flex-direction: column;
+align-items: center;
+
+
+}
+
+/* =========================
+HEADER
+========================= */
+
+.header {
+text-align: center;
+max-width: 700px;
+margin-bottom: 55px;
+}
+
+.header h1 {
+margin: 0 0 15px;
+font-size: clamp(2rem, 5vw, 3.2rem);
+font-weight: 700;
+letter-spacing: 1px;
+
+color: #d4af37;
+
+
+}
+
+.header p {
+margin: 0;
+color: #d0d0d0;
+font-size: 1.05rem;
+line-height: 1.7;
+}
+
+/* =========================
+PLANS CONTAINER
+========================= */
+
+.plans {
+width: 100%;
+max-width: 1050px;
+
+
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 30px;
+
+align-items: stretch;
+
+
+}
+
+/* =========================
+PLAN CARD
+========================= */
+
+.planCard {
+position: relative;
+
+
+background: rgba(12, 12, 12, 0.94);
+
+border: 1px solid rgba(212, 175, 55, 0.35);
+border-radius: 18px;
+
+padding: 40px 35px;
+
+box-sizing: border-box;
+
+display: flex;
+flex-direction: column;
+
+min-width: 0;
+
+box-shadow:
+    0 15px 45px rgba(0, 0, 0, 0.45);
+
+transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+
+}
+
+.planCard:hover {
+transform: translateY(-7px);
+
+
+border-color: #d4af37;
+
+box-shadow:
+    0 20px 55px rgba(212, 175, 55, 0.15);
+
+
+}
+
+/* =========================
+PLAN TITLE
+========================= */
+
+.planCard h2 {
+margin: 0 0 25px;
+
+
+font-size: 1.8rem;
+font-weight: 600;
+
+color: #ffffff;
+
+
+}
+
+/* =========================
+PRICE
+========================= */
+
+.price {
+display: flex;
+align-items: baseline;
+gap: 5px;
+
+margin-bottom: 20px;
+
+
+}
+
+.price span {
+color: #d4af37;
+font-size: 1.5rem;
+font-weight: 600;
+}
+
+.price strong {
+color: #d4af37;
+
+
+font-size: clamp(2.4rem, 5vw, 3.4rem);
+line-height: 1;
+
+font-weight: 700;
+
+
+}
+
+.price small {
+color: #a9a9a9;
+font-size: 0.95rem;
+}
+
+/* =========================
+DESCRIPTION
+========================= */
+
+.description {
+min-height: 55px;
+
+margin: 0 0 25px;
+
+color: #c7c7c7;
+
+font-size: 0.98rem;
+line-height: 1.6;
+
+
+}
+
+/* =========================
+FEATURES
+========================= */
+
+.planCard ul {
+list-style: none;
+
+
+margin: 0 0 35px;
+padding: 0;
+
+flex: 1;
+
+
+}
+
+.planCard li {
+position: relative;
+
+
+padding-left: 28px;
+margin-bottom: 15px;
+
+color: #e2e2e2;
+
+font-size: 0.96rem;
+line-height: 1.5;
+
+
+}
+
+.planCard li::before {
+content: "✓";
+
+
+position: absolute;
+left: 0;
+top: 0;
+
+color: #d4af37;
+
+font-weight: 700;
+font-size: 1rem;
+
+
+}
+
+/* =========================
+BUTTON
+========================= */
+
+.planCard button {
+width: 100%;
+
+border: 1px solid #d4af37;
+border-radius: 10px;
+
+padding: 14px 20px;
+
+background: #d4af37;
+color: #080808;
+
+font-size: 1rem;
+font-weight: 700;
+
+cursor: pointer;
+
+transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+
+
+}
+
+.planCard button:hover {
+background: transparent;
+color: #d4af37;
+
+
+transform: translateY(-2px);
+
+box-shadow:
+    0 8px 25px rgba(212, 175, 55, 0.15);
+
+
+}
+
+.planCard button:active {
+transform: translateY(0);
+}
+
+.planCard button:disabled {
+opacity: 0.65;
+cursor: not-allowed;
+transform: none;
+}
+
+/* =========================
+FEATURED YEARLY PLAN
+========================= */
+
+.featured {
+border: 2px solid #d4af37;
+
+
+box-shadow:
+    0 20px 60px rgba(212, 175, 55, 0.12);
+
+
+}
+
+.featured h2 {
+color: #d4af37;
+}
+
+/* =========================
+BEST VALUE BADGE
+========================= */
+
+.badge {
+position: absolute;
+
+
+top: -14px;
+right: 25px;
+
+padding: 6px 16px;
+
+border-radius: 20px;
+
+background: #d4af37;
+color: #080808;
+
+font-size: 0.78rem;
+font-weight: 800;
+
+letter-spacing: 0.5px;
+
+box-shadow:
+    0 5px 20px rgba(212, 175, 55, 0.2);
+
+
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media (max-width: 800px) {
+.container {
+padding: 55px 20px;
+}
+
+
+.plans {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+}
+
+.header {
+    margin-bottom: 45px;
+}
+
+
+}
+
+@media (max-width: 480px) {
+.container {
+padding: 45px 15px;
+}
+
+
+.planCard {
+    padding: 32px 25px;
+}
+
+.header h1 {
+    font-size: 2rem;
+}
+
+.header p {
+    font-size: 0.95rem;
+}
+
+.price strong {
+    font-size: 2.6rem;
+}
+
+
+}
