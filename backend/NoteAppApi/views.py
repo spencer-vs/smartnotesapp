@@ -980,14 +980,15 @@ def initialize_payment(request):
     }
 
     data = {
-        "email": request.user.email,
-        "amount": amount,
-        "reference": reference,
-        "metadata": {
-            "user_id": request.user.id,
-            "plan": plan_name,
-        },
-        "callback_url": f"{settings.FRONTEND_URL}payment/callback",
+    "email": request.user.email,
+    "amount": amount,
+    "reference": reference,
+    "plan": plan["code"],
+    "metadata": {
+        "user_id": request.user.id,
+        "plan": plan_name,
+    },
+    "callback_url": "...",
     }
 
     try:
@@ -1135,39 +1136,47 @@ def verify_payment(request, reference):
     )
     
     
-    
 def activate_subscription(subscription, transaction):
-    
+
     plan = subscription.plan
-    
+
     now = timezone.now()
-    
+
     if plan == "monthly":
         subscription_end = now + timedelta(days=30)
-    
+
     elif plan == "yearly":
         subscription_end = now + timedelta(days=365)
-    
+
     else:
-        return Response(
-           {"detail": "Invalid subscription plan."},
-            status=400
-        )
-    
+        raise ValueError("Invalid subscription plan.")
+
     subscription.status = "active"
     subscription.subscription_start = now
     subscription.subscription_end = subscription_end
-    
-    subscription.paystack_transaction_id = str(
-        transaction.get("id")
-    )
-    
-   
-    
+
+    # Paystack transaction ID
     transaction_id = transaction.get("id")
 
     if transaction_id:
         subscription.paystack_transaction_id = str(transaction_id)
+
+    # Paystack customer information
+    customer = transaction.get("customer", {})
+
+    customer_code = customer.get("customer_code")
+
+    if customer_code:
+        subscription.paystack_customer_code = customer_code
+
+    # Paystack subscription information
+    subscription_data = transaction.get("subscription")
+
+    if subscription_data:
+        subscription_code = subscription_data.get("subscription_code")
+
+        if subscription_code:
+            subscription.paystack_subscription_code = subscription_code
 
     subscription.save()
 

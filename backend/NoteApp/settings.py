@@ -223,10 +223,12 @@ PAYSTACK_PLANS = {
     "monthly": {
         "amount": 3000,
         "duration_days": 30,
+        "code": "PLN_7p4oszrfya9vxom",
     },
     "yearly": {
         "amount": 30000,
         "duration_days": 365,
+        "code": "PLN_m5vfws2xl33jkud",
     },
 }
 
