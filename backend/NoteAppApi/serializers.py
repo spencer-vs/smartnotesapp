@@ -85,6 +85,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             "subscription_end",
             
             "renewal_date",
+            
+            "cancelled_at",
+            "cancel_at_period_end",
 
             "is_trial",
             "is_active",

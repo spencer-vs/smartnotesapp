@@ -168,6 +168,10 @@ class Subscription(models.Model):
         null=True,
         blank=True,
     )
+    
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    cancel_at_period_end = models.BooleanField(default=False)
 
     paystack_customer_code = models.CharField(
         max_length=255,

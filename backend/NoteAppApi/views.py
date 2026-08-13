@@ -1259,3 +1259,67 @@ def paystack_webhook(request):
         {"message": "Payment processed successfully."},
         status=200
     )
+    
+    
+    
+    
+    
+    
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def cancel_subscription(request):
+    try:
+        subscription = request.user.subscription
+    except Subscription.DoesNotExist:
+        return Response(
+            {"detail": "You do not have a subscription to cancel."},
+            status=400
+        )
+
+    if not subscription.subscription_end:
+        return Response(
+            {"detail": "You do not have an active paid subscription."},
+            status=400
+        )
+
+    if subscription.status != "active":
+        return Response(
+            {"detail": "Your subscription is not currently active."},
+            status=400
+        )
+
+    if subscription.cancel_at_period_end:
+        return Response(
+            {
+                "detail": "Your subscription is already scheduled for cancellation.",
+                "subscription_end": subscription.subscription_end,
+            },
+            status=400
+        )
+
+    subscription.cancel_at_period_end = True
+    subscription.cancelled_at = timezone.now()
+
+    subscription.save(
+        update_fields=[
+            "cancel_at_period_end",
+            "cancelled_at",
+            "updated_at",
+        ]
+    )
+
+    return Response(
+        {
+            "message": (
+                "Your subscription has been cancelled. "
+                "You will continue to have premium access until "
+                "the end of your current billing period."
+            ),
+            "status": subscription.status,
+            "cancelled_at": subscription.cancelled_at,
+            "subscription_end": subscription.subscription_end,
+            "cancel_at_period_end": subscription.cancel_at_period_end,
+        },
+        status=200
+    )
