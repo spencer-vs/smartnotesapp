@@ -326,7 +326,7 @@ class NoteDetailView(generics.RetrieveAPIView):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
 def create_task(request):
     try:
         title = request.data.get("title")
@@ -530,7 +530,7 @@ def get_all_lectures(request):
 
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
 def upload_audio(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=405)
@@ -761,7 +761,7 @@ def get_all_tutorials(request):
  
  
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
 def generate_tutorial(request):
   
     if request.method != "POST":
