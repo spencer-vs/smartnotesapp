@@ -119,9 +119,7 @@ const SignUp = () => {
            {showPassword ? <IoMdEye /> : <IoMdEyeOff />}
         </button>
 
-        {loading && (
-        <div className={styles.loader}></div>
-        )}
+       
 
        </div>
 
@@ -168,6 +166,10 @@ const SignUp = () => {
       <button type="submit" className={styles.signupBTN}>
          Register
       </button>
+
+       {loading && (
+        <div className={styles.loader}></div>
+        )}
 
       <div>
         Already have an account <NavLink to='/login' className={styles.option}>Sign In</NavLink>
