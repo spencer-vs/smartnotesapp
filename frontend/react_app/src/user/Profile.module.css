@@ -1,22 +1,25 @@
 .container * {
 box-sizing: border-box;
-}
-
-.container {
-width: 100%;
-min-height: 100vh;
-
-
-padding: 40px 25px;
-
-overflow-x: hidden;
-
 background:
     linear-gradient(
         rgba(0, 0, 0, 0.82),
         rgba(0, 0, 0, 0.92)
     ),
     url("../../src/assets/img/notes_14.jpg");
+}
+
+.profileContent {
+width: 100%;
+
+min-height: 100vh;
+
+padding-top: 20px;
+
+padding: 40px 25px;
+
+overflow-x: hidden;
+
+
 
 background-size: cover;
 background-position: center;
@@ -303,6 +306,77 @@ box-shadow:
     0 8px 25px rgba(212, 175, 55, 0.15);
 
 
+}
+
+
+.cancelButton {
+    margin-left: 1.5rem;
+
+    padding: 12px 22px;
+
+    border-radius: 9px;
+
+    border: 1px solid #d4af37;
+
+    background: transparent;
+
+    color: #d4af37;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.cancelButton:hover {
+    background: #d4af37;
+
+    color: #080808;
+
+    transform: translateY(-2px);
+}
+
+.cancelButton:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+.cancelledNotice {
+    margin-top: 20px;
+
+    padding: 18px 20px;
+
+    border-radius: 10px;
+
+    background: rgba(212, 175, 55, 0.08);
+
+    border: 1px solid rgba(212, 175, 55, 0.3);
+
+    color: #d4af37;
+}
+
+.cancelledNotice strong {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 16px;
+}
+
+.cancelledNotice p {
+    margin: 0;
+
+    color: #c5c5c5;
+
+    line-height: 1.6;
+
+    font-size: 14px;
 }
 
 /* =========================

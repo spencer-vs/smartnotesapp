@@ -12,6 +12,8 @@ const { refreshUser } = useContext(AuthContext);
 
 const [status, setStatus] = useState("verifying");
 const [message, setMessage] = useState("");
+const [errorType, setErrorType] = useState("");
+
 
 useEffect(() => {
     const verifyPayment = async () => {
@@ -42,18 +44,35 @@ useEffect(() => {
             );
 
         } catch (error) {
-            console.error(
-                "Payment verification failed:",
-                error
-            );
+    console.error(
+        "Payment verification failed:",
+        error
+    );
 
-            setStatus("error");
+    const paymentStatus = error.response?.data?.status;
 
-            setMessage(
-                error.response?.data?.detail ||
-                "We could not verify your payment."
-            );
-        }
+    setStatus("error");
+
+    if (paymentStatus === "abandoned") {
+        setErrorType("abandoned");
+        setMessage(
+            "Your payment was cancelled or abandoned. " +
+            "Your subscription has not been activated."
+        );
+    } else if (paymentStatus === "failed") {
+        setErrorType("failed");
+        setMessage(
+            "Your payment could not be completed. " +
+            "Your subscription has not been activated."
+        );
+    } else {
+        setErrorType("unknown");
+        setMessage(
+            error.response?.data?.detail ||
+            "We could not verify your payment."
+        );
+    }
+    }
     };
 
     verifyPayment();
@@ -117,15 +136,22 @@ return (
                     !
                 </div>
 
-                <h2>Payment Verification Failed</h2>
+               <h2>
+                {errorType === "abandoned"
+                ? "Payment Cancelled"
+                : errorType === "failed"
+                ? "Payment Failed"
+                : "Payment Verification Failed"}
+              </h2>
 
                 <p>
                     {message}
                 </p>
 
                 <div className={styles.details}>
-                    If you completed the payment, please
-                    try again or contact support.
+                    Don't worry — your SmartNotes subscription has not
+                    been changed. You can try the payment again whenever
+                    you're ready.
                 </div>
 
                 <button
