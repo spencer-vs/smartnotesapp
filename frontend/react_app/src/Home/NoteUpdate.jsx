@@ -10,6 +10,7 @@ import bg1 from "../assets/img/notes_2.jpg"
 import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
+import { toast } from 'react-toastify';
 
 const NoteUpdate = () => {
  
@@ -36,7 +37,7 @@ const NoteUpdate = () => {
   useEffect(() => {
     api.get(`notes/${id}/`)
     .then(res => {
-      setLoading(true)
+     setLoading(true)
      setTitle(res.data.title)
      setContent(res.data.content)
      setNotes(res.data)
@@ -45,6 +46,7 @@ const NoteUpdate = () => {
     .catch(err => {
         console.error('Failed to fetch note:', err)
         setLoading(false)
+        toast.error('Failed to fetch note')
     })
   }, [id])
 
@@ -55,11 +57,12 @@ const NoteUpdate = () => {
     content
   })
   .then(() => {
-    alert('Note updated successfully')
+    toast('Note updated successfully')
     navigate('/')
   })
   .catch(err => {
     console.error('Failed to update note:', err)
+    toast.error('Failed to update note')
   })
 }
 

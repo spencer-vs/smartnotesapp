@@ -10,6 +10,7 @@ import bg1 from "../assets/img/notes_2.jpg"
 import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
+import { toast } from 'react-toastify'
 
 
 const NoteCreate = () => {
@@ -35,7 +36,7 @@ const NoteCreate = () => {
  const createNote = () => {
   setLoading(true)  
   if(!title.trim() || !content.trim()){
-      alert("Title and content are required")
+      toast("Title and content are required")
       return
     }
     
@@ -47,12 +48,13 @@ const NoteCreate = () => {
       
       setTitle('')
       setContent('')
-      alert('Note created successfully')
+      toast.success('Note created successfully')
       navigate('/')
       
     })
     .catch(err => {
       console.error('Failed to create note:', err)
+      toast.error('Failed to create note')
       
     })
    
