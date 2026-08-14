@@ -1155,13 +1155,11 @@ def activate_subscription(subscription, transaction):
     subscription.subscription_start = now
     subscription.subscription_end = subscription_end
 
-    # Paystack transaction ID
     transaction_id = transaction.get("id")
 
     if transaction_id:
         subscription.paystack_transaction_id = str(transaction_id)
 
-    # Paystack customer information
     customer = transaction.get("customer", {})
 
     customer_code = customer.get("customer_code")
@@ -1169,19 +1167,62 @@ def activate_subscription(subscription, transaction):
     if customer_code:
         subscription.paystack_customer_code = customer_code
 
-    # Paystack subscription information
-    subscription_data = transaction.get("subscription")
-
-    if subscription_data:
-        subscription_code = subscription_data.get("subscription_code")
-
-        if subscription_code:
-            subscription.paystack_subscription_code = subscription_code
-
     subscription.save()
+
+    if subscription.paystack_customer_code:
+
+        subscriptions = get_paystack_subscriptions(
+            subscription.paystack_customer_code
+        )
+
+        plan_code = settings.PAYSTACK_PLANS[
+            subscription.plan
+        ]["code"]
+
+        for paystack_subscription in subscriptions:
+
+            if paystack_subscription.get(
+                "plan", {}
+            ).get("plan_code") == plan_code:
+
+                subscription.paystack_subscription_code = (
+                    paystack_subscription.get(
+                        "subscription_code"
+                    )
+                )
+
+                break
+
+        subscription.save()
 
     return subscription
 
+
+def get_paystack_subscriptions(customer_code):
+
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    response = requests.get(
+        f"https://api.paystack.co/subscription",
+        params={
+            "customer": customer_code
+        },
+        headers=headers,
+        timeout=30,
+    )
+
+    if response.status_code != 200:
+        return None
+
+    data = response.json()
+
+    if not data.get("status"):
+        return None
+
+    return data.get("data", [])
 
 
 
