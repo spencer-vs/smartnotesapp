@@ -1353,15 +1353,16 @@ def cancel_subscription(request):
 
     subscription = request.user.subscription
 
+    # Make sure the user actually has an active subscription
     if not subscription.is_active:
         return Response(
             {
-                "detail":
-                "You do not have an active subscription."
+                "detail": "You do not have an active subscription."
             },
             status=400
         )
 
+    # Prevent cancelling twice
     if subscription.cancel_at_period_end:
         return Response(
             {
@@ -1371,11 +1372,21 @@ def cancel_subscription(request):
             status=400
         )
 
+    # Make sure Paystack information exists
     if not subscription.paystack_subscription_code:
         return Response(
             {
                 "detail":
-                "Your Paystack subscription could not be found."
+                "We could not find your Paystack subscription."
+            },
+            status=400
+        )
+
+    if not subscription.paystack_email_token:
+        return Response(
+            {
+                "detail":
+                "We could not verify your Paystack subscription."
             },
             status=400
         )
@@ -1387,10 +1398,8 @@ def cancel_subscription(request):
     }
 
     data = {
-        "code":
-            subscription.paystack_subscription_code,
-        "token":
-            subscription.paystack_email_token,
+        "code": subscription.paystack_subscription_code,
+        "token": subscription.paystack_email_token,
     }
 
     try:
@@ -1415,6 +1424,7 @@ def cancel_subscription(request):
             status=503
         )
 
+    # Paystack rejected the cancellation
     if not response_data.get("status"):
 
         return Response(
@@ -1422,13 +1432,15 @@ def cancel_subscription(request):
                 "detail":
                 response_data.get(
                     "message",
-                    "Unable to cancel subscription."
+                    "Unable to cancel your subscription."
                 )
             },
             status=400
         )
 
+    # --------------------------------
     # Paystack cancellation succeeded
+    # --------------------------------
 
     subscription.cancel_at_period_end = True
     subscription.cancelled_at = timezone.now()
@@ -1448,8 +1460,7 @@ def cancel_subscription(request):
             "You will continue to have premium access "
             "until the end of your current billing period.",
 
-            "status":
-                subscription.status,
+            "status": subscription.status,
 
             "cancelled_at":
                 subscription.cancelled_at,
@@ -1459,5 +1470,6 @@ def cancel_subscription(request):
 
             "cancel_at_period_end":
                 subscription.cancel_at_period_end,
-        }
+        },
+        status=200
     )
