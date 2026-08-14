@@ -1,7 +1,6 @@
 from rest_framework.permissions import BasePermission
 from .models import Subscription
 from .subscription import has_premium_access
-from ..NoteAppCore.views import expire_subscription_if_needed
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 
