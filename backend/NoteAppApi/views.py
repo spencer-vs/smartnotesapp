@@ -1218,6 +1218,47 @@ def activate_subscription(subscription, transaction):
 
 
 
+def renew_subscription(subscription, transaction):
+    now = timezone.now()
+
+    if subscription.plan == "monthly":
+        duration = timedelta(days=30)
+
+    elif subscription.plan == "yearly":
+        duration = timedelta(days=365)
+
+    else:
+        raise ValueError("Invalid subscription plan.")
+
+    # Keep the existing end date if it is still in the future.
+    # This prevents a renewal from losing unused days.
+    if subscription.subscription_end and subscription.subscription_end > now:
+        subscription.subscription_end += duration
+    else:
+        subscription.subscription_end = now + duration
+
+    subscription.status = "active"
+
+    transaction_id = transaction.get("id")
+
+    if transaction_id:
+        subscription.paystack_transaction_id = str(
+            transaction_id
+        )
+
+    subscription.save(
+        update_fields=[
+            "status",
+            "subscription_end",
+            "paystack_transaction_id",
+            "updated_at",
+        ]
+    )
+
+    return subscription
+
+
+
 
 def get_paystack_subscription(customer_id, plan_code):
 
@@ -1318,17 +1359,21 @@ def paystack_webhook(request):
             status=404
         )
 
-    if subscription.status == "active":
-        return Response(
-            {"message": "Subscription already active."},
-            status=200
-        )
-
     try:
-        activate_subscription(
-            subscription,
-            transaction
-        )
+        # First payment
+        if not subscription.paystack_subscription_code:
+            activate_subscription(
+                subscription,
+                transaction
+            )
+            message = "Subscription activated successfully."
+        # Recurring payment
+        else:
+            renew_subscription(
+                subscription,
+                transaction
+            )
+            message = "Subscription renewed successfully."
 
     except ValueError as e:
         return Response(
@@ -1337,7 +1382,9 @@ def paystack_webhook(request):
         )
 
     return Response(
-        {"message": "Payment processed successfully."},
+        {
+            "message": message,
+        },
         status=200
     )
     
