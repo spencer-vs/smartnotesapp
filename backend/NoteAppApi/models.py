@@ -195,6 +195,12 @@ class Subscription(models.Model):
     blank=True,
     null=True
     )
+    
+    paystack_email_token = models.CharField(
+    max_length=255,
+    blank=True,
+    null=True
+    )
 
     created_at = models.DateTimeField(
         auto_now_add=True

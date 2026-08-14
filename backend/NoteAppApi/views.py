@@ -1135,7 +1135,7 @@ def verify_payment(request, reference):
         }
     )
     
-    
+
 def activate_subscription(subscription, transaction):
 
     plan = subscription.plan
@@ -1155,75 +1155,106 @@ def activate_subscription(subscription, transaction):
     subscription.subscription_start = now
     subscription.subscription_end = subscription_end
 
+    # -----------------------------
+    # Paystack transaction
+    # -----------------------------
+
     transaction_id = transaction.get("id")
 
     if transaction_id:
-        subscription.paystack_transaction_id = str(transaction_id)
+        subscription.paystack_transaction_id = str(
+            transaction_id
+        )
+
+    # -----------------------------
+    # Paystack customer
+    # -----------------------------
 
     customer = transaction.get("customer", {})
 
+    customer_id = customer.get("id")
     customer_code = customer.get("customer_code")
 
     if customer_code:
-        subscription.paystack_customer_code = customer_code
-
-    subscription.save()
-
-    if subscription.paystack_customer_code:
-
-        subscriptions = get_paystack_subscriptions(
-            subscription.paystack_customer_code
+        subscription.paystack_customer_code = (
+            customer_code
         )
 
+    # -----------------------------
+    # Paystack recurring subscription
+    # -----------------------------
+
+    if customer_id:
+
         plan_code = settings.PAYSTACK_PLANS[
-            subscription.plan
+            plan
         ]["code"]
 
-        for paystack_subscription in subscriptions:
+        paystack_subscription = (
+            get_paystack_subscription(
+                customer_id,
+                plan_code
+            )
+        )
 
-            if paystack_subscription.get(
-                "plan", {}
-            ).get("plan_code") == plan_code:
+        if paystack_subscription:
 
-                subscription.paystack_subscription_code = (
-                    paystack_subscription.get(
-                        "subscription_code"
-                    )
+            subscription.paystack_subscription_code = (
+                paystack_subscription.get(
+                    "subscription_code",
+                    ""
                 )
+            )
 
-                break
+            subscription.paystack_email_token = (
+                paystack_subscription.get(
+                    "email_token"
+                )
+            )
 
-        subscription.save()
+    subscription.save()
 
     return subscription
 
 
-def get_paystack_subscriptions(customer_code):
+
+
+def get_paystack_subscription(customer_id, plan_code):
 
     headers = {
         "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
         "Content-Type": "application/json",
     }
 
-    response = requests.get(
-        f"https://api.paystack.co/subscription",
-        params={
-            "customer": customer_code
-        },
-        headers=headers,
-        timeout=30,
-    )
+    try:
+        response = requests.get(
+            "https://api.paystack.co/subscription",
+            params={
+                "customer": customer_id
+            },
+            headers=headers,
+            timeout=30,
+        )
 
-    if response.status_code != 200:
+        response_data = response.json()
+
+    except requests.RequestException:
         return None
 
-    data = response.json()
-
-    if not data.get("status"):
+    if not response_data.get("status"):
         return None
 
-    return data.get("data", [])
+    subscriptions = response_data.get("data", [])
 
+    for item in subscriptions:
+
+        if item.get("plan", {}).get(
+            "plan_code"
+        ) == plan_code:
+
+            return item
+
+    return None
 
 
 @api_view(["POST"])
@@ -1319,34 +1350,85 @@ def paystack_webhook(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def cancel_subscription(request):
-    try:
-        subscription = request.user.subscription
-    except Subscription.DoesNotExist:
-        return Response(
-            {"detail": "You do not have a subscription to cancel."},
-            status=400
-        )
 
-    if not subscription.subscription_end:
-        return Response(
-            {"detail": "You do not have an active paid subscription."},
-            status=400
-        )
+    subscription = request.user.subscription
 
-    if subscription.status != "active":
+    if not subscription.is_active:
         return Response(
-            {"detail": "Your subscription is not currently active."},
+            {
+                "detail":
+                "You do not have an active subscription."
+            },
             status=400
         )
 
     if subscription.cancel_at_period_end:
         return Response(
             {
-                "detail": "Your subscription is already scheduled for cancellation.",
-                "subscription_end": subscription.subscription_end,
+                "detail":
+                "Your subscription is already scheduled for cancellation."
             },
             status=400
         )
+
+    if not subscription.paystack_subscription_code:
+        return Response(
+            {
+                "detail":
+                "Your Paystack subscription could not be found."
+            },
+            status=400
+        )
+
+    headers = {
+        "Authorization":
+            f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    data = {
+        "code":
+            subscription.paystack_subscription_code,
+        "token":
+            subscription.paystack_email_token,
+    }
+
+    try:
+
+        response = requests.post(
+            "https://api.paystack.co/subscription/disable",
+            json=data,
+            headers=headers,
+            timeout=30,
+        )
+
+        response_data = response.json()
+
+    except requests.RequestException:
+
+        return Response(
+            {
+                "detail":
+                "Unable to contact Paystack. "
+                "Please try again."
+            },
+            status=503
+        )
+
+    if not response_data.get("status"):
+
+        return Response(
+            {
+                "detail":
+                response_data.get(
+                    "message",
+                    "Unable to cancel subscription."
+                )
+            },
+            status=400
+        )
+
+    # Paystack cancellation succeeded
 
     subscription.cancel_at_period_end = True
     subscription.cancelled_at = timezone.now()
@@ -1361,15 +1443,21 @@ def cancel_subscription(request):
 
     return Response(
         {
-            "message": (
-                "Your subscription has been cancelled. "
-                "You will continue to have premium access until "
-                "the end of your current billing period."
-            ),
-            "status": subscription.status,
-            "cancelled_at": subscription.cancelled_at,
-            "subscription_end": subscription.subscription_end,
-            "cancel_at_period_end": subscription.cancel_at_period_end,
-        },
-        status=200
+            "message":
+            "Your subscription has been cancelled. "
+            "You will continue to have premium access "
+            "until the end of your current billing period.",
+
+            "status":
+                subscription.status,
+
+            "cancelled_at":
+                subscription.cancelled_at,
+
+            "subscription_end":
+                subscription.subscription_end,
+
+            "cancel_at_period_end":
+                subscription.cancel_at_period_end,
+        }
     )
