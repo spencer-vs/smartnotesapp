@@ -3,6 +3,9 @@ import styles from "./CreateL.module.css"
 import Footer from '../ui/Footer'
 import React, { useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify';
+
+
 const CreateL = () => {
   const [recording, setRecording] = useState(false);
   const [notes, setNotes] = useState("");
@@ -35,7 +38,7 @@ const CreateL = () => {
           navigate(`/viewlecture/${lectureId}`);
         }
         if (data.status === "failed") {
-          alert("Processing failed");
+          toast.error("Processing failed");
           clearInterval(interval);
         }
        
@@ -51,7 +54,7 @@ const CreateL = () => {
   const handleRecordClick = async () => {
   
   if (!navigator.mediaDevices || !window.MediaRecorder) {
-    alert("Recording not supported on this device/browser");
+    toast("Recording not supported on this device/browser");
     return;
   }
   
@@ -90,18 +93,19 @@ const handleStop = () => {
   }
 };
 const handleSubmit = async () => {
-  
   if (audioChunksRef.current.length === 0) {
-    alert("No recording available");
+    toast("No recording available");
     return;
   }
-  setLoading(true)
-  
+
+  setLoading(true);
+
   const audioBlob = new Blob(audioChunksRef.current, {
     type: mimeTypeRef.current,
   });
   const formData = new FormData();
   formData.append("audio", audioBlob, "lecture.webm");
+
   try {
     const token = localStorage.getItem("access");
     const response = await fetch("https://smartnoteapi.onrender.com/api/notes/upload-audio/", {
@@ -111,30 +115,29 @@ const handleSubmit = async () => {
         Authorization: `Bearer ${token}`,
       },
     });
-     if(!response.ok) {
-          throw new Error("Upload failed");
+
+    if (!response.ok) {
+      throw new Error("Upload failed");
     }
+
     const data = await response.json();
     const lectureId = data.lecture_id;
 
     if (!lectureId) {
-      alert("No lecture ID returned")
+      toast("No lecture ID returned");
       setLoading(false);
+      return;
     }
-    
-    checkStatus(lectureId)
-  } catch (err) {
-    console.error(err);
+
+    checkStatus(lectureId);
+  } catch (error) {
+    const message = error?.response?.data?.detail || "Unable to create lecture.";
+    toast(message);
     setLoading(false);
   }
 };
- 
-// if (handleSubmit) {
-//   <div className={styles.loader}></div>
-// }
 
-
-  return (
+return (
     <>
       <div className={styles.create_con}>
         <LHeader />
@@ -146,34 +149,28 @@ const handleSubmit = async () => {
             <div className={`${styles.record} ${recording ? styles.animate : ""}`}>
               <span></span>
             </div>
-            
+
             <div className={styles.btn}>
-  {/* 🔥 Start / Pause / Resume */}
-  <button onClick={handleRecordClick} className={styles.deleteBtn}>
-    {!recording ? "Start" : paused ? "Resume" : "Pause"}
-  </button>
-  {/* ⏹ Stop */}
-  {recording && (
-    <button onClick={handleStop} className={styles.deleteBtn}>
-      Stop
-    </button>
-  )}
-  {/* 📤 Submit */}
-  {!recording && hasRecording && (
-    <button onClick={handleSubmit} className={styles.deleteBtn}>
-      Submit
-    </button>
-  )}
- 
-  {loading && (
-   
-    <>
-    <div className={styles.loader}></div>
-    </>
-    
-  )}
-  
-</div>
+              <button onClick={handleRecordClick} className={styles.deleteBtn}>
+                {!recording ? "Start" : paused ? "Resume" : "Pause"}
+              </button>
+
+              {recording && (
+                <button onClick={handleStop} className={styles.deleteBtn}>
+                  Stop
+                </button>
+              )}
+
+              {!recording && hasRecording && (
+                <button onClick={handleSubmit} className={styles.deleteBtn}>
+                  Submit
+                </button>
+              )}
+
+              {loading && (
+                <div className={styles.loader}></div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -181,6 +178,7 @@ const handleSubmit = async () => {
     </>
   );
 };
+
 export default CreateL;
 
 

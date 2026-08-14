@@ -8,6 +8,7 @@ import { AuthContext } from "../context/AuthContext"
 import { NavLink } from "react-router-dom"
 import { IoMdEye } from "react-icons/io"; 
 import { IoMdEyeOff } from "react-icons/io"; 
+import { toast } from "react-toastify"
 {/* <IoMdEye />
 <IoMdEyeOff /> */}
 
@@ -38,13 +39,15 @@ export const SignIn = () => {
       setLoading(true)
       const res = await api.post("auth/token/", { username, password });
       login(res.data);
+      toast("Welcome back to SmartNotes");
       navigate("/welcome");
       setLoading(false)
 
-    } catch {
-      alert("Invalid Login Credentials!")
-      setLoading(false)
-    }
+    }  catch (error) {
+        const message = error?.response?.data?.detail;
+        toast(message);
+        setLoading(false);
+      }
   };
 
 

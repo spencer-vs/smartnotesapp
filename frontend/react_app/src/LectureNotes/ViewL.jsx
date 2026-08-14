@@ -5,6 +5,7 @@ import styles from "./ViewL.module.css"
 import api from '../api/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react";
+import { toast } from 'react-toastify';
 
 
 const ViewL = () => {
@@ -60,7 +61,7 @@ const ViewL = () => {
       });
     } else {
       await navigator.clipboard.writeText(shareText);
-      alert("Lecture copied to clipboard");
+      toast("Lecture copied to clipboard");
     }
   } catch (err) {
     console.log("Share cancelled", err);

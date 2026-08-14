@@ -4,6 +4,7 @@ import THeader from "./THeader";
 import Footer from "../ui/Footer";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
+import { toast } from "react-toastify";
 const ViewT = () => {
   const { id } = useParams();
   const [tutorial, setTutorial] = useState(null);
@@ -34,7 +35,7 @@ const ViewT = () => {
       });
     } else {
       await navigator.clipboard.writeText(shareText);
-      alert("Tutorial copied to clipboard");
+      toast("Tutorial copied to clipboard");
     }
   } catch (err) {
     console.log("Share cancelled", err);

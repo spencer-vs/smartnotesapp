@@ -4,6 +4,7 @@ import Footer from '../ui/Footer'
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'
 import api from "../api/axios"
+import { toast } from 'react-toastify';
 
 const CreateT = () => {
   const [tutorial, setTutorial] = useState("");
@@ -23,13 +24,13 @@ const CreateT = () => {
       setLoading(false);
       navigate("/tutorials");
     } catch (error) {
-      console.log(error);
-      alert("Failed to generate tutorial");
+        const message = error?.response?.data?.detail || "Unable to create lecture.";
+        toast(message);
+        setLoading(false);
+    } 
       
-    } finally {
-      setLoading(false);
-    }
-  }
+    } 
+ 
   
   
   
@@ -62,8 +63,8 @@ const CreateT = () => {
     <Footer />
     </> 
   )
-}
 
+ }
 export default CreateT
 
 

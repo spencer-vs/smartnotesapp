@@ -10,6 +10,7 @@ import bg2 from "../assets/img/notes_1.jpg"
 import bg3 from "../assets/img/notes_3.jpg"
 import bg4 from "../assets/img/notes_4.jpg"
 import TaskHeader from './TaskHeader'
+import { toast } from 'react-toastify';
 
 const TaskCreate = () => {
   const [title, setTitle] = useState("");
@@ -31,7 +32,7 @@ const TaskCreate = () => {
   const createTask = () => {
     setLoading(true)
     if(!title.trim() || !task.trim()){
-      alert("Title and content are required")
+      toast("Title and content are required")
       return
     }
 
@@ -45,23 +46,15 @@ const TaskCreate = () => {
       console.log(res.data)
       const taskId = res.data.id
       console.log("ID:", res.data.id)
-      alert("Task created succesfully")
+      toast("Task created succesfully")
       setLoading(false)
       navigate('/display_task/');
     })
-   .catch(err => {
-    console.error('Failed to create task:', err);
-    if (err.response) {
-        // Server responded with 4xx/5xx
-        alert("Server error: " + (err.response.data.error || "Unknown error"));
-        console.log("Response data:", err.response.data);
-    } else if (err.request) {
-        alert("No response from server might be network issue");
-    } else {
-        alert("Request setup error: " + err.message);
-    }
-    setLoading(false);
-})
+    .catch(error => {
+            const message = error?.response?.data?.detail || "Unable to create task.";
+            toast(message);
+            setLoading(false);
+        }); 
 
   }
   

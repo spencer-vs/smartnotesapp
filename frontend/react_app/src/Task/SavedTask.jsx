@@ -15,6 +15,7 @@ import bg4 from "../assets/img/notes_4.jpg"
 import TaskHeader from './TaskHeader'
 
 
+
 const SavedTask = () => {
   
     const { id } = useParams()
@@ -51,13 +52,13 @@ const SavedTask = () => {
             setTask(res.data)
             setTitle(res.data.todo_title)
             setTodo(res.data.todo_list)
-            alert("Task updated successfully")
+            toast("Task updated successfully")
             console.log(res.data);
             setLoading(false);
         })
         .catch(err => {
             console.error('Update failed:', err);
-            alert("Failed to update task");
+            toast("Failed to update task");
         });
   
     }
