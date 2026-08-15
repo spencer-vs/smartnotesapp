@@ -1309,7 +1309,7 @@ def activate_subscription(subscription, transaction):
 
     subscription.save()
 
-    return subscriptionn
+    return subscription
 
 
 
