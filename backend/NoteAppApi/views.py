@@ -1057,9 +1057,9 @@ def initialize_payment(request):
 @permission_classes([IsAuthenticated])
 def verify_payment(request, reference):
 
-    # ---------------------------------------
-    # 1. Get user's subscription
-    # ---------------------------------------
+    # -----------------------------------
+    # Get user's subscription
+    # -----------------------------------
 
     try:
         subscription = request.user.subscription
@@ -1070,10 +1070,9 @@ def verify_payment(request, reference):
             status=404
         )
 
-
-    # ---------------------------------------
-    # 2. Make sure reference belongs to user
-    # ---------------------------------------
+    # -----------------------------------
+    # Validate payment reference
+    # -----------------------------------
 
     if subscription.paystack_reference != reference:
         return Response(
@@ -1081,16 +1080,18 @@ def verify_payment(request, reference):
             status=400
         )
 
-
-    # ---------------------------------------
-    # 3. Verify transaction with Paystack
-    # ---------------------------------------
+    # -----------------------------------
+    # Paystack headers
+    # -----------------------------------
 
     headers = {
         "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
         "Content-Type": "application/json",
     }
 
+    # -----------------------------------
+    # Verify transaction with Paystack
+    # -----------------------------------
 
     try:
         response = requests.get(
@@ -1103,14 +1104,16 @@ def verify_payment(request, reference):
 
     except requests.RequestException:
         return Response(
-            {"detail": "Unable to connect to Paystack."},
+            {
+                "detail": "Unable to connect to Paystack. "
+                          "Please try again."
+            },
             status=503
         )
 
-
-    # ---------------------------------------
-    # 4. Paystack verification failed
-    # ---------------------------------------
+    # -----------------------------------
+    # Check Paystack response
+    # -----------------------------------
 
     if not response_data.get("status"):
         return Response(
@@ -1123,60 +1126,95 @@ def verify_payment(request, reference):
             status=400
         )
 
-
     transaction = response_data.get("data", {})
 
+    payment_status = transaction.get("status")
 
-    # ---------------------------------------
-    # 5. Payment was NOT successful
-    # ---------------------------------------
+    # -----------------------------------
+    # Payment was abandoned
+    # -----------------------------------
 
-    if transaction.get("status") != "success":
-
+    if payment_status == "abandoned":
         return Response(
             {
-                "detail": "Payment was not successful.",
-                "status": transaction.get("status"),
+                "detail": (
+                    "Your payment was cancelled or abandoned. "
+                    "Your subscription has not been activated."
+                ),
+                "status": "abandoned",
             },
             status=400
         )
 
+    # -----------------------------------
+    # Payment failed
+    # -----------------------------------
 
-    # ---------------------------------------
-    # 6. Prevent duplicate verification
-    # ---------------------------------------
-
-    transaction_id = transaction.get("id")
-
-    if (
-        transaction_id
-        and subscription.paystack_transaction_id
-        and subscription.paystack_transaction_id == str(transaction_id)
-    ):
-
+    if payment_status == "failed":
         return Response(
             {
-                "message": "Payment has already been verified.",
-                "plan": subscription.plan,
-                "status": subscription.status,
-                "subscription_start": subscription.subscription_start,
-                "subscription_end": subscription.subscription_end,
-                "already_verified": True,
+                "detail": (
+                    "Your payment could not be completed. "
+                    "Your subscription has not been activated."
+                ),
+                "status": "failed",
             },
-            status=200
+            status=400
         )
 
+    # -----------------------------------
+    # Payment is not successful
+    # -----------------------------------
 
-    # ---------------------------------------
-    # 7. Activate subscription
-    # ---------------------------------------
+    if payment_status != "success":
+        return Response(
+            {
+                "detail": (
+                    "Payment has not been completed yet. "
+                    "Please try again."
+                ),
+                "status": payment_status,
+            },
+            status=400
+        )
+
+    # -----------------------------------
+    # Successful payment
+    # -----------------------------------
 
     try:
 
-        activate_subscription(
-            subscription,
-            transaction
-        )
+        # -----------------------------------
+        # FIRST PAYMENT
+        # -----------------------------------
+
+        if not subscription.paystack_subscription_code:
+
+            activate_subscription(
+                subscription,
+                transaction
+            )
+
+            message = (
+                "Payment verified successfully. "
+                "Your subscription is now active."
+            )
+
+        # -----------------------------------
+        # RECURRING PAYMENT
+        # -----------------------------------
+
+        else:
+
+            renew_subscription(
+                subscription,
+                transaction
+            )
+
+            message = (
+                "Payment verified successfully. "
+                "Your subscription has been renewed."
+            )
 
     except ValueError as e:
 
@@ -1185,26 +1223,26 @@ def verify_payment(request, reference):
             status=400
         )
 
-
-    # ---------------------------------------
-    # 8. Return success
-    # ---------------------------------------
+    # -----------------------------------
+    # Return updated subscription
+    # -----------------------------------
 
     return Response(
         {
-            "message": "Payment verified successfully.",
+            "message": message,
             "plan": subscription.plan,
             "status": subscription.status,
-            "subscription_start": subscription.subscription_start,
-            "subscription_end": subscription.subscription_end,
-            "already_verified": False,
+            "subscription_start": (
+                subscription.subscription_start
+            ),
+            "subscription_end": (
+                subscription.subscription_end
+            ),
+            "days_left": subscription.days_left,
+            "premium": subscription.premium,
         },
         status=200
     )    
-    
-    
-    
-    
 
 def activate_subscription(subscription, transaction):
 
@@ -1393,14 +1431,20 @@ def get_paystack_subscription(customer_id, plan_code):
     return None
 
 
+
 @api_view(["POST"])
 def paystack_webhook(request):
-    
+
     print("PAYSTACK WEBHOOK RECEIVED")
     print("BODY:", request.body)
-    print("SIGNATURE:", request.headers.get("x-paystack-signature"))
+    print(
+        "SIGNATURE:",
+        request.headers.get("x-paystack-signature")
+    )
 
-    signature = request.headers.get("x-paystack-signature")
+    signature = request.headers.get(
+        "x-paystack-signature"
+    )
 
     if not signature:
         return Response(
@@ -1426,51 +1470,98 @@ def paystack_webhook(request):
         )
 
     event = request.data
+    event_type = event.get("event")
 
-    if event.get("event") != "charge.success":
+    # ---------------------------------------
+    # Failed payment
+    # ---------------------------------------
+
+    if event_type in [
+        "charge.failed",
+        "invoice.payment_failed",
+    ]:
+
+        print("PAYMENT FAILED")
+        print(
+            "FAILED PAYMENT DATA:",
+            event.get("data", {})
+        )
+
+        return Response(
+            {
+                "message":
+                "Payment failed. Subscription was not renewed."
+            },
+            status=200
+        )
+
+    # ---------------------------------------
+    # Ignore other events
+    # ---------------------------------------
+
+    if event_type != "charge.success":
+
         return Response(
             {"message": "Event ignored."},
             status=200
         )
+
+    # ---------------------------------------
+    # Successful payment
+    # ---------------------------------------
 
     transaction = event.get("data", {})
 
     reference = transaction.get("reference")
 
     if not reference:
+
         return Response(
             {"detail": "Missing transaction reference."},
             status=400
         )
 
     try:
+
         subscription = Subscription.objects.get(
             paystack_reference=reference
         )
 
     except Subscription.DoesNotExist:
+
         return Response(
             {"detail": "Subscription not found."},
             status=404
         )
 
     try:
+
         # First payment
         if not subscription.paystack_subscription_code:
+
             activate_subscription(
                 subscription,
                 transaction
             )
-            message = "Subscription activated successfully."
+
+            message = (
+                "Subscription activated successfully."
+            )
+
         # Recurring payment
         else:
+
             renew_subscription(
                 subscription,
                 transaction
             )
-            message = "Subscription renewed successfully."
+
+            message = (
+                "Subscription renewed successfully."
+            )
 
     except ValueError as e:
+
         return Response(
             {"detail": str(e)},
             status=400
@@ -1482,12 +1573,8 @@ def paystack_webhook(request):
         },
         status=200
     )
-    
-    
-    
-    
-    
-    
+
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
