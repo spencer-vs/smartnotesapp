@@ -1442,6 +1442,10 @@ def paystack_webhook(request):
         request.headers.get("x-paystack-signature")
     )
 
+    # ---------------------------------------
+    # Verify Paystack signature
+    # ---------------------------------------
+
     signature = request.headers.get(
         "x-paystack-signature"
     )
@@ -1521,6 +1525,12 @@ def paystack_webhook(request):
             status=400
         )
 
+    # ---------------------------------------
+    # Find subscription by reference
+    # ---------------------------------------
+
+    subscription = None
+
     try:
 
         subscription = Subscription.objects.get(
@@ -1529,14 +1539,57 @@ def paystack_webhook(request):
 
     except Subscription.DoesNotExist:
 
+        pass
+
+    # ---------------------------------------
+    # Fallback: find by Paystack customer code
+    # ---------------------------------------
+
+    if subscription is None:
+
+        customer = transaction.get(
+            "customer",
+            {}
+        )
+
+        customer_code = customer.get(
+            "customer_code"
+        )
+
+        if customer_code:
+
+            subscription = (
+                Subscription.objects
+                .filter(
+                    paystack_customer_code=customer_code
+                )
+                .first()
+            )
+
+    # ---------------------------------------
+    # Subscription could not be identified
+    # ---------------------------------------
+
+    if subscription is None:
+
         return Response(
-            {"detail": "Subscription not found."},
+            {
+                "detail":
+                "Unable to identify the SmartNotes subscription."
+            },
             status=404
         )
 
+    # ---------------------------------------
+    # Process successful payment
+    # ---------------------------------------
+
     try:
 
+        # -----------------------------------
         # First payment
+        # -----------------------------------
+
         if not subscription.paystack_subscription_code:
 
             activate_subscription(
@@ -1548,7 +1601,10 @@ def paystack_webhook(request):
                 "Subscription activated successfully."
             )
 
+        # -----------------------------------
         # Recurring payment
+        # -----------------------------------
+
         else:
 
             renew_subscription(
@@ -1566,6 +1622,10 @@ def paystack_webhook(request):
             {"detail": str(e)},
             status=400
         )
+
+    # ---------------------------------------
+    # Success
+    # ---------------------------------------
 
     return Response(
         {
