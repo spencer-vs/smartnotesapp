@@ -15,12 +15,15 @@ const [message, setMessage] = useState("");
 const [errorType, setErrorType] = useState("");
 
 
-useEffect(() => {
-    const verifyPayment = async () => {
-        const reference = searchParams.get("reference");
+
+const reference = searchParams.get("reference");
+
+    useEffect(() => {
+        const verifyPayment = async () => {
 
         if (!reference) {
             setStatus("error");
+            setErrorType("unknown");
             setMessage("Payment reference was not found.");
             return;
         }
@@ -38,46 +41,48 @@ useEffect(() => {
             await refreshUser();
 
             setStatus("success");
-
             setMessage(
                 "Payment successful! Your subscription is now active."
             );
 
         } catch (error) {
-    console.error(
-        "Payment verification failed:",
-        error
-    );
+            console.error(
+                "Payment verification failed:",
+                error
+            );
 
-    const paymentStatus = error.response?.data?.status;
+            const paymentStatus =
+                error.response?.data?.status;
 
-    setStatus("error");
+            setStatus("error");
 
-    if (paymentStatus === "abandoned") {
-        setErrorType("abandoned");
-        setMessage(
-            "Your payment was cancelled or abandoned. " +
-            "Your subscription has not been activated."
-        );
-    } else if (paymentStatus === "failed") {
-        setErrorType("failed");
-        setMessage(
-            "Your payment could not be completed. " +
-            "Your subscription has not been activated."
-        );
-    } else {
-        setErrorType("unknown");
-        setMessage(
-            error.response?.data?.detail ||
-            "We could not verify your payment."
-        );
-    }
-    }
+            if (paymentStatus === "abandoned") {
+                setErrorType("abandoned");
+                setMessage(
+                    "Your payment was cancelled or abandoned. " +
+                    "Your subscription has not been activated."
+                );
+
+            } else if (paymentStatus === "failed") {
+                setErrorType("failed");
+                setMessage(
+                    "Your payment could not be completed. " +
+                    "Your subscription has not been activated."
+                );
+
+            } else {
+                setErrorType("unknown");
+                setMessage(
+                    error.response?.data?.detail ||
+                    "We could not verify your payment."
+                );
+            }
+        }
     };
 
     verifyPayment();
-}, [searchParams, refreshUser]);
 
+}, [reference, refreshUser]);
 return (
     <div className={styles.container}>
 
