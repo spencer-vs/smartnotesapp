@@ -30,51 +30,87 @@ const SignUp = () => {
 
 
   const validateForm = () => {
-  const newErrors = {};
-  if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password)) {
-    newErrors.password =
-      "Password must contain letters and numbers and be at least 6 characters.";
-  }
-  if (!/^\d{11,}$/.test(phone)) {
-    newErrors.phone = "Phone number must be at least 11 digits.";
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    newErrors.email = "Invalid email format.";
-  }
-  if (username.trim().length < 3) {
-    newErrors.username = "Username must be at least 3 characters.";
-  }
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
+    const newErrors = {};
+
+    if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password)) {
+        newErrors.password =
+            "Password must contain letters and numbers and be at least 6 characters.";
+    }
+
+    if (!/^\d{11}$/.test(phone)) {
+        newErrors.phone =
+            "Phone number must be exactly 11 digits.";
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email =
+            "Invalid email format.";
+    }
+
+    if (username.trim().length < 3) {
+        newErrors.username =
+            "Username must be at least 3 characters.";
+    }
+
+    if (address.trim().length === 0) {
+        newErrors.address =
+            "Address is required.";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
 };
   
   const handleRegister = async (e) => {
-  e.preventDefault();
-  setLoading(true)
-  if (!validateForm()) return;
-  setLoading(false)
-  try {
-    setLoading(true)
-    toast("Account will be created in a few seconds")
-    await api.post("auth/register/", {
-      username,
-      password,
-      phone,
-      email,
-      address
-    });
-    toast.success("Account created successfully. Please login.");
-    navigate("/login");
-    setLoading(false)
-  } catch (err) {
-    const backendErrors = err.response?.data;
-    if (backendErrors) {
-      setErrors(backendErrors);
-    } else {
-      toast.error("Registration failed");
+    e.preventDefault();
+
+    setErrors({});
+
+    setLoading(true);
+
+    const isValid = validateForm();
+
+    if (!isValid) {
+        setLoading(false);
+        return;
     }
-    setLoading(false)
-  } 
+
+    try {
+        toast("Account will be created in a few seconds");
+
+        await api.post("auth/register/", {
+            username,
+            password,
+            phone,
+            email,
+            address
+        });
+
+        toast.success(
+            "Account created successfully. Please login."
+        );
+
+        navigate("/login");
+
+    } catch (err) {
+
+        console.error(
+            "Registration error:",
+            err.response?.data || err
+        );
+
+        const backendErrors = err.response?.data;
+
+        if (backendErrors) {
+            setErrors(backendErrors);
+        } else {
+            toast.error("Registration failed");
+        }
+
+    } finally {
+        setLoading(false);
+    }
 };
  
 
@@ -166,10 +202,6 @@ const SignUp = () => {
       <button type="submit" className={styles.signupBTN}>
          Register
       </button>
-
-       {loading && (
-        <div className={styles.loader}></div>
-        )}
 
       <div>
         Already have an account <NavLink to='/login' className={styles.option}>Sign In</NavLink>
