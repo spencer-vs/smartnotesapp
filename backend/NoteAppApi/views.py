@@ -1182,46 +1182,72 @@ def verify_payment(request, reference):
     # Successful payment
     # -----------------------------------
 
+    
     try:
 
-        # -----------------------------------
-        # FIRST PAYMENT
-        # -----------------------------------
+    # -----------------------------------
+    # First payment
+    # -----------------------------------
 
         if not subscription.paystack_subscription_code:
 
-            activate_subscription(
-                subscription,
-                transaction
-            )
+          activate_subscription(
+            subscription,
+            transaction
+          )
 
-            message = (
-                "Payment verified successfully. "
-                "Your subscription is now active."
-            )
+          message = (
+            "Subscription activated successfully."
+          )
 
-        # -----------------------------------
-        # RECURRING PAYMENT
-        # -----------------------------------
+    # -----------------------------------
+    # Recurring payment
+    # -----------------------------------
 
         else:
 
+            # User previously cancelled
+            # automatic renewal.
+            if subscription.cancel_at_period_end:
+
+                print(
+                "WARNING: Payment received for "
+                "a cancelled/non-renewing subscription."
+                )
+
+                return Response(
+                {
+                    "message":
+                    "Payment received, but the "
+                    "subscription was marked as "
+                    "non-renewing."
+                },
+                status=200
+                )
+
             renew_subscription(
-                subscription,
-                transaction
+            subscription,
+            transaction
             )
 
             message = (
-                "Payment verified successfully. "
-                "Your subscription has been renewed."
+            "Subscription renewed successfully."
             )
 
     except ValueError as e:
 
         return Response(
-            {"detail": str(e)},
-            status=400
+        {"detail": str(e)},
+        status=400
         )
+        
+   
+
+
+
+        
+
+        
 
     # -----------------------------------
     # Return updated subscription
