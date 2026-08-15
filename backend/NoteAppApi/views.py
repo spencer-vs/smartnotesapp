@@ -1209,21 +1209,46 @@ def verify_payment(request, reference):
 def activate_subscription(subscription, transaction):
 
     plan = subscription.plan
-
     now = timezone.now()
 
     if plan == "monthly":
-        subscription_end = now + timedelta(days=30)
+        duration = timedelta(days=30)
 
     elif plan == "yearly":
-        subscription_end = now + timedelta(days=365)
+        duration = timedelta(days=365)
 
     else:
         raise ValueError("Invalid subscription plan.")
 
-    subscription.status = "active"
-    subscription.subscription_start = now
-    subscription.subscription_end = subscription_end
+    # -----------------------------
+    # First activation / expired subscription
+    # -----------------------------
+
+    if (
+        subscription.status != "active"
+        or not subscription.subscription_end
+        or subscription.subscription_end <= now
+    ):
+        subscription.status = "active"
+        subscription.subscription_start = now
+        subscription.subscription_end = now + duration
+
+    # -----------------------------
+    # Recurring renewal
+    # -----------------------------
+
+    else:
+
+        # Do not renew a subscription
+        # that has been cancelled at period end.
+        if subscription.cancel_at_period_end:
+            raise ValueError(
+                "Subscription is scheduled for cancellation."
+            )
+
+        subscription.subscription_end = (
+            subscription.subscription_end + duration
+        )
 
     # -----------------------------
     # Paystack transaction
@@ -1284,7 +1309,7 @@ def activate_subscription(subscription, transaction):
 
     subscription.save()
 
-    return subscription
+    return subscriptionn
 
 
 
