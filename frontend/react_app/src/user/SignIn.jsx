@@ -20,7 +20,7 @@ export const SignIn = () => {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
-  const { login } = useContext(AuthContext);
+  const { login, auth } = useContext(AuthContext);
 
 
 
@@ -39,7 +39,7 @@ export const SignIn = () => {
       setLoading(true)
       const res = await api.post("auth/token/", { username, password });
       login(res.data);
-      toast("Welcome back to SmartNotes");
+      toast("Welcome to SmartNotes " + auth.user.username);
       navigate("/welcome");
       setLoading(false)
 

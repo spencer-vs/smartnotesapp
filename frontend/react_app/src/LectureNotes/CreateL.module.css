@@ -49,6 +49,11 @@
      gap: 4rem;
 }
 
+.convert {
+   font-size: 1.5rem;
+   color: white;
+}
+
 
 @keyframes message {
     0%{
@@ -213,6 +218,366 @@
 }
 
 
+/* =========================================
+   AUDIO UPLOAD SECTION
+========================================= */
+
+.uploadSection {
+   width: 85%;
+   max-width: 500px;
+   padding: 2rem 1.5rem;
+   margin-top: 1rem;
+   margin-bottom: 2rem;
+
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+
+   text-align: center;
+
+   border: 2px dashed rgba(255, 215, 0, 0.65);
+   border-radius: 25px;
+
+   background: rgba(0, 0, 0, 0.45);
+
+   box-shadow:
+      inset 0 0 20px rgba(255, 215, 0, 0.05),
+      0 0 15px rgba(255, 215, 0, 0.15);
+
+   transition: all 0.3s ease;
+}
+
+.uploadSection:hover {
+   border-color: gold;
+
+   box-shadow:
+      inset 0 0 25px rgba(255, 215, 0, 0.08),
+      0 0 20px rgba(255, 215, 0, 0.3);
+
+   transform: translateY(-2px);
+}
+
+
+/* Upload icon */
+
+.uploadIcon {
+   width: 55px;
+   height: 55px;
+
+   display: flex;
+   align-items: center;
+   justify-content: center;
+
+   border: 2px solid gold;
+   border-radius: 50%;
+
+   color: gold;
+   font-size: 2rem;
+   font-weight: bold;
+
+   margin-bottom: 1rem;
+
+   box-shadow: 0 0 15px rgba(255, 215, 0, 0.35);
+}
+
+
+/* Heading */
+
+.uploadTitle {
+   margin: 0;
+
+   color: gold;
+
+   font-size: 1.5rem;
+   font-weight: bold;
+
+   letter-spacing: 1px;
+}
+
+
+/* Description */
+
+.uploadText {
+   margin: 0.8rem 0 1.2rem;
+
+   color: #ddd;
+
+   font-size: 1rem;
+   line-height: 1.6;
+}
+
+
+/* Choose button */
+
+.uploadChooseBtn {
+   padding: 12px 25px;
+
+   border: 2px solid gold;
+   border-radius: 40px;
+
+   background: transparent;
+   color: white;
+
+   font-size: 1rem;
+   font-weight: bold;
+
+   cursor: pointer;
+
+   transition: all 0.3s ease;
+}
+
+.uploadChooseBtn:hover {
+   background: gold;
+   color: black;
+
+   box-shadow:
+      0 0 5px gold,
+      0 0 15px gold,
+      0 0 25px rgba(255, 215, 0, 0.5);
+
+   transform: scale(1.04);
+}
+
+.uploadChooseBtn:active {
+   transform: scale(0.97);
+}
+
+
+/* Supported formats */
+
+.supportedFormats {
+   margin: 0.8rem 0 0;
+
+   color: #999;
+
+   font-size: 0.8rem;
+   letter-spacing: 0.5px;
+}
+
+
+/* Selected file */
+
+.selectedFile {
+   width: 90%;
+
+   display: flex;
+   align-items: center;
+
+   gap: 12px;
+
+   margin-top: 1.3rem;
+   padding: 12px 15px;
+
+   border-radius: 12px;
+
+   background: rgba(255, 215, 0, 0.08);
+   border: 1px solid rgba(255, 215, 0, 0.35);
+
+   text-align: left;
+
+   box-sizing: border-box;
+}
+
+
+/* Audio icon */
+
+.fileIcon {
+   width: 38px;
+   height: 38px;
+
+   flex-shrink: 0;
+
+   display: flex;
+   align-items: center;
+   justify-content: center;
+
+   border-radius: 50%;
+
+   background: gold;
+   color: black;
+
+   font-size: 1.2rem;
+   font-weight: bold;
+}
+
+
+/* File information */
+
+.fileInfo {
+   min-width: 0;
+
+   display: flex;
+   flex-direction: column;
+
+   gap: 3px;
+}
+
+
+/* Filename */
+
+.fileName {
+   color: white;
+
+   font-size: 0.9rem;
+   font-weight: bold;
+
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+
+/* File size */
+
+.fileSize {
+   color: #aaa;
+
+   font-size: 0.75rem;
+}
+
+
+/* Upload and convert */
+
+.uploadConvertBtn {
+   margin-top: 1.2rem;
+
+   padding: 12px 25px;
+
+   border: 2px solid #0ff;
+   border-radius: 40px;
+
+   background: transparent;
+   color: white;
+
+   font-size: 1rem;
+   font-weight: bold;
+
+   cursor: pointer;
+
+   transition: all 0.3s ease;
+}
+
+.uploadConvertBtn:hover {
+   background: #0ff;
+   color: black;
+
+   box-shadow:
+      0 0 5px #0ff,
+      0 0 15px #0ff,
+      0 0 25px rgba(0, 255, 255, 0.4);
+
+   transform: scale(1.04);
+}
+
+.uploadConvertBtn:active {
+   transform: scale(0.97);
+}
+
+
+/* =========================================
+   UPLOAD PROGRESS
+========================================= */
+
+.uploadProgressContainer {
+   width: 90%;
+   margin-top: 1.5rem;
+   text-align: left;
+}
+
+.progressHeader {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+
+   margin-bottom: 8px;
+
+   color: white;
+   font-size: 0.9rem;
+}
+
+.progressHeader span:last-child {
+   color: gold;
+   font-weight: bold;
+}
+
+.progressTrack {
+   width: 100%;
+   height: 12px;
+
+   background: rgba(255, 255, 255, 0.12);
+
+   border: 1px solid rgba(255, 215, 0, 0.4);
+   border-radius: 20px;
+
+   overflow: hidden;
+
+   box-shadow:
+      inset 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+.progressBar {
+   height: 100%;
+
+   background: linear-gradient(
+      90deg,
+      goldenrod,
+      gold,
+      #fff3a0
+   );
+
+   border-radius: 20px;
+
+   transition: width 0.2s ease;
+
+   box-shadow:
+      0 0 8px gold,
+      0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+
+.processingMessage {
+   margin-top: 1.5rem;
+   text-align: center;
+   color: white;
+}
+
+.processingMessage p {
+   margin: 10px 0 5px;
+   color: gold;
+   font-size: 1rem;
+}
+
+.processingMessage span {
+   color: #aaa;
+   font-size: 0.8rem;
+}
+
+.processingSpinner {
+   width: 35px;
+   height: 35px;
+
+   margin: auto;
+
+   border: 4px solid rgba(255, 255, 255, 0.2);
+   border-top: 4px solid gold;
+
+   border-radius: 50%;
+
+   animation: uploadSpin 1s linear infinite;
+}
+
+@keyframes uploadSpin {
+   from {
+      transform: rotate(0deg);
+   }
+
+   to {
+      transform: rotate(360deg);
+   }
+}
+
+
 @media (min-width: 300px) and (max-width: 500px) {
     .create_con {
    background-position: fixed;
@@ -257,12 +622,52 @@
 .shareBtn {
    font-size: 1rem;
 }
+
+.uploadSection {
+   width: 90%;
+   padding: 1.5rem 1rem;
+   border-radius: 20px;
+}
+
+.uploadTitle {
+   font-size: 1.2rem;
+}
+
+.uploadText {
+   font-size: 0.85rem;
+}
+
+.uploadChooseBtn,
+.uploadConvertBtn {
+   font-size: 0.9rem;
+   padding: 10px 18px;
+}
+
+.selectedFile {
+   width: 100%;
+}
+
+.fileName {
+   max-width: 180px;
+}
+
+.uploadProgressContainer {
+   width: 95%;
+}
+
+.progressHeader {
+   font-size: 0.8rem;
+}
 }
 
 
 @media (min-width: 501px) and (max-width: 1024px) {
 
-  .create_con {
+  .uploadSection {
+   width: 85%;
+}
+  
+   .create_con {
    background-position: fixed;
   }
   
@@ -328,106 +733,3 @@
 
 
 
-/* Lecture Notes
-**Lecture Notes: Creating an Animated Glowing Border with HTML and CSS**
-
-**I. Introduction**
-
-* In this lecture, we will create a beautiful animated glowing border using HTML and CSS.
-* We will use a rotating conic gradient and some cool blur effects to achieve this effect.
-
-**II. Basic HTML Structure**
-
-* Create a simple HTML structure with a div element and assign it the class "box".
-```html
-<div class="box"></div>
-```
-**III. Styling the Page and the Box**
-
-* Use CSS to style the page and the box.
-* Center everything on the page.
-* Give the box a clean background and some basic layout.
-```css
-.box {
-  width: 200px;
-  height: 200px;
-  background-color: #333;
-  margin: 0 auto;
-  position: relative;
-}
-```
-**IV. Creating the Glowing Border Effect**
-
-* Use the `:before` and `:after` pseudo-elements to create the glowing border effect.
-* Apply a rotating conic gradient and a blurred version for the glow.
-* The `:before` element will give us the clean, sharp gradient ring, and the `:after` element will give us the soft glow effect with a blur to animate the gradient's rotation.
-
-**V. Custom Property and Animation**
-
-* Declare a custom property using the new `@property` rule, supported in modern Chromium browsers.
-* This lets us animate a CSS variable like a regular numeric value.
-* Animate the custom property of `angle` from 0 degrees to 360 degrees using a keyframes animation.
-
-**VI. Code Snippet**
-
-```css
-.box {
-  width: 200px;
-  height: 200px;
-  background-color: #333;
-  margin: 0 auto;
-  position: relative;
-}
-
-.box::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
-  animation: rotate 2s linear infinite;
-}
-
-.box::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
-  filter: blur(10px);
-  animation: rotate 2s linear infinite;
-}
-
-@property --angle {
-  syntax: '<angle>';
-  init: 0deg;
-}
-
-.box::before {
-  animation-name: rotate;
-}
-
-.box::after {
-  animation-name: rotate;
-}
-
-@keyframes rotate {
-  100% {
-    --angle: 360deg;
-  }
-}
-```
-
-**VII. Summary**
-
-* We created a beautiful animated glowing border using HTML and CSS.
-* We used a rotating conic gradient and some cool blur effects to achieve this effect.
-* We declared a custom property using the `@property` rule and animated it using a keyframes animation. */
