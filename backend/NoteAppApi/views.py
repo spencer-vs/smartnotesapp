@@ -1322,8 +1322,13 @@ def activate_subscription(subscription, transaction):
 
     if transaction_id:
         subscription.paystack_transaction_id = str(
-            transaction_id
+        transaction_id
         )
+
+    reference = transaction.get("reference")
+
+    if reference:
+        subscription.paystack_reference = reference
 
     # -----------------------------
     # Paystack customer
