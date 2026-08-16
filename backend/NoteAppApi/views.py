@@ -1460,6 +1460,34 @@ def activate_subscription(subscription, transaction):
 def renew_subscription(subscription, transaction):
     now = timezone.now()
 
+    # ---------------------------------------
+    # Prevent duplicate transaction processing
+    # ---------------------------------------
+
+    transaction_id = transaction.get("id")
+
+    if not transaction_id:
+        raise ValueError(
+            "Missing Paystack transaction ID."
+        )
+
+    transaction_id = str(transaction_id)
+
+    if (
+        subscription.paystack_transaction_id
+        == transaction_id
+    ):
+        print(
+            "RENEWAL ALREADY PROCESSED:",
+            transaction_id
+        )
+
+        return subscription
+
+    # ---------------------------------------
+    # Determine renewal duration
+    # ---------------------------------------
+
     if subscription.plan == "monthly":
         duration = timedelta(days=30)
 
@@ -1467,23 +1495,32 @@ def renew_subscription(subscription, transaction):
         duration = timedelta(days=365)
 
     else:
-        raise ValueError("Invalid subscription plan.")
+        raise ValueError(
+            "Invalid subscription plan."
+        )
 
-    # Keep the existing end date if it is still in the future.
-    # This prevents a renewal from losing unused days.
-    if subscription.subscription_end and subscription.subscription_end > now:
+    # ---------------------------------------
+    # Extend existing subscription
+    # ---------------------------------------
+
+    if (
+        subscription.subscription_end
+        and subscription.subscription_end > now
+    ):
         subscription.subscription_end += duration
+
     else:
         subscription.subscription_end = now + duration
 
     subscription.status = "active"
 
-    transaction_id = transaction.get("id")
+    # ---------------------------------------
+    # Save Paystack transaction
+    # ---------------------------------------
 
-    if transaction_id:
-        subscription.paystack_transaction_id = str(
-            transaction_id
-        )
+    subscription.paystack_transaction_id = (
+        transaction_id
+    )
 
     subscription.save(
         update_fields=[
@@ -1494,8 +1531,12 @@ def renew_subscription(subscription, transaction):
         ]
     )
 
-    return subscription
+    print(
+        "SUBSCRIPTION RENEWED:",
+        transaction_id
+    )
 
+    return subscription
 
 
 
