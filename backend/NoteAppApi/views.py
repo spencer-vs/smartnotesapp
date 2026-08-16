@@ -540,6 +540,14 @@ def upload_audio(request):
         audio_file = request.FILES.get("audio")
         if not audio_file:
             return JsonResponse({"error": "No audio file"}, status=400)
+        MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
+
+        if audio_file.size > MAX_AUDIO_SIZE:
+             return JsonResponse(
+            {
+            "error": "Audio file is too large. "
+                     "Maximum allowed size is 50 MB."
+            }, status=400)
         folder = os.path.join(settings.MEDIA_ROOT, "audio")
         os.makedirs(folder, exist_ok=True)
        # file_name = f"{uuid.uuid4()}.webm"
