@@ -1072,6 +1072,16 @@ def verify_payment(request, reference):
     # -----------------------------------
     # Validate payment reference
     # -----------------------------------
+    
+    print("========== PAYMENT VERIFICATION DEBUG ==========")
+    print("User:", request.user.id)
+    print("Reference from URL:", reference)
+    print("Reference in database:", subscription.paystack_reference)
+    print("Subscription status:", subscription.status)
+    print("Subscription plan:", subscription.plan)
+    print("Paystack transaction ID:", subscription.paystack_transaction_id)
+    print("Paystack subscription code:", subscription.paystack_subscription_code)
+    print("================================================")
 
     if subscription.paystack_reference != reference:
         return Response(
