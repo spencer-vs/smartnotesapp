@@ -1052,7 +1052,6 @@ def initialize_payment(request):
     
     
 
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def verify_payment(request, reference):
@@ -1094,6 +1093,7 @@ def verify_payment(request, reference):
     # -----------------------------------
 
     try:
+
         response = requests.get(
             f"https://api.paystack.co/transaction/verify/{reference}",
             headers=headers,
@@ -1103,10 +1103,12 @@ def verify_payment(request, reference):
         response_data = response.json()
 
     except requests.RequestException:
+
         return Response(
             {
-                "detail": "Unable to connect to Paystack. "
-                          "Please try again."
+                "detail":
+                "Unable to connect to Paystack. "
+                "Please try again."
             },
             status=503
         )
@@ -1116,6 +1118,7 @@ def verify_payment(request, reference):
     # -----------------------------------
 
     if not response_data.get("status"):
+
         return Response(
             {
                 "detail": response_data.get(
@@ -1131,10 +1134,11 @@ def verify_payment(request, reference):
     payment_status = transaction.get("status")
 
     # -----------------------------------
-    # Payment was abandoned
+    # Payment abandoned
     # -----------------------------------
 
     if payment_status == "abandoned":
+
         return Response(
             {
                 "detail": (
@@ -1151,6 +1155,7 @@ def verify_payment(request, reference):
     # -----------------------------------
 
     if payment_status == "failed":
+
         return Response(
             {
                 "detail": (
@@ -1163,10 +1168,11 @@ def verify_payment(request, reference):
         )
 
     # -----------------------------------
-    # Payment is not successful
+    # Payment not completed
     # -----------------------------------
 
     if payment_status != "success":
+
         return Response(
             {
                 "detail": (
@@ -1179,75 +1185,137 @@ def verify_payment(request, reference):
         )
 
     # -----------------------------------
-    # Successful payment
+    # Successful transaction
     # -----------------------------------
 
-    
+    transaction_id = transaction.get("id")
+
+    if not transaction_id:
+
+        return Response(
+            {
+                "detail":
+                "Paystack transaction ID was not found."
+            },
+            status=400
+        )
+
+    transaction_id = str(transaction_id)
+
+    # -----------------------------------
+    # IMPORTANT:
+    #
+    # Prevent the same payment from being
+    # processed more than once.
+    # -----------------------------------
+
+    if (
+        subscription.paystack_transaction_id
+        and
+        subscription.paystack_transaction_id == transaction_id
+    ):
+
+        print(
+            "Payment already processed:",
+            transaction_id
+        )
+
+        return Response(
+            {
+                "message":
+                "Payment has already been processed.",
+                "plan": subscription.plan,
+                "status": subscription.status,
+                "subscription_start":
+                    subscription.subscription_start,
+                "subscription_end":
+                    subscription.subscription_end,
+                "days_left":
+                    subscription.days_left,
+                "premium":
+                    subscription.premium,
+            },
+            status=200
+        )
+
+    # -----------------------------------
+    # Process payment
+    # -----------------------------------
+
     try:
 
-    # -----------------------------------
-    # First payment
-    # -----------------------------------
+        # --------------------------------
+        # FIRST PAYMENT
+        # --------------------------------
 
-        if not subscription.paystack_subscription_code:
+        if not subscription.paystack_transaction_id:
 
-          activate_subscription(
-            subscription,
-            transaction
-          )
+            print(
+                "Processing FIRST payment:",
+                transaction_id
+            )
 
-          message = (
-            "Subscription activated successfully."
-          )
-
-    # -----------------------------------
-    # Recurring payment
-    # -----------------------------------
-
-        else:
-
-            # User previously cancelled
-            # automatic renewal.
-            if subscription.cancel_at_period_end:
-
-                print(
-                "WARNING: Payment received for "
-                "a cancelled/non-renewing subscription."
-                )
-
-                return Response(
-                {
-                    "message":
-                    "Payment received, but the "
-                    "subscription was marked as "
-                    "non-renewing."
-                },
-                status=200
-                )
-
-            renew_subscription(
-            subscription,
-            transaction
+            activate_subscription(
+                subscription,
+                transaction
             )
 
             message = (
-            "Subscription renewed successfully."
+                "Subscription activated successfully."
+            )
+
+        # --------------------------------
+        # NEW PAYMENT
+        #
+        # This branch is mainly for a
+        # legitimate new transaction.
+        # --------------------------------
+
+        else:
+
+            print(
+                "Processing NEW payment:",
+                transaction_id
+            )
+
+            # ----------------------------
+            # Don't renew a subscription
+            # that has been marked as
+            # non-renewing/cancelled.
+            # ----------------------------
+
+            if subscription.cancel_at_period_end:
+
+                print(
+                    "WARNING: Payment received for "
+                    "a cancelled/non-renewing subscription."
+                )
+
+                return Response(
+                    {
+                        "message":
+                        "Payment received, but the "
+                        "subscription is marked as "
+                        "non-renewing."
+                    },
+                    status=200
+                )
+
+            renew_subscription(
+                subscription,
+                transaction
+            )
+
+            message = (
+                "Subscription renewed successfully."
             )
 
     except ValueError as e:
 
         return Response(
-        {"detail": str(e)},
-        status=400
+            {"detail": str(e)},
+            status=400
         )
-        
-   
-
-
-
-        
-
-        
 
     # -----------------------------------
     # Return updated subscription
@@ -1258,17 +1326,24 @@ def verify_payment(request, reference):
             "message": message,
             "plan": subscription.plan,
             "status": subscription.status,
-            "subscription_start": (
-                subscription.subscription_start
-            ),
-            "subscription_end": (
-                subscription.subscription_end
-            ),
-            "days_left": subscription.days_left,
-            "premium": subscription.premium,
+            "subscription_start":
+                subscription.subscription_start,
+            "subscription_end":
+                subscription.subscription_end,
+            "days_left":
+                subscription.days_left,
+            "premium":
+                subscription.premium,
         },
         status=200
-    )    
+    )
+    
+    
+    
+    
+    
+    
+     
 
 def activate_subscription(subscription, transaction):
 
