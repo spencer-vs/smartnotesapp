@@ -295,3 +295,149 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.get_plan_display()} ({self.status})"
+    
+    
+    
+
+
+class Quiz(models.Model):
+    DIFFICULTY_CHOICES = [
+        ("easy", "Easy"),
+        ("mixed", "Mixed"),
+        ("hard", "Hard"),
+    ]
+
+    QUESTION_TYPE_CHOICES = [
+        ("multiple_choice", "Multiple Choice"),
+        ("true_false", "True / False"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="quizzes"
+    )
+
+    lecture = models.ForeignKey(
+        Lecture,
+        on_delete=models.CASCADE,
+        related_name="quizzes",
+        null=True,
+        blank=True
+    )
+
+    tutorial = models.ForeignKey(
+        Tutorial,
+        on_delete=models.CASCADE,
+        related_name="quizzes",
+        null=True,
+        blank=True
+    )
+
+    difficulty = models.CharField(
+        max_length=10,
+        choices=DIFFICULTY_CHOICES
+    )
+
+    question_type = models.CharField(
+        max_length=20,
+        choices=QUESTION_TYPE_CHOICES
+    )
+
+    number_of_questions = models.PositiveIntegerField()
+
+    score = models.PositiveIntegerField(default=0)
+
+    completed = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        source = self.lecture or self.tutorial
+        return f"{source} - {self.get_difficulty_display()} Quiz"
+    
+    
+    
+
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name="questions"
+    )
+
+    question = models.TextField()
+
+    option_a = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    option_b = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    option_c = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    option_d = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    correct_answer = models.CharField(
+        max_length=10
+    )
+
+    explanation = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    order = models.PositiveIntegerField(
+        default=0
+    )
+
+    def __str__(self):
+        return f"Question {self.order} - {self.quiz}"
+    
+    
+    
+
+
+
+class QuizAnswer(models.Model):
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name="answers"
+    )
+
+    question = models.ForeignKey(
+        QuizQuestion,
+        on_delete=models.CASCADE,
+        related_name="answers"
+    )
+
+    selected_answer = models.CharField(
+        max_length=10
+    )
+
+    is_correct = models.BooleanField(
+        default=False
+    )
+
+    answered_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f"{self.quiz} - Question {self.question.order}"

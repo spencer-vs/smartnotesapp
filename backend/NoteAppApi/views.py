@@ -678,7 +678,7 @@ def generate_lecture_note(transcription):
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        prompt = f"Convert this into structured lecture notes:\n{transcription[:3000]}"
+        prompt = f"Convert this into structured lecture notes:\n{transcription[:10000]}"
         payload = {
             "model": "llama-3.1-8b-instant",
             "messages": [

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Note, Contact, Task, Lecture, Tutorial, Subscription
+from .models import Note, Contact, Task, Lecture, Tutorial, Subscription, Quiz, QuizAnswer, QuizQuestion
 
 # Register your models here.
 @admin.register(Note)
@@ -57,3 +57,97 @@ class SubscriptionAdmin(admin.ModelAdmin):
         "-created_at",
     )
     
+    
+
+
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "get_source",
+        "difficulty",
+        "question_type",
+        "number_of_questions",
+        "score",
+        "completed",
+        "created_at",
+    )
+
+    list_filter = (
+        "difficulty",
+        "question_type",
+        "completed",
+        "created_at",
+    )
+
+    search_fields = (
+        "user__username",
+        "lecture__lecture",
+        "tutorial__youtube_title",
+        "tutorial__youtube_text",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "completed_at",
+    )
+
+    def get_source(self, obj):
+        if obj.lecture:
+            return f"Lecture: {obj.lecture}"
+        elif obj.tutorial:
+            return f"YouTube: {obj.tutorial.youtube_title}"
+        return "No source"
+
+    get_source.short_description = "Source"
+
+
+@admin.register(QuizQuestion)
+class QuizQuestionAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "quiz",
+        "order",
+        "question",
+        "correct_answer",
+    )
+
+    list_filter = (
+        "quiz__difficulty",
+        "quiz__question_type",
+    )
+
+    search_fields = (
+        "question",
+        "quiz__user__username",
+    )
+
+    ordering = (
+        "quiz",
+        "order",
+    )
+
+
+@admin.register(QuizAnswer)
+class QuizAnswerAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "quiz",
+        "question",
+        "selected_answer",
+        "is_correct",
+        "answered_at",
+    )
+
+    list_filter = (
+        "is_correct",
+        "answered_at",
+    )
+
+    search_fields = (
+        "quiz__user__username",
+        "question__question",
+    )
+
