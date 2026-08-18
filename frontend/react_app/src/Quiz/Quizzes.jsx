@@ -142,7 +142,7 @@ function Quizzes() {
 
                             <Link
                                 key={quiz.id}
-                                to={`/saved-quizzes/${quiz.id}`}
+                                to={`/saved_quizzes/${quiz.id}`}
                                 className={styles.quizCard}
                             >
 

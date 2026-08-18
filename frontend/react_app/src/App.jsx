@@ -34,7 +34,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import Profile from './user/Profile';
 import Pricing from './Subscription/Pricing';
 import Callback from './Subscription/Callback'
-import Quizzes from './Quiz/Quizzes'
+import Quizzes from './Quiz/Quizzes';
+import SavedQuizzes from './Quiz/QuizDetail'
+
 
 
 
@@ -79,6 +81,8 @@ const App = () => {
       <Route path='/pricing' element={<ProtectedRoute><Pricing /></ProtectedRoute>}></Route>
       <Route path='payment/callback' element={<ProtectedRoute><Callback /></ProtectedRoute>}></Route>
       <Route path='/quizzes' element={<ProtectedRoute><Quizzes /></ProtectedRoute>}></Route>
+       <Route path='/saved_quizzes/:quiz_id' element={<ProtectedRoute><SavedQuizzes /></ProtectedRoute>}></Route>
+
 
 
 
