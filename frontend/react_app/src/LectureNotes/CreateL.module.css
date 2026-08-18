@@ -137,12 +137,12 @@
 }
 
 
-.deleteBtn {
+.createLBtn {
    font-size: 1.2rem;
    color: #fff;
    padding: 12px 25px;
    margin: 10px;
-   border: 2px solid #0ff;
+   border: 2px solid gold;
    border-radius: 4rem;
    background: transparent;
    cursor: pointer;
@@ -150,7 +150,7 @@
    position: relative;
    overflow: hidden;
 }
-.deleteBtn::before {
+.createLBtn::before {
    content: "";
    position: absolute;
    top: -50%;
@@ -161,15 +161,15 @@
    transition: 0.4s;
    transform: scale(0);
 }
-.deleteBtn:hover::before {
+.createLBtn:hover::before {
    transform: scale(1);
 }
-.deleteBtn:hover {
+.createLBtn:hover {
    color: #000;
-   background: #0ff;
-   box-shadow: 0 0 3px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+   background: gold;
+   box-shadow: 0 0 3px gold;
 }
-.deleteBtn:active {
+.createLBtn:active {
    transform: scale(0.95);
 }
 

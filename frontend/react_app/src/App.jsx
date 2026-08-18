@@ -34,6 +34,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Profile from './user/Profile';
 import Pricing from './Subscription/Pricing';
 import Callback from './Subscription/Callback'
+import Quizzes from './Quiz/Quizzes'
 
 
 
@@ -77,6 +78,9 @@ const App = () => {
       <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
       <Route path='/pricing' element={<ProtectedRoute><Pricing /></ProtectedRoute>}></Route>
       <Route path='payment/callback' element={<ProtectedRoute><Callback /></ProtectedRoute>}></Route>
+      <Route path='/quizzes' element={<ProtectedRoute><Quizzes /></ProtectedRoute>}></Route>
+
+
 
 
   

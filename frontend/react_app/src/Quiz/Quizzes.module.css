@@ -1,0 +1,451 @@
+.container {
+    min-height: 100vh;
+
+    background:
+        linear-gradient(
+            rgba(0, 0, 0, 0.82),
+            rgba(0, 0, 0, 0.92)
+        ),
+        url("../../src/assets/img/notes_14.jpg");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color: #ffffff;
+}
+
+
+.quizContent {
+    width: 100%;
+
+    min-height: 100vh;
+
+    padding: 40px 25px;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================
+   LOADER
+========================= */
+
+.loader {
+    border: 6px solid rgba(255, 255, 255, 0.15);
+
+    border-top: 6px solid #d4af37;
+
+    border-radius: 50%;
+
+    width: 50px;
+    height: 50px;
+
+    animation: spin 1s linear infinite;
+
+    margin: 100px auto;
+}
+
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    margin: 0 0 35px;
+
+    text-align: center;
+
+    color: #d4af37;
+
+    font-size: clamp(2.5rem, 5vw, 4rem);
+
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+}
+
+
+/* =========================
+   QUIZ LIST
+========================= */
+
+.quizList {
+    width: 100%;
+
+    max-width: 1100px;
+
+    margin: 0 auto;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 25px;
+}
+
+
+/* =========================
+   QUIZ CARD
+========================= */
+
+.quizCard {
+    display: block;
+
+    width: 100%;
+
+    padding: 28px;
+
+    text-decoration: none;
+
+    color: #ffffff;
+
+    background:
+        rgba(12, 12, 12, 0.94);
+
+    border:
+        1px solid rgba(212, 175, 55, 0.35);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.45);
+
+    transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.25s ease;
+}
+
+
+.quizCard:hover {
+    border-color:
+        rgba(212, 175, 55, 0.7);
+
+    box-shadow:
+        0 18px 50px
+        rgba(212, 175, 55, 0.08);
+
+    transform: translateY(-3px);
+}
+
+
+/* =========================
+   CARD HEADER
+========================= */
+
+.quizCardHeader {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 25px;
+
+    margin-bottom: 25px;
+}
+
+
+.sourceType {
+    display: inline-block;
+
+    margin-bottom: 8px;
+
+    color: gold;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.6px;
+}
+
+
+.quizCardHeader h2 {
+    margin: 0;
+
+    color: #eeeeee;
+
+    font-size: 22px;
+
+    line-height: 1.4;
+
+    font-weight: 600;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================
+   SCORE
+========================= */
+
+.percentage {
+    flex-shrink: 0;
+
+    color: #d4af37;
+
+    font-size: 28px;
+
+    font-weight: 700;
+}
+
+
+/* =========================
+   QUIZ INFORMATION
+========================= */
+
+.quizInfo {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 15px;
+}
+
+
+.infoItem {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    padding: 14px 16px;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    border:
+        1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+.infoItem span {
+    color: gold;
+
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+}
+
+
+.infoItem strong {
+    color: #eeeeee;
+
+    font-size: 15px;
+
+    font-weight: 500;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================
+   CARD FOOTER
+========================= */
+
+.quizCardFooter {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-top: 25px;
+
+    padding-top: 18px;
+
+    border-top:
+        1px solid rgba(255, 255, 255, 0.08);
+
+    color: #d4af37;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+.arrow {
+    font-size: 22px;
+
+    transition:
+        transform 0.25s ease;
+}
+
+
+.quizCard:hover .arrow {
+    transform: translateX(5px);
+}
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.emptyCard {
+    width: 100%;
+
+    max-width: 700px;
+
+    margin: 50px auto;
+
+    padding: 40px 30px;
+
+    text-align: center;
+
+    background:
+        rgba(12, 12, 12, 0.94);
+
+    border:
+        1px solid rgba(212, 175, 55, 0.35);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.45);
+}
+
+
+.emptyCard h2 {
+    margin-top: 0;
+
+    color: #d4af37;
+
+    font-size: 24px;
+}
+
+
+.emptyCard p {
+    margin: 0;
+
+    color: #c5c5c5;
+
+    line-height: 1.7;
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+.errorMessage {
+    max-width: 600px;
+
+    margin: 100px auto;
+
+    padding: 25px;
+
+    text-align: center;
+
+    color: #ff7777;
+
+    background:
+        rgba(12, 12, 12, 0.94);
+
+    border:
+        1px solid rgba(220, 53, 69, 0.3);
+
+    border-radius: 12px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 800px) {
+
+    .quizInfo {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .quizContent {
+        padding: 30px 15px;
+    }
+
+
+    .header {
+        font-size: 3rem;
+
+        margin-bottom: 25px;
+    }
+
+
+    .quizCard {
+        padding: 22px 18px;
+
+        border-radius: 15px;
+    }
+
+
+    .quizCardHeader {
+        flex-direction: column;
+
+        gap: 15px;
+    }
+
+
+    .percentage {
+        font-size: 25px;
+    }
+
+
+    .quizInfo {
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+    }
+
+}
+
+
+@media (max-width: 400px) {
+
+    .quizContent {
+        padding: 25px 12px;
+    }
+
+
+    .quizCard {
+        padding: 20px 15px;
+    }
+
+
+    .header {
+        font-size: 2.3rem;
+    }
+
+
+    .quizCardHeader h2 {
+        font-size: 19px;
+    }
+
+}

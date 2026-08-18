@@ -332,7 +332,7 @@ return (
 
             <button
               onClick={handleRecordClick}
-              className={styles.deleteBtn}
+              className={styles.createLBtn}
               disabled={recordingProcessing}
             >
               {!recording
