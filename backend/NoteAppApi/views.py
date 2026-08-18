@@ -2437,16 +2437,75 @@ def review_quiz_view(request, quiz_id):
             if answer:
                 selected_answer = answer.selected_answer
 
+            # -----------------------------------
+            # Build options
+            # -----------------------------------
+
+            options = {
+                "A": question.option_a,
+                "B": question.option_b,
+            }
+
+            if question.option_c:
+                options["C"] = question.option_c
+
+            if question.option_d:
+                options["D"] = question.option_d
+
+            # -----------------------------------
+            # Get selected/correct option text
+            # -----------------------------------
+
+            selected_answer_text = options.get(
+                selected_answer,
+                ""
+            )
+
+            correct_answer_text = options.get(
+                question.correct_answer,
+                ""
+            )
+
+            # -----------------------------------
+            # Add question review
+            # -----------------------------------
+
             review_data.append(
                 {
                     "question_id": question.id,
                     "order": question.order,
                     "question": question.question,
+
+                    "options": options,
+
                     "selected_answer": selected_answer,
+                    "selected_answer_text": selected_answer_text,
+
                     "correct_answer": question.correct_answer,
+                    "correct_answer_text": correct_answer_text,
+
                     "explanation": question.explanation or "",
-                    "is_correct": answer.is_correct if answer else False,
+
+                    "is_correct": (
+                        answer.is_correct
+                        if answer
+                        else False
+                    ),
                 }
+            )
+
+        # -----------------------------------
+        # Calculate percentage
+        # -----------------------------------
+
+        percentage = 0
+
+        if quiz.number_of_questions:
+            percentage = round(
+                (
+                    quiz.score
+                    / quiz.number_of_questions
+                ) * 100
             )
 
         # -----------------------------------
@@ -2460,9 +2519,7 @@ def review_quiz_view(request, quiz_id):
                 "question_type": quiz.question_type,
                 "score": quiz.score,
                 "total_questions": quiz.number_of_questions,
-                "percentage": round(
-                    (quiz.score / quiz.number_of_questions) * 100
-                ) if quiz.number_of_questions else 0,
+                "percentage": percentage,
                 "completed": quiz.completed,
                 "completed_at": quiz.completed_at,
                 "questions": review_data,
@@ -2477,11 +2534,13 @@ def review_quiz_view(request, quiz_id):
 
         return Response(
             {
-                "error": "An unexpected error occurred while loading the quiz review."
+                "error": (
+                    "An unexpected error occurred "
+                    "while loading the quiz review."
+                )
             },
             status=500
         )
-        
         
         
 @api_view(["GET"])
