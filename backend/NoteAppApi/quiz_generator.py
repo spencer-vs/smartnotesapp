@@ -1,10 +1,12 @@
 import os
 import json
 import requests
+from .models import Quiz, QuizQuestion
+from django.db import transaction
 
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "openai/gpt-oss-20b"
 
 
 DIFFICULTY_QUESTION_COUNT = {
@@ -411,4 +413,119 @@ SOURCE MATERIAL:
 
     except Exception as e:
         print("❌ Unexpected quiz generation error:", repr(e))
+        return None
+    
+    
+    
+
+
+@transaction.atomic
+def save_generated_quiz(
+    user,
+    difficulty,
+    question_type,
+    quiz_data,
+    lecture=None,
+    tutorial=None,
+):
+    """
+    Save a validated AI-generated quiz and its questions.
+
+    A quiz must belong to either a Lecture or a Tutorial,
+    but never both.
+    """
+
+    try:
+        # -----------------------------------
+        # Validate source
+        # -----------------------------------
+
+        if lecture is None and tutorial is None:
+            print("❌ Quiz must have a Lecture or Tutorial source")
+            return None
+
+        if lecture is not None and tutorial is not None:
+            print("❌ Quiz cannot belong to both Lecture and Tutorial")
+            return None
+
+        # -----------------------------------
+        # Validate quiz data
+        # -----------------------------------
+
+        if not quiz_data or "questions" not in quiz_data:
+            print("❌ Invalid quiz data")
+            return None
+
+        questions = quiz_data["questions"]
+
+        if not questions:
+            print("❌ Quiz contains no questions")
+            return None
+
+        # -----------------------------------
+        # Determine question count
+        # -----------------------------------
+
+        number_of_questions = DIFFICULTY_QUESTION_COUNT.get(
+            difficulty
+        )
+
+        if not number_of_questions:
+            print("❌ Invalid difficulty")
+            return None
+
+        if len(questions) != number_of_questions:
+            print(
+                f"❌ Expected {number_of_questions} questions "
+                f"but received {len(questions)}"
+            )
+            return None
+
+        # -----------------------------------
+        # Create Quiz
+        # -----------------------------------
+
+        quiz = Quiz.objects.create(
+            user=user,
+            lecture=lecture,
+            tutorial=tutorial,
+            difficulty=difficulty,
+            question_type=question_type,
+            number_of_questions=number_of_questions,
+        )
+
+        # -----------------------------------
+        # Create Questions
+        # -----------------------------------
+
+        for index, question_data in enumerate(
+            questions,
+            start=1
+        ):
+            options = question_data["options"]
+
+            QuizQuestion.objects.create(
+                quiz=quiz,
+                question=question_data["question"],
+                option_a=options.get("A"),
+                option_b=options.get("B"),
+                option_c=options.get("C"),
+                option_d=options.get("D"),
+                correct_answer=question_data["correct_answer"],
+                explanation=question_data["explanation"],
+                order=index,
+            )
+
+        print(
+            f"✅ Quiz saved successfully. "
+            f"Quiz ID: {quiz.id}"
+        )
+
+        return quiz
+
+    except Exception as e:
+        print(
+            "❌ Error saving generated quiz:",
+            repr(e)
+        )
         return None

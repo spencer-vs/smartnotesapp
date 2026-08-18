@@ -5,11 +5,12 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import Note, Contact, Tutorial, Subscription
+from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
 from datetime import datetime
+from .quiz_generator import generate_quiz, save_generated_quiz
 import time
 from datetime import timedelta
 from openai import OpenAI
@@ -1927,3 +1928,671 @@ def cancel_subscription(request):
         },
         status=200
     )
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
+def generate_quiz_view(request):
+
+    try:
+        # -----------------------------------
+        # Get request data
+        # -----------------------------------
+
+        lecture_id = request.data.get("lecture_id")
+        tutorial_id = request.data.get("tutorial_id")
+
+        difficulty = request.data.get("difficulty")
+        question_type = request.data.get("question_type")
+
+        print("QUIZ REQUEST")
+        print("User:", request.user)
+        print("Lecture ID:", lecture_id)
+        print("Tutorial ID:", tutorial_id)
+        print("Difficulty:", difficulty)
+        print("Question Type:", question_type)
+
+        # -----------------------------------
+        # Validate source
+        # -----------------------------------
+
+        if not lecture_id and not tutorial_id:
+            return Response(
+                {
+                    "error": "Please provide either lecture_id or tutorial_id."
+                },
+                status=400
+            )
+
+        if lecture_id and tutorial_id:
+            return Response(
+                {
+                    "error": "Provide either lecture_id or tutorial_id, not both."
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Validate difficulty
+        # -----------------------------------
+
+        valid_difficulties = {
+            "easy": 5,
+            "mixed": 10,
+            "hard": 20,
+        }
+
+        if difficulty not in valid_difficulties:
+            return Response(
+                {
+                    "error": "Invalid difficulty. Choose easy, mixed, or hard."
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Validate question type
+        # -----------------------------------
+
+        valid_question_types = {
+            "multiple_choice",
+            "true_false",
+        }
+
+        if question_type not in valid_question_types:
+            return Response(
+                {
+                    "error": (
+                        "Invalid question type. "
+                        "Choose multiple_choice or true_false."
+                    )
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Get source content
+        # -----------------------------------
+
+        lecture = None
+        tutorial = None
+
+        if lecture_id:
+
+            try:
+                lecture = Lecture.objects.get(
+                    id=lecture_id,
+                    user=request.user,
+                    is_deleted=False
+                )
+
+            except Lecture.DoesNotExist:
+                return Response(
+                    {
+                        "error": "Lecture not found."
+                    },
+                    status=404
+                )
+
+            source_text = lecture.lecture
+
+            if not source_text or not source_text.strip():
+                return Response(
+                    {
+                        "error": "This lecture does not contain any content."
+                    },
+                    status=400
+                )
+
+        else:
+
+            try:
+                tutorial = Tutorial.objects.get(
+                    id=tutorial_id,
+                    user=request.user,
+                    is_deleted=False
+                )
+
+            except Tutorial.DoesNotExist:
+                return Response(
+                    {
+                        "error": "Tutorial not found."
+                    },
+                    status=404
+                )
+
+            source_text = tutorial.youtube_text
+
+            if not source_text or not source_text.strip():
+                return Response(
+                    {
+                        "error": "This tutorial does not contain any content."
+                    },
+                    status=400
+                )
+
+        # -----------------------------------
+        # Generate quiz with AI
+        # -----------------------------------
+
+        print("🧠 Starting quiz generation...")
+
+        quiz_data = generate_quiz(
+            source_text=source_text,
+            difficulty=difficulty,
+            question_type=question_type,
+        )
+
+        if not quiz_data:
+            return Response(
+                {
+                    "error": "Unable to generate quiz. Please try again."
+                },
+                status=500
+            )
+
+        # -----------------------------------
+        # Save quiz
+        # -----------------------------------
+
+        quiz = save_generated_quiz(
+            user=request.user,
+            difficulty=difficulty,
+            question_type=question_type,
+            quiz_data=quiz_data,
+            lecture=lecture,
+            tutorial=tutorial,
+        )
+
+        if not quiz:
+            return Response(
+                {
+                    "error": "Quiz was generated but could not be saved."
+                },
+                status=500
+            )
+
+        # -----------------------------------
+        # Prepare questions for frontend
+        # -----------------------------------
+
+        questions = quiz.questions.all().order_by("order")
+
+        question_data = []
+
+        for question in questions:
+
+            options = {
+                "A": question.option_a,
+                "B": question.option_b,
+            }
+
+            if question.option_c:
+                options["C"] = question.option_c
+
+            if question.option_d:
+                options["D"] = question.option_d
+
+            question_data.append(
+                {
+                    "id": question.id,
+                    "order": question.order,
+                    "question": question.question,
+                    "options": options,
+                }
+            )
+
+        # -----------------------------------
+        # Return quiz
+        # -----------------------------------
+
+        return Response(
+            {
+                "id": quiz.id,
+                "difficulty": quiz.difficulty,
+                "question_type": quiz.question_type,
+                "number_of_questions": quiz.number_of_questions,
+                "completed": quiz.completed,
+                "questions": question_data,
+            },
+            status=201
+        )
+
+    except Exception as e:
+
+        print("❌ QUIZ GENERATION ERROR:", repr(e))
+        traceback.print_exc()
+
+        return Response(
+            {
+                "error": "An unexpected error occurred while generating the quiz."
+            },
+            status=500
+        )
+        
+        
+        
+        
+        
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
+def submit_quiz_view(request, quiz_id):
+
+    try:
+        # -----------------------------------
+        # Get quiz
+        # -----------------------------------
+
+        try:
+            quiz = Quiz.objects.get(
+                id=quiz_id,
+                user=request.user
+            )
+
+        except Quiz.DoesNotExist:
+            return Response(
+                {
+                    "error": "Quiz not found."
+                },
+                status=404
+            )
+
+        # -----------------------------------
+        # Prevent resubmission
+        # -----------------------------------
+
+        if quiz.completed:
+            return Response(
+                {
+                    "error": "This quiz has already been completed."
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Get submitted answers
+        # -----------------------------------
+
+        answers = request.data.get("answers")
+
+        if not answers:
+            return Response(
+                {
+                    "error": "Please provide your answers."
+                },
+                status=400
+            )
+
+        if not isinstance(answers, dict):
+            return Response(
+                {
+                    "error": "Answers must be provided as an object."
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Get quiz questions
+        # -----------------------------------
+
+        questions = quiz.questions.all().order_by("order")
+
+        if not questions.exists():
+            return Response(
+                {
+                    "error": "This quiz has no questions."
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Score quiz
+        # -----------------------------------
+
+        score = 0
+        results = []
+
+        for question in questions:
+
+            question_id = str(question.id)
+
+            selected_answer = answers.get(question_id)
+
+            if selected_answer is None:
+                selected_answer = ""
+
+            selected_answer = str(selected_answer).strip().upper()
+
+            correct_answer = (
+                str(question.correct_answer)
+                .strip()
+                .upper()
+            )
+
+            is_correct = selected_answer == correct_answer
+
+            if is_correct:
+                score += 1
+
+            # -----------------------------------
+            # Save user's answer
+            # -----------------------------------
+
+            QuizAnswer.objects.create(
+                quiz=quiz,
+                question=question,
+                selected_answer=selected_answer,
+                is_correct=is_correct
+            )
+
+            # -----------------------------------
+            # Prepare result
+            # -----------------------------------
+
+            results.append(
+                {
+                    "question_id": question.id,
+                    "order": question.order,
+                    "selected_answer": selected_answer,
+                    "correct_answer": correct_answer,
+                    "is_correct": is_correct,
+                }
+            )
+
+        # -----------------------------------
+        # Calculate percentage
+        # -----------------------------------
+
+        total_questions = questions.count()
+
+        percentage = round(
+            (score / total_questions) * 100
+        )
+
+        # -----------------------------------
+        # Update quiz
+        # -----------------------------------
+
+        quiz.score = score
+        quiz.completed = True
+        quiz.completed_at = timezone.now()
+        quiz.save(
+            update_fields=[
+                "score",
+                "completed",
+                "completed_at"
+            ]
+        )
+
+        # -----------------------------------
+        # Return result
+        # -----------------------------------
+
+        return Response(
+            {
+                "quiz_id": quiz.id,
+                "score": score,
+                "total_questions": total_questions,
+                "percentage": percentage,
+                "completed": quiz.completed,
+                "completed_at": quiz.completed_at,
+                "results": results,
+            },
+            status=200
+        )
+
+    except Exception as e:
+
+        print("❌ QUIZ SUBMISSION ERROR:", repr(e))
+        traceback.print_exc()
+
+        return Response(
+            {
+                "error": "An unexpected error occurred while submitting the quiz."
+            },
+            status=500
+        )
+        
+        
+        
+        
+        
+        
+        
+        
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
+def review_quiz_view(request, quiz_id):
+
+    try:
+        # -----------------------------------
+        # Get quiz
+        # -----------------------------------
+
+        try:
+            quiz = Quiz.objects.get(
+                id=quiz_id,
+                user=request.user
+            )
+
+        except Quiz.DoesNotExist:
+            return Response(
+                {
+                    "error": "Quiz not found."
+                },
+                status=404
+            )
+
+        # -----------------------------------
+        # Make sure quiz is completed
+        # -----------------------------------
+
+        if not quiz.completed:
+            return Response(
+                {
+                    "error": "This quiz has not been completed yet."
+                },
+                status=400
+            )
+
+        # -----------------------------------
+        # Get questions
+        # -----------------------------------
+
+        questions = quiz.questions.all().order_by("order")
+
+        # -----------------------------------
+        # Get saved answers
+        # -----------------------------------
+
+        answers = {
+            answer.question_id: answer
+            for answer in quiz.answers.all()
+        }
+
+        # -----------------------------------
+        # Prepare review
+        # -----------------------------------
+
+        review_data = []
+
+        for question in questions:
+
+            answer = answers.get(question.id)
+
+            selected_answer = ""
+
+            if answer:
+                selected_answer = answer.selected_answer
+
+            review_data.append(
+                {
+                    "question_id": question.id,
+                    "order": question.order,
+                    "question": question.question,
+                    "selected_answer": selected_answer,
+                    "correct_answer": question.correct_answer,
+                    "explanation": question.explanation or "",
+                    "is_correct": answer.is_correct if answer else False,
+                }
+            )
+
+        # -----------------------------------
+        # Return review
+        # -----------------------------------
+
+        return Response(
+            {
+                "quiz_id": quiz.id,
+                "difficulty": quiz.difficulty,
+                "question_type": quiz.question_type,
+                "score": quiz.score,
+                "total_questions": quiz.number_of_questions,
+                "percentage": round(
+                    (quiz.score / quiz.number_of_questions) * 100
+                ) if quiz.number_of_questions else 0,
+                "completed": quiz.completed,
+                "completed_at": quiz.completed_at,
+                "questions": review_data,
+            },
+            status=200
+        )
+
+    except Exception as e:
+
+        print("❌ QUIZ REVIEW ERROR:", repr(e))
+        traceback.print_exc()
+
+        return Response(
+            {
+                "error": "An unexpected error occurred while loading the quiz review."
+            },
+            status=500
+        )
+        
+        
+        
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
+def saved_quizzes_view(request):
+
+    try:
+        # -----------------------------------
+        # Get user's quizzes
+        # -----------------------------------
+
+        quizzes = Quiz.objects.filter(
+            user=request.user
+        ).order_by("-created_at")
+
+        # -----------------------------------
+        # Prepare quiz list
+        # -----------------------------------
+
+        quiz_data = []
+
+        for quiz in quizzes:
+
+            # -------------------------------
+            # Determine quiz source
+            # -------------------------------
+
+            source_type = None
+            source_id = None
+            source_title = None
+
+            if quiz.lecture:
+                source_type = "lecture"
+                source_id = quiz.lecture.id
+                source_title = (
+                    re.sub(
+                    r"[*#_`]",
+                    "",
+                    quiz.lecture.lecture
+                    ).strip()[:80]
+                    if quiz.lecture.lecture
+                    else "Lecture"
+                )             
+
+            elif quiz.tutorial:
+                source_type = "tutorial"
+                source_id = quiz.tutorial.id
+                source_title = (
+                    quiz.tutorial.youtube_title
+                    if quiz.tutorial.youtube_title
+                    else "Tutorial"
+                )
+
+            # -------------------------------
+            # Calculate percentage
+            # -------------------------------
+
+            percentage = 0
+
+            if quiz.number_of_questions:
+                percentage = round(
+                    (
+                        quiz.score
+                        / quiz.number_of_questions
+                    ) * 100
+                )
+
+            # -------------------------------
+            # Add quiz
+            # -------------------------------
+
+            quiz_data.append(
+                {
+                    "id": quiz.id,
+                    "source_type": source_type,
+                    "source_id": source_id,
+                    "source_title": source_title,
+                    "difficulty": quiz.difficulty,
+                    "question_type": quiz.question_type,
+                    "number_of_questions": quiz.number_of_questions,
+                    "score": quiz.score,
+                    "percentage": percentage,
+                    "completed": quiz.completed,
+                    "created_at": quiz.created_at,
+                    "completed_at": quiz.completed_at,
+                }
+            )
+
+        # -----------------------------------
+        # Return saved quizzes
+        # -----------------------------------
+
+        return Response(
+            {
+                "count": len(quiz_data),
+                "quizzes": quiz_data,
+            },
+            status=200
+        )
+
+    except Exception as e:
+
+        print("❌ SAVED QUIZZES ERROR:", repr(e))
+        traceback.print_exc()
+
+        return Response(
+            {
+                "error": (
+                    "An unexpected error occurred "
+                    "while loading saved quizzes."
+                )
+            },
+            status=500
+        )
