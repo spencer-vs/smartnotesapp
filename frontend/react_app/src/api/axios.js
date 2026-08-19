@@ -5,73 +5,174 @@ const api = axios.create({
 });
 
 
-/* Handle expired access tokens and subscription errors */
+/* =========================================
+   HANDLE EXPIRED ACCESS TOKENS
+========================================= */
+
 api.interceptors.response.use(
-    res => res,
 
-    async err => {
-        const originalRequest = err.config;
+    response => response,
 
-        /* --------------------------------
-           401 — Access token expired
-        -------------------------------- */
+    async error => {
+
+        const originalRequest = error.config;
+
+
+        /* =====================================
+           401 — ACCESS TOKEN EXPIRED
+        ===================================== */
+
         if (
-            err.response?.status === 401 &&
-            !originalRequest._retry
+            error.response?.status === 401 &&
+            !originalRequest?._retry
         ) {
+
+            const requestUrl =
+                originalRequest?.url || "";
+
+
+            /*
+             * Never attempt token refresh for
+             * authentication endpoints.
+             */
+
+            const isAuthRequest =
+                requestUrl.includes(
+                    "/auth/token/"
+                ) ||
+                requestUrl.includes(
+                    "/auth/token/refresh/"
+                );
+
+
+            if (isAuthRequest) {
+
+                return Promise.reject(error);
+
+            }
+
+
             originalRequest._retry = true;
 
+
             try {
-                const refresh = localStorage.getItem("refresh");
+
+                const refresh =
+                    localStorage.getItem("refresh");
+
 
                 if (!refresh) {
-                    return Promise.reject(err);
+
+                    return Promise.reject(error);
+
                 }
+
 
                 const response = await axios.post(
                     "https://smartnoteapi.onrender.com/api/auth/token/refresh/",
-                    { refresh }
+                    {
+                        refresh
+                    }
                 );
+
+
+                const newAccess =
+                    response.data.access;
+
 
                 localStorage.setItem(
                     "access",
-                    response.data.access
+                    newAccess
                 );
 
+
+                localStorage.setItem(
+                    "token",
+                    newAccess
+                );
+
+
+                /*
+                 * Update Axios default header.
+                 */
+
+                api.defaults.headers.Authorization =
+                    `Bearer ${newAccess}`;
+
+
+                /*
+                 * Update the original failed request.
+                 */
+
+                originalRequest.headers =
+                    originalRequest.headers || {};
+
+
                 originalRequest.headers.Authorization =
-                    `Bearer ${response.data.access}`;
+                    `Bearer ${newAccess}`;
+
 
                 return api(originalRequest);
 
+
             } catch (refreshError) {
-                return Promise.reject(refreshError);
+
+                console.error(
+                    "Token refresh failed:",
+                    refreshError
+                );
+
+
+                /*
+                 * Remove invalid authentication
+                 * credentials.
+                 */
+
+                localStorage.removeItem(
+                    "access"
+                );
+
+                localStorage.removeItem(
+                    "refresh"
+                );
+
+                localStorage.removeItem(
+                    "token"
+                );
+
+
+                delete api.defaults.headers.Authorization;
+
+
+                return Promise.reject(
+                    refreshError
+                );
+
             }
+
         }
 
-        /* --------------------------------
-           403 — Subscription / Permission
-        -------------------------------- */
 
-        if (err.response?.status === 403) {
+        /* =====================================
+           403 — SUBSCRIPTION / PERMISSION
+        ===================================== */
+
+        if (
+            error.response?.status === 403
+        ) {
 
             console.log(
                 "Subscription/permission error:",
-                err.response.data
+                error.response.data
             );
 
-            // Keep the original error intact so
-            // individual components can display
-            // the backend message.
-            return Promise.reject(err);
         }
 
-        return Promise.reject(err);
+
+        return Promise.reject(error);
+
     }
 );
 
+
 export default api;
-
-
-
-
-

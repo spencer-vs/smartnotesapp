@@ -31,24 +31,48 @@ export const SignIn = () => {
   }
  
   
-  
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      setLoading(true)
-      const res = await api.post("auth/token/", { username, password });
-      login(res.data);
-      toast("Welcome to SmartNotes " + auth.user.username);
-      navigate("/welcome");
-      setLoading(false)
+        setLoading(true);
 
-    }  catch (error) {
-        const message = error?.response?.data?.detail;
-        toast(message);
+        const res = await api.post(
+            "auth/token/",
+            {
+                username,
+                password
+            }
+        );
+
+        
+        const user = await login(res.data);
+
+        toast.success(
+            "Welcome to SmartNotes " + user.username
+        );
+
+        navigate("/welcome");
+
+    } catch (error) {
+
+        console.error(
+            "Login error:",
+            error
+        );
+
+        const message =
+            error?.response?.data?.detail ||
+            "Unable to login. Please try again.";
+
+        toast.error(message);
+
+    } finally {
+
         setLoading(false);
-      }
-  };
+
+    }
+};
 
 
   

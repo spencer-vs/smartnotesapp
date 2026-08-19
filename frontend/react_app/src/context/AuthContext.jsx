@@ -35,20 +35,45 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
   // 🔹 Login
-  const login = async (data) => {
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
-    localStorage.setItem("token", data.access);
-    api.defaults.headers.Authorization = `Bearer ${data.access}`;
-    const res = await api.get("/auth/user/");
+ const login = async (data) => {
+
+    localStorage.setItem(
+        "access",
+        data.access
+    );
+
+    localStorage.setItem(
+        "refresh",
+        data.refresh
+    );
+
+    localStorage.setItem(
+        "token",
+        data.access
+    );
+
+    api.defaults.headers.Authorization =
+        `Bearer ${data.access}`;
+
+
+    const res = await api.get(
+        "/auth/user/"
+    );
+
+
     setAuth({
-      access: data.access,
-      refresh: data.refresh,
-      user: res.data,
-      isAuthenticated: true,
-      loading: false,
+        access: data.access,
+        refresh: data.refresh,
+        user: res.data,
+        isAuthenticated: true,
+        loading: false,
     });
-  };
+
+
+    // Allow SignIn.jsx to know that
+    // authentication has completed.
+    return res.data;
+};
   // 🔹 Logout
   const logout = () => {
     localStorage.clear();
