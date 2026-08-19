@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import api from "../api/axios";
 import styles from "./QuizDetail.module.css";
 import NHeader from "../Home/NHeader";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 
 function SavedQuizDetail() {
@@ -12,6 +14,7 @@ function SavedQuizDetail() {
     const [quiz, setQuiz] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [retaking, setRetaking] = useState(false);
 
 
     useEffect(() => {
@@ -50,6 +53,84 @@ function SavedQuizDetail() {
         fetchQuizReview();
 
     }, [quiz_id]);
+
+
+    const handleRetake = async () => {
+
+    const confirmed = window.confirm(
+        "Are you sure you want to retake this quiz?\n\n" +
+        "A new quiz will be generated using the same source, " +
+        "difficulty, and question type. Your previous attempt will remain saved."
+    );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        setRetaking(true);
+
+
+        const response = await api.post(
+            `notes/quizzes/${quiz_id}/retake/`
+        );
+
+
+        console.log(
+            "RETAKE QUIZ:",
+            response.data
+        );
+
+
+        /*
+         * Store the newly generated quiz as
+         * the active quiz.
+         */
+
+        sessionStorage.setItem(
+            "activeQuiz",
+            JSON.stringify({
+                quiz: response.data,
+                answers: {},
+            })
+        );
+
+
+        /*
+         * Navigate to the quiz page.
+         */
+
+        // window.location.href =
+        //     `/quiz/${response.data.id}`;
+
+       navigate("/quizzes");
+
+
+    } catch (error) {
+
+        console.error(
+            "Quiz retake error:",
+            error
+        );
+
+
+        const message =
+            error.response?.data?.error ||
+            "Unable to retake quiz. Please try again.";
+
+
+        toast(message);
+
+
+    } finally {
+
+        setRetaking(false);
+
+    }
+};
 
 
     if (loading) {
@@ -366,6 +447,19 @@ function SavedQuizDetail() {
 
 
                 <div className={styles.backButtonContainer}>
+
+                    <button
+                        onClick={handleRetake}
+                        className={styles.retakeButton}
+                        disabled={retaking}
+                    >
+
+                        {retaking
+                            ? "Generating Quiz..."
+                            : "Retake Quiz"}
+
+                    </button>
+
 
                     <Link
                         to="/quizzes"

@@ -540,6 +540,61 @@
 }
 
 
+.actionButtons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 35px;
+    margin-bottom: 40px;
+}
+
+.retakeButton {
+    padding: 12px 24px;
+
+    border-radius: 10px;
+
+    border: 1px solid #d4af37;
+
+    background: #d4af37;
+
+    color: #080808;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.retakeButton:hover {
+    background: transparent;
+
+    color: #d4af37;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 25px rgba(212, 175, 55, 0.15);
+}
+
+.retakeButton:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+
+
 /* =========================
    MOBILE
 ========================= */
