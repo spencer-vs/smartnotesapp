@@ -368,7 +368,7 @@ function SavedQuizDetail() {
                 <div className={styles.backButtonContainer}>
 
                     <Link
-                        to="/saved-quizzes"
+                        to="/quizzes"
                         className={styles.backButton}
                     >
                         Back to Saved Quizzes
