@@ -469,6 +469,8 @@
     max-width: 1100px;
 
     margin: 10px auto 40px;
+
+   
 }
 
 
@@ -497,6 +499,8 @@
         color 0.25s ease,
         transform 0.25s ease,
         box-shadow 0.25s ease;
+
+    margin-left: 2rem;
 }
 
 

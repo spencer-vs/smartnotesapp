@@ -15,6 +15,7 @@ function SavedQuizDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [retaking, setRetaking] = useState(false);
+    const navigate = useNavigate();
 
 
     useEffect(() => {
@@ -55,59 +56,49 @@ function SavedQuizDetail() {
     }, [quiz_id]);
 
 
-    const handleRetake = async () => {
+   const handleRetake = async () => {
 
     const confirmed = window.confirm(
         "Are you sure you want to retake this quiz?\n\n" +
         "A new quiz will be generated using the same source, " +
-        "difficulty, and question type. Your previous attempt will remain saved."
+        "difficulty, and question type. Your previous quiz will remain saved."
     );
-
 
     if (!confirmed) {
         return;
     }
 
-
     try {
 
         setRetaking(true);
-
 
         const response = await api.post(
             `notes/quizzes/${quiz_id}/retake/`
         );
 
+        const newQuiz = response.data;
 
         console.log(
-            "RETAKE QUIZ:",
-            response.data
+            "NEW RETAKE QUIZ:",
+            newQuiz
         );
 
-
-        /*
-         * Store the newly generated quiz as
-         * the active quiz.
-         */
-
+        // Store it using the exact structure
+        // expected by Quiz.jsx
         sessionStorage.setItem(
             "activeQuiz",
             JSON.stringify({
-                quiz: response.data,
+                sourceType: newQuiz.source_type,
+                sourceId: newQuiz.source_id,
+                quiz: newQuiz,
                 answers: {},
             })
         );
 
-
-        /*
-         * Navigate to the quiz page.
-         */
-
-        // window.location.href =
-        //     `/quiz/${response.data.id}`;
-
-       navigate("/quizzes");
-
+        // Navigate to the existing Quiz route
+        navigate(
+            `/quiz/${newQuiz.source_type}/${newQuiz.source_id}`
+        );
 
     } catch (error) {
 
@@ -116,14 +107,16 @@ function SavedQuizDetail() {
             error
         );
 
+        console.error(
+            "Backend response:",
+            error.response?.data
+        );
 
         const message =
             error.response?.data?.error ||
-            "Unable to retake quiz. Please try again.";
+            "Unable to generate quiz. Please try again.";
 
-
-        toast(message);
-
+        toast.error(message);
 
     } finally {
 

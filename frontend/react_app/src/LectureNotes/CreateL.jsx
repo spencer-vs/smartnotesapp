@@ -454,7 +454,7 @@ return (
                 <div className={styles.processingMessage}>
                   <div className={styles.processingSpinner}></div>
 
-                  <p className={style.convert}>
+                  <p className={styles.convert}>
                     Converting your audio into lecture notes...
                   </p>
 

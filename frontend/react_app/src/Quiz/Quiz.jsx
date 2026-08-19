@@ -40,12 +40,16 @@ function Quiz() {
 
         const parsedQuiz = JSON.parse(savedQuiz);
 
-        // Make sure the saved quiz belongs to
-        // the current quiz source
-        if (
+        const belongsToCurrentSource =
             parsedQuiz.sourceType === sourceType &&
-            String(parsedQuiz.sourceId) === String(sourceId)
-        ) {
+            String(parsedQuiz.sourceId) === String(sourceId);
+
+        if (belongsToCurrentSource && parsedQuiz.quiz) {
+
+            console.log(
+                "Restoring active quiz:",
+                parsedQuiz.quiz.id
+            );
 
             setQuiz(parsedQuiz.quiz);
 
