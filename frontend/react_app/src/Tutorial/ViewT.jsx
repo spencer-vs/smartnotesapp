@@ -5,6 +5,8 @@ import Footer from "../ui/Footer";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+
 const ViewT = () => {
   const { id } = useParams();
   const [tutorial, setTutorial] = useState(null);
@@ -51,15 +53,21 @@ const ViewT = () => {
         ) : tutorial ? (
           <>
             <div className={styles.tutorials}>
-            <h1 className={styles.tots_header}>{tutorial.title}</h1>
-            <p className={styles.tots_text}>{tutorial.text}</p>
+              <h1 className={styles.tots_header}>{tutorial.title}</h1>
+              <p className={styles.tots_text}>{tutorial.text}</p>
 
-           <button
-  className={styles.shareBtn}
-  onClick={() => shareTutorial(tutorial)}
->
-  Share
-</button>
+              <button
+                className={styles.shareBtn}
+                onClick={() => shareTutorial(tutorial)}
+              >
+                Share
+              </button>
+              <Link
+                to={`/quiz/tutorial/${tutorial.id}`}
+                className={styles.quizButton}
+              >
+                Quiz Me
+              </Link>
             </div>
           </>
         ) : (

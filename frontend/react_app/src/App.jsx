@@ -36,6 +36,7 @@ import Pricing from './Subscription/Pricing';
 import Callback from './Subscription/Callback'
 import Quizzes from './Quiz/Quizzes';
 import SavedQuizzes from './Quiz/QuizDetail'
+import Quiz from './Quiz/Quiz';
 
 
 
@@ -80,8 +81,10 @@ const App = () => {
       <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>}></Route>
       <Route path='/pricing' element={<ProtectedRoute><Pricing /></ProtectedRoute>}></Route>
       <Route path='payment/callback' element={<ProtectedRoute><Callback /></ProtectedRoute>}></Route>
+      <Route path='/quiz/:sourceType/:sourceId' element={<ProtectedRoute><Quiz /></ProtectedRoute>}></Route>
       <Route path='/quizzes' element={<ProtectedRoute><Quizzes /></ProtectedRoute>}></Route>
-       <Route path='/saved_quizzes/:quiz_id' element={<ProtectedRoute><SavedQuizzes /></ProtectedRoute>}></Route>
+      <Route path='/saved_quizzes/:quiz_id' element={<ProtectedRoute><SavedQuizzes /></ProtectedRoute>}></Route>
+      
 
 
 

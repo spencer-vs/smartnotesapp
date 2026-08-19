@@ -6,6 +6,7 @@ import api from '../api/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react";
 import { toast } from 'react-toastify';
+import { Link } from "react-router-dom";
 
 
 const ViewL = () => {
@@ -100,6 +101,12 @@ const ViewL = () => {
       >
         Share
       </button>
+      <Link
+        to={`/quiz/lecture/${lecture.id}`}
+        className={styles.quizButton}
+      >
+        Quiz Me
+      </Link>
     </div>
   </>
 )}
