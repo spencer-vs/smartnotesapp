@@ -912,7 +912,7 @@ def generate_tutorial_from_transcript(transcription):
         for attempt in range(3):  # ✅ retry 3 times
             try:
                 completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model="openai/gpt-oss-20b",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.7,
                     max_tokens=1000,
@@ -2694,42 +2694,29 @@ def retake_quiz_view(request, quiz_id):
 
 
         # -----------------------------------
-        # Make sure quiz was completed
+        # Make sure quiz has a source
         # -----------------------------------
 
-        if not original_quiz.completed:
+        if not original_quiz.lecture and not original_quiz.tutorial:
 
             return Response(
                 {
-                    "error": "You cannot retake an incomplete quiz."
+                    "error": "This quiz has no valid source."
                 },
                 status=400
             )
 
 
         # -----------------------------------
-        # Get original source
+        # Get original source content
         # -----------------------------------
 
-        lecture = original_quiz.lecture
-        tutorial = original_quiz.tutorial
+        lecture = None
+        tutorial = None
 
+        if original_quiz.lecture:
 
-        if not lecture and not tutorial:
-
-            return Response(
-                {
-                    "error": "The source for this quiz could not be found."
-                },
-                status=400
-            )
-
-
-        # -----------------------------------
-        # Get source text
-        # -----------------------------------
-
-        if lecture:
+            lecture = original_quiz.lecture
 
             if lecture.is_deleted:
 
@@ -2742,7 +2729,13 @@ def retake_quiz_view(request, quiz_id):
 
             source_text = lecture.lecture
 
+            source_type = "lecture"
+            source_id = lecture.id
+
+
         else:
+
+            tutorial = original_quiz.tutorial
 
             if tutorial.is_deleted:
 
@@ -2755,32 +2748,55 @@ def retake_quiz_view(request, quiz_id):
 
             source_text = tutorial.youtube_text
 
+            source_type = "tutorial"
+            source_id = tutorial.id
+
+
+        # -----------------------------------
+        # Validate source content
+        # -----------------------------------
 
         if not source_text or not source_text.strip():
 
             return Response(
                 {
-                    "error": "The original source no longer contains any content."
+                    "error": "The original source does not contain any content."
                 },
                 status=400
             )
 
 
         # -----------------------------------
-        # Generate new quiz
+        # Get original quiz settings
         # -----------------------------------
 
-        print("🔄 RETAKING QUIZ")
-        print("Original Quiz:", original_quiz.id)
+        difficulty = original_quiz.difficulty
+
+        question_type = original_quiz.question_type
+
+
+        print("===================================")
+        print("QUIZ RETAKE REQUEST")
         print("User:", request.user)
-        print("Difficulty:", original_quiz.difficulty)
-        print("Question Type:", original_quiz.question_type)
+        print("Original Quiz ID:", original_quiz.id)
+        print("Source Type:", source_type)
+        print("Source ID:", source_id)
+        print("Difficulty:", difficulty)
+        print("Question Type:", question_type)
+        print("===================================")
+
+
+        # -----------------------------------
+        # Generate NEW quiz
+        # -----------------------------------
+
+        print("🧠 Generating new retake quiz...")
 
 
         quiz_data = generate_quiz(
             source_text=source_text,
-            difficulty=original_quiz.difficulty,
-            question_type=original_quiz.question_type,
+            difficulty=difficulty,
+            question_type=question_type,
         )
 
 
@@ -2795,13 +2811,13 @@ def retake_quiz_view(request, quiz_id):
 
 
         # -----------------------------------
-        # Save new quiz
+        # Save NEW quiz
         # -----------------------------------
 
         new_quiz = save_generated_quiz(
             user=request.user,
-            difficulty=original_quiz.difficulty,
-            question_type=original_quiz.question_type,
+            difficulty=difficulty,
+            question_type=question_type,
             quiz_data=quiz_data,
             lecture=lecture,
             tutorial=tutorial,
@@ -2816,6 +2832,12 @@ def retake_quiz_view(request, quiz_id):
                 },
                 status=500
             )
+
+
+        print(
+            "✅ Quiz saved successfully. Quiz ID:",
+            new_quiz.id
+        )
 
 
         # -----------------------------------
@@ -2867,10 +2889,19 @@ def retake_quiz_view(request, quiz_id):
         return Response(
             {
                 "id": new_quiz.id,
+
+                "source_type": source_type,
+
+                "source_id": source_id,
+
                 "difficulty": new_quiz.difficulty,
+
                 "question_type": new_quiz.question_type,
+
                 "number_of_questions": new_quiz.number_of_questions,
+
                 "completed": new_quiz.completed,
+
                 "questions": question_data,
             },
             status=201
@@ -2889,7 +2920,10 @@ def retake_quiz_view(request, quiz_id):
 
         return Response(
             {
-                "error": "An unexpected error occurred while retaking the quiz."
+                "error": (
+                    "An unexpected error occurred "
+                    "while retaking the quiz."
+                )
             },
             status=500
         )
