@@ -2655,3 +2655,241 @@ def saved_quizzes_view(request):
             },
             status=500
         )
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
+def retake_quiz_view(request, quiz_id):
+
+    try:
+
+        # -----------------------------------
+        # Get original quiz
+        # -----------------------------------
+
+        try:
+
+            original_quiz = Quiz.objects.get(
+                id=quiz_id,
+                user=request.user
+            )
+
+        except Quiz.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Quiz not found."
+                },
+                status=404
+            )
+
+
+        # -----------------------------------
+        # Make sure quiz was completed
+        # -----------------------------------
+
+        if not original_quiz.completed:
+
+            return Response(
+                {
+                    "error": "You cannot retake an incomplete quiz."
+                },
+                status=400
+            )
+
+
+        # -----------------------------------
+        # Get original source
+        # -----------------------------------
+
+        lecture = original_quiz.lecture
+        tutorial = original_quiz.tutorial
+
+
+        if not lecture and not tutorial:
+
+            return Response(
+                {
+                    "error": "The source for this quiz could not be found."
+                },
+                status=400
+            )
+
+
+        # -----------------------------------
+        # Get source text
+        # -----------------------------------
+
+        if lecture:
+
+            if lecture.is_deleted:
+
+                return Response(
+                    {
+                        "error": "The lecture used for this quiz has been deleted."
+                    },
+                    status=400
+                )
+
+            source_text = lecture.lecture
+
+        else:
+
+            if tutorial.is_deleted:
+
+                return Response(
+                    {
+                        "error": "The tutorial used for this quiz has been deleted."
+                    },
+                    status=400
+                )
+
+            source_text = tutorial.youtube_text
+
+
+        if not source_text or not source_text.strip():
+
+            return Response(
+                {
+                    "error": "The original source no longer contains any content."
+                },
+                status=400
+            )
+
+
+        # -----------------------------------
+        # Generate new quiz
+        # -----------------------------------
+
+        print("🔄 RETAKING QUIZ")
+        print("Original Quiz:", original_quiz.id)
+        print("User:", request.user)
+        print("Difficulty:", original_quiz.difficulty)
+        print("Question Type:", original_quiz.question_type)
+
+
+        quiz_data = generate_quiz(
+            source_text=source_text,
+            difficulty=original_quiz.difficulty,
+            question_type=original_quiz.question_type,
+        )
+
+
+        if not quiz_data:
+
+            return Response(
+                {
+                    "error": "Unable to generate a new quiz. Please try again."
+                },
+                status=500
+            )
+
+
+        # -----------------------------------
+        # Save new quiz
+        # -----------------------------------
+
+        new_quiz = save_generated_quiz(
+            user=request.user,
+            difficulty=original_quiz.difficulty,
+            question_type=original_quiz.question_type,
+            quiz_data=quiz_data,
+            lecture=lecture,
+            tutorial=tutorial,
+        )
+
+
+        if not new_quiz:
+
+            return Response(
+                {
+                    "error": "Quiz was generated but could not be saved."
+                },
+                status=500
+            )
+
+
+        # -----------------------------------
+        # Prepare questions
+        # -----------------------------------
+
+        questions = (
+            new_quiz.questions
+            .all()
+            .order_by("order")
+        )
+
+
+        question_data = []
+
+
+        for question in questions:
+
+            options = {
+                "A": question.option_a,
+                "B": question.option_b,
+            }
+
+
+            if question.option_c:
+
+                options["C"] = question.option_c
+
+
+            if question.option_d:
+
+                options["D"] = question.option_d
+
+
+            question_data.append(
+                {
+                    "id": question.id,
+                    "order": question.order,
+                    "question": question.question,
+                    "options": options,
+                }
+            )
+
+
+        # -----------------------------------
+        # Return new quiz
+        # -----------------------------------
+
+        return Response(
+            {
+                "id": new_quiz.id,
+                "difficulty": new_quiz.difficulty,
+                "question_type": new_quiz.question_type,
+                "number_of_questions": new_quiz.number_of_questions,
+                "completed": new_quiz.completed,
+                "questions": question_data,
+            },
+            status=201
+        )
+
+
+    except Exception as e:
+
+        print(
+            "❌ QUIZ RETAKE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+
+        return Response(
+            {
+                "error": "An unexpected error occurred while retaking the quiz."
+            },
+            status=500
+        )
