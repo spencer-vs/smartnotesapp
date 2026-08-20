@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api/axios";
 import styles from "./Quizzes.module.css";
 import NHeader from "../Home/NHeader";
+import Footer from "../ui/Footer";
 
 function Quizzes() {
     const [quizzes, setQuizzes] = useState([]);
@@ -106,6 +107,7 @@ function Quizzes() {
 
 
     return (
+        <div>
         <div className={styles.container}>
 
             <NHeader />
@@ -295,7 +297,9 @@ function Quizzes() {
                 )}
 
             </main>
-
+        
+        </div>
+        <Footer />
         </div>
     );
 }

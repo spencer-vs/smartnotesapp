@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
 
 
+
 function Profile() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -215,7 +216,7 @@ function Profile() {
         )}
 
     </section>
-   {/* <Footer /> */}
+  
     </div>
 
            
@@ -223,6 +224,7 @@ function Profile() {
     
             
     </div>
+     <Footer />
     </div>
     );
 }

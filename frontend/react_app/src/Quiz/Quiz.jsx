@@ -4,6 +4,7 @@ import api from "../api/axios";
 import styles from "./Quiz.module.css";
 import NHeader from "../Home/NHeader";
 import { toast } from "react-toastify";
+import Footer from "../ui/Footer";
 
 function Quiz() {
 
@@ -273,6 +274,7 @@ function Quiz() {
 };
 
     return (
+        <div>
 
         <div className={styles.container}>
 
@@ -583,6 +585,8 @@ function Quiz() {
 
             </main>
 
+        </div>
+        <Footer />
         </div>
     );
 }

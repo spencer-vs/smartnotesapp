@@ -5,6 +5,7 @@ import styles from "./QuizDetail.module.css";
 import NHeader from "../Home/NHeader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import Footer from "../ui/Footer";
 
 
 function SavedQuizDetail() {
@@ -129,6 +130,7 @@ function SavedQuizDetail() {
     if (loading) {
 
         return (
+            
             <div className={styles.container}>
 
                 <NHeader />
@@ -142,7 +144,7 @@ function SavedQuizDetail() {
 
 
     if (error) {
-
+        
         return (
             <div className={styles.container}>
 
@@ -164,7 +166,7 @@ function SavedQuizDetail() {
 
 
     return (
-
+        <div>
         <div className={styles.container}>
 
             <NHeader />
@@ -467,6 +469,9 @@ function SavedQuizDetail() {
             </main>
 
         </div>
+         <Footer />
+        </div>
+         
 
     );
 
