@@ -1369,6 +1369,10 @@ def activate_subscription(subscription, transaction):
     plan = subscription.plan
     now = timezone.now()
 
+    # -----------------------------
+    # Determine subscription duration
+    # -----------------------------
+
     if plan == "monthly":
         duration = timedelta(days=30)
 
@@ -1379,7 +1383,34 @@ def activate_subscription(subscription, transaction):
         raise ValueError("Invalid subscription plan.")
 
     # -----------------------------
-    # First activation / expired subscription
+    # Determine subscription end
+    # -----------------------------
+    # If the user still has trial time remaining,
+    # preserve it and add the purchased subscription
+    # duration to the trial end date.
+    #
+    # Example:
+    # Trial ends: August 30
+    # Monthly plan: 30 days
+    # New end: September 29
+    #
+    # If the trial has already expired, start the
+    # purchased subscription from now.
+
+    if subscription.trial_end and subscription.trial_end > now:
+
+        new_subscription_end = (
+            subscription.trial_end + duration
+        )
+
+    else:
+
+        new_subscription_end = (
+            now + duration
+        )
+
+    # -----------------------------
+    # First activation
     # -----------------------------
 
     if (
@@ -1387,23 +1418,34 @@ def activate_subscription(subscription, transaction):
         or not subscription.subscription_end
         or subscription.subscription_end <= now
     ):
+
         subscription.status = "active"
+
+        # The paid subscription begins when payment
+        # is successfully processed.
         subscription.subscription_start = now
-        subscription.subscription_end = now + duration
+
+        subscription.subscription_end = (
+            new_subscription_end
+        )
 
     # -----------------------------
-    # Recurring renewal
+    # Existing active subscription
     # -----------------------------
 
     else:
 
-        # Do not renew a subscription
-        # that has been cancelled at period end.
+        # Do not renew a subscription that has been
+        # scheduled for cancellation.
         if subscription.cancel_at_period_end:
+
             raise ValueError(
                 "Subscription is scheduled for cancellation."
             )
 
+        # Existing active subscription:
+        # preserve its remaining time and add the
+        # newly purchased duration.
         subscription.subscription_end = (
             subscription.subscription_end + duration
         )
@@ -1415,13 +1457,15 @@ def activate_subscription(subscription, transaction):
     transaction_id = transaction.get("id")
 
     if transaction_id:
+
         subscription.paystack_transaction_id = str(
-        transaction_id
+            transaction_id
         )
 
     reference = transaction.get("reference")
 
     if reference:
+
         subscription.paystack_reference = reference
 
     # -----------------------------
@@ -1434,6 +1478,7 @@ def activate_subscription(subscription, transaction):
     customer_code = customer.get("customer_code")
 
     if customer_code:
+
         subscription.paystack_customer_code = (
             customer_code
         )
@@ -1470,9 +1515,14 @@ def activate_subscription(subscription, transaction):
                 )
             )
 
+    # -----------------------------
+    # Save subscription
+    # -----------------------------
+
     subscription.save()
 
     return subscription
+
 
 
 
