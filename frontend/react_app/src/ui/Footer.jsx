@@ -1,126 +1,207 @@
-import styles from "./footer.module.css"
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useContext } from "react";
+import { NavLink } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { useContext } from "react";
-import React from "react"
 
-const footer = () => {
-  
-  const { auth, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  
-  
-  return (
-    <div>
+import {
+    FaFacebookF,
+    FaXTwitter,
+    FaEnvelope,
+    FaYoutube
+} from "react-icons/fa6";
 
-        <div className={styles.container}>
-              <div className={styles.footer}>
-                <div className={styles.footerHeader}> 
-                  <h1 className={styles.footerHeading}>SmartNotes</h1>
+import styles from "./footer.module.css";
+
+// CHANGE THIS FILE NAME TO THE ACTUAL NAME OF YOUR LOGO
+import logo from "../assets/img/smartnotes_logo.png";
+
+
+const Footer = () => {
+
+    const { auth } = useContext(AuthContext);
+
+
+    return (
+
+        <footer className={styles.container}>
+
+            <div className={styles.footer}>
+
+                {/* =========================
+                    LEFT SECTION
+                ========================= */}
+
+                <div className={styles.brandSection}>
+
+                    <div className={styles.logoContainer}>
+
+                        <img
+                            src={logo}
+                            alt="SmartNotes Logo"
+                            className={styles.logo}
+                        />
+
+                        <h2 className={styles.brandName}>
+                            Smart<span>Notes</span>
+                        </h2>
+
+                    </div>
+
+
+                    <div className={styles.brandDivider}></div>
+
+
+                    <p className={styles.tagline}>
+                        Your smart companion
+                        <br />
+                        for learning and productivity.
+                    </p>
+
                 </div>
-                <div className={styles.footerRow}>
-              
-             
-              
-             
-               
-             <div className={styles.navList}>
-             
-                        <ul className={styles.footerLink}>
-
-              {auth.isAuthenticated ? (
-                 <>
-                     <li className={styles.footerItem}>
-                          <NavLink to="/" className={styles.footerLink_1}>
-                              Home
-                           </NavLink>
-                      </li>
 
 
-                       <li className={styles.footerItem}>
-                          <NavLink to="/about" className={styles.footerLink_3}>
-                             Developer
-                          </NavLink>
-                      </li>
+                {/* =========================
+                    SITE MAP
+                ========================= */}
+
+                <div className={styles.siteMap}>
+
+                    <h3>
+                        SITE MAP
+                    </h3>
 
 
-                      {/* <li className={styles.footerItem}>
-                          <NavLink to="/features" className={styles.footerLink_3}>
-                            Features
-                          </NavLink>
-                      </li> */}
+                    <ul>
 
-
-
-                      <li className={styles.footerItem}>
-                          <NavLink to="/contact" className={styles.footerLink_3}>
-                            Contact 
-                          </NavLink>
-                      </li>
-
-
-                        
-                 </>
-
-              ) 
-              
-              : 
-              
-              (
-
-              <>
-                   
-              
-                   
-                   
-                   
-                   
-                   
-                   
-                   
-                   <li className={styles.footerItem}>
-                        <NavLink to="/" className={styles.footerLink_1}>
-                            Home
-                        </NavLink>
-                    </li>
-
-                     <li className={styles.footerItem}>
-                          <NavLink to="/about" className={styles.footerLink_3}>
-                             Developer
-                          </NavLink>
-                      </li>
-
-
-                      <li className={styles.footerItem}>
-                          <NavLink to="/login" className={styles.footerLink_4}>
-                            Sign In
-                          </NavLink>
-                      </li>
-
-                        <li className={styles.footerItem}>
-                          <NavLink to="/signup" className={styles.footerLink_4}>
-                              Sign Up
-                          </NavLink>
+                        <li>
+                            <NavLink to="/">
+                                <span>›</span>
+                                Home
+                            </NavLink>
                         </li>
-              </>
-              
-              
-              )}
-                          
-        
-                          
-        
-                           
 
-                         
+
+                        <li>
+                            <NavLink to="/about">
+                                <span>›</span>
+                                Developer
+                            </NavLink>
+                        </li>
+
+
+                        {auth.isAuthenticated ? (
+
+                            <>
+
+                                <li>
+                                    <NavLink to="/contact">
+                                        <span>›</span>
+                                        Contact
+                                    </NavLink>
+                                </li>
+
+                            </>
+
+                        ) : (
+
+                            <>
+
+                                <li>
+                                    <NavLink to="/login">
+                                        <span>›</span>
+                                        Sign In
+                                    </NavLink>
+                                </li>
+
+
+                                <li>
+                                    <NavLink to="/signup">
+                                        <span>›</span>
+                                        Sign Up
+                                    </NavLink>
+                                </li>
+
+                            </>
+
+                        )}
+
                     </ul>
-                  </div>
 
-                 </div>
-              </div>
-           </div>
-    </div>
-  )
-}
+                </div>
 
-export default footer
+
+                {/* =========================
+                    RIGHT SECTION
+                ========================= */}
+
+                <div className={styles.rightSection}>
+
+                    <div className={styles.rightDivider}></div>
+
+
+                    <p className={styles.copyright}>
+                        © {new Date().getFullYear()} SmartNotes.
+                        All rights reserved.
+                    </p>
+
+
+                    <NavLink
+                        to="/privacy-policy"
+                        className={styles.privacy}
+                    >
+                        Privacy Policy
+                    </NavLink>
+
+
+                    {/* =========================
+                        SOCIAL ICONS
+                    ========================= */}
+
+                    <div className={styles.socials}>
+
+                        <a
+                            href="#"
+                            aria-label="Facebook"
+                            className={styles.socialIcon}
+                        >
+                            <FaFacebookF />
+                        </a>
+
+
+                        <a
+                            href="#"
+                            aria-label="X"
+                            className={styles.socialIcon}
+                        >
+                            <FaXTwitter />
+                        </a>
+
+
+                        <a
+                            href="mailto:smartnotes@example.com"
+                            aria-label="Email"
+                            className={styles.socialIcon}
+                        >
+                            <FaEnvelope />
+                        </a>
+
+
+                        <a
+                            href="#"
+                            aria-label="YouTube"
+                            className={styles.socialIcon}
+                        >
+                            <FaYoutube />
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </footer>
+    );
+};
+
+
+export default Footer;
