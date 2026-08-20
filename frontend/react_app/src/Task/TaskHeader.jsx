@@ -77,10 +77,14 @@ const TaskHeader = () => {
                             }>Notes</NavLink></li>
                 <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
                            `${styles.navLink} ${isActive ? styles.active : ''}`
-                            }>Lectures</NavLink></li>
+                            }>Audio</NavLink></li>
               <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/tutorials" className={({ isActive }) =>
                            `${styles.navLink} ${isActive ? styles.active : ''}`
-                            }>Tutorials</NavLink></li>
+                            }>Youtube</NavLink></li>
+              <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/quizzes" className={({ isActive }) =>
+                           `${styles.navLink} ${isActive ? styles.active : ''}`
+                            }>Quizzes</NavLink></li>
+              
               </>
             ) : (
                   <>

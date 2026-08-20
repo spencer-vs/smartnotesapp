@@ -79,7 +79,10 @@ const THeader = () => {
                       }>Task</NavLink></li>
         <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/lecturenotes" className={({ isActive }) =>
                      `${styles.navLink} ${isActive ? styles.active : ''}`
-                      }>Lectures</NavLink></li>
+                      }>Audio</NavLink></li>
+        <li className={styles.navItem}><NavLink onClick={toggleMenu} to="/quizzes" className={({ isActive }) =>
+                     `${styles.navLink} ${isActive ? styles.active : ''}`
+                      }>Quizzes</NavLink></li>
         
         </>
       ) : (

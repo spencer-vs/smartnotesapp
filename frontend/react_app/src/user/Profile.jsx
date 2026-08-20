@@ -93,8 +93,11 @@ function Profile() {
     }
 
     return (
-    <div className={styles.container}>
+    <div> 
         <NHeader />
+    
+    <div className={styles.container}>
+        
         <div className={styles.profileContent}>
 
     <h1 className={styles.header}>My Profile</h1>
@@ -219,6 +222,7 @@ function Profile() {
 
     
             
+    </div>
     </div>
     );
 }

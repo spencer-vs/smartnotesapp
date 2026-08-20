@@ -101,7 +101,9 @@
 ========================= */
 
 .quizCard {
-    display: block;
+    display: flex;
+
+    flex-direction: column;
 
     width: 100%;
 
@@ -374,57 +376,172 @@
    MOBILE
 ========================= */
 
-@media (max-width: 800px) {
+/* =========================
+   MOBILE / TABLET
+========================= */
+
+@media (max-width: 1030px) {
+
+    .quizContent {
+        padding: 35px 18px;
+    }
+
+    .quizList {
+        width: 100%;
+        max-width: 100%;
+        gap: 20px;
+    }
+
+    .quizCard {
+        width: 70%;
+        max-width: 70%;
+
+        display: flex;
+        flex-direction: column;
+
+        padding: 22px 18px;
+
+        border-radius: 15px;
+
+        overflow: hidden;
+    }
+
+    .quizCardHeader {
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 12px;
+
+        width: 100%;
+
+        margin-bottom: 20px;
+    }
+
+    .quizCardHeader > div {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .quizCardHeader h2 {
+        width: 100%;
+
+        font-size: 20px;
+
+        line-height: 1.45;
+
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .percentage {
+        flex-shrink: 0;
+
+        font-size: 24px;
+    }
 
     .quizInfo {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        width: 100%;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 12px;
+    }
+
+    .infoItem {
+        min-width: 0;
+
+        padding: 13px 14px;
+
+        overflow: hidden;
+    }
+
+    .infoItem strong {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .quizCardFooter {
+        width: 100%;
+
+        margin-top: 20px;
+
+        padding-top: 15px;
+
+        gap: 15px;
     }
 
 }
 
 
-@media (max-width: 700px) {
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 550px) {
 
     .quizContent {
         padding: 30px 15px;
     }
 
-
     .header {
-        font-size: 3rem;
+        font-size: 2.5rem;
 
         margin-bottom: 25px;
     }
 
-
     .quizCard {
-        padding: 22px 18px;
+        width: 70%;
 
-        border-radius: 15px;
+        padding: 20px 16px;
+
+        border-radius: 14px;
     }
-
 
     .quizCardHeader {
         flex-direction: column;
 
-        gap: 15px;
+        align-items: flex-start;
+
+        gap: 10px;
     }
 
+    .quizCardHeader h2 {
+        font-size: 19px;
+    }
 
     .percentage {
-        font-size: 25px;
+        font-size: 23px;
     }
-
 
     .quizInfo {
         grid-template-columns: 1fr;
 
-        gap: 12px;
+        gap: 10px;
+    }
+
+    .infoItem {
+        width: 100%;
+
+        padding: 13px 14px;
+    }
+
+    .quizCardFooter {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 10px;
     }
 
 }
 
+
+/* =========================
+   VERY SMALL PHONES
+========================= */
 
 @media (max-width: 400px) {
 
@@ -432,19 +549,45 @@
         padding: 25px 12px;
     }
 
+    .header {
+        font-size: 2.2rem;
+    }
 
     .quizCard {
-        padding: 20px 15px;
+        /* width: 100%; */
+        display: flex;
+
+        flex-direction: column;
+
+        padding: 18px 14px;
+
+        border-radius: 13px;
     }
-
-
-    .header {
-        font-size: 2.3rem;
-    }
-
 
     .quizCardHeader h2 {
-        font-size: 19px;
+        font-size: 18px;
+
+        line-height: 1.4;
+    }
+
+    .percentage {
+        font-size: 21px;
+    }
+
+    .infoItem {
+        padding: 12px 13px;
+    }
+
+    .infoItem span {
+        font-size: 11px;
+    }
+
+    .infoItem strong {
+        font-size: 14px;
+    }
+
+    .quizCardFooter {
+        font-size: 13px;
     }
 
 }
