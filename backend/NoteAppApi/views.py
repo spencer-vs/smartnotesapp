@@ -391,7 +391,7 @@ def generate_todo_list(user_input):
             Do not explain how you generated it.
             """
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             messages=[
                 {"role": "system", 
                  "content": ("You are a timetable generator. " 
