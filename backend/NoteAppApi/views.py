@@ -539,6 +539,7 @@ def upload_audio(request):
         print("USER:", request.user)
         print("AUTH:", request.user.is_authenticated)
         audio_file = request.FILES.get("audio")
+        title = request.data.get("title", "").strip()
         if not audio_file:
             return JsonResponse({"error": "No audio file"}, status=400)
         MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
@@ -560,6 +561,7 @@ def upload_audio(request):
         
         lecture = Lecture.objects.create(
            user=request.user,
+           title=title,
            audio_file=audio_file,
            status="processing"
        )
