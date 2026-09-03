@@ -496,6 +496,7 @@ def get_lecture_detail(request, id):
         lecture = Lecture.objects.get(id=id, user=request.user, is_deleted=False)
         return JsonResponse({
             "id": lecture.id,
+            "title": lecture.title,
             "lecture": lecture.lecture,
             "created_at": lecture.created_at
         })
