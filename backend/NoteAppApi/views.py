@@ -516,6 +516,7 @@ def get_all_lectures(request):
         data = [
             {
                 "id": lecture.id,
+                "title": lecture.title,
                 "lecture": lecture.lecture,
                 "created_at": lecture.created_at
             }
