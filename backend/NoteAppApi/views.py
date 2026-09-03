@@ -578,7 +578,8 @@ def upload_audio(request):
         return JsonResponse(
             {
                 "message": "Processing started",
-                "lecture_id": lecture.id
+                "lecture_id": lecture.id,
+                "title": lecture.title,
             }, status=202
         )
     except Exception as e:
