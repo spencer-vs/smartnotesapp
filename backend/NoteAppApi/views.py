@@ -691,7 +691,7 @@ def generate_lecture_note(transcription):
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.5,
-            "max_tokens": 1200,
+            "max_tokens": 4000,
         }
         response = requests.post(url, json=payload, headers=headers, timeout=60)
         print("STATUS CODE:", response.status_code)
