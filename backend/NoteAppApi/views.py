@@ -610,7 +610,7 @@ def process_audio(lecture_id):
             lecture.status = "failed"
             lecture.save()
             return
-        short_text = transcript.text[:3000]
+        short_text = transcript.text
         notes = generate_lecture_note(short_text)
         
         if not notes:
