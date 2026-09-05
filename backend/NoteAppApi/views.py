@@ -595,6 +595,10 @@ def process_audio(lecture_id):
     try:
         lecture = Lecture.objects.get(id=lecture_id)
         file_path = lecture.audio_file.path
+        
+        print("AUDIO FILE PATH:", file_path)
+        print("AUDIO FILE SIZE:", os.path.getsize(file_path))
+        print("AUDIO FILE EXISTS:", os.path.exists(file_path))
         api_key = os.getenv("ASSEMBLYAI_API_KEY")
         if not api_key:
             print("AssemblyAI key missing!")
