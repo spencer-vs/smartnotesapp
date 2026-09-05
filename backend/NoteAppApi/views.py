@@ -684,7 +684,28 @@ def generate_lecture_note(transcription):
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        prompt = f"Convert this into structured lecture notes:\n{transcription[:10000]}"
+        print("TRANSCRIPT LENGTH:", len(transcription))
+        print("TRANSCRIPT PREVIEW END:", transcription[-500:])
+        # prompt = f"Convert this into structured lecture notes:\n{transcription[:10000]}"
+        
+        prompt = f"""
+          Based on the generated transcript, create clear, detailed, and well-structured lecture notes.
+
+          The notes should be easy to read and understand. Cover all relevant topics and important information from the lecture. Do not produce a simple summary. Instead, explain the concepts discussed in the lecture clearly and in enough depth for a student to learn from the notes without needing to listen to the recording again.
+
+          the notes into meaningful sections and paragraphs, with each section focusing on a particular topic or idea from the lecture. Preserve important definitions, explanations, examples, processes, comparisons, and other relevant details mentioned by the lecturer.
+
+          Use clear headings where appropriate, maintain a logical flow of ideas, and avoid unnecessary repetition.
+
+          End the notes with a concise conclusion that brings together the main ideas covered in the lecture and further reading suggestions.
+
+          Transcript:
+
+          {transcription[:10000]}
+
+          Lecture Notes:
+          """
+        
         payload = {
             "model": "openai/gpt-oss-20b",
             "messages": [
