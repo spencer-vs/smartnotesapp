@@ -606,6 +606,7 @@ def process_audio(lecture_id):
         config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
         transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
         print("TRANSCRIPT STATUS:", transcript.status)
+        print("AUDIO DURATION:", transcript.audio_duration)
         print("FULL TRANSCRIPT:", transcript.text)
         if transcript.status == "error":
             print("AssemblyAI error:", transcript.error)
