@@ -630,9 +630,9 @@ def process_audio(lecture_id):
         lecture.status = "completed"
         lecture.save()
         
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            print('Audio file deleted successfully')
+        # if os.path.exists(file_path):
+        #     os.remove(file_path)
+        #     print('Audio file deleted successfully')
             
     except Exception as e:
         print("Audio processing error:", str(e))
