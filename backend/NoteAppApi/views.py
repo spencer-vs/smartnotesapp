@@ -629,7 +629,17 @@ def process_audio(lecture_id):
         lecture.lecture = notes
         lecture.status = "completed"
         lecture.save()
-        
+
+        print("PROCESSING COMPLETED")
+        print("FILE EXISTS AFTER SAVE:", os.path.exists(file_path))
+
+        if os.path.exists(file_path):
+            print("FILE STILL EXISTS")
+            print("FILE SIZE AFTER SAVE:", os.path.getsize(file_path))
+        else:
+            print("⚠️ FILE WAS DELETED SOMEWHERE")
+
+        # File deletion temporarily disabled
         # if os.path.exists(file_path):
         #     os.remove(file_path)
         #     print('Audio file deleted successfully')
