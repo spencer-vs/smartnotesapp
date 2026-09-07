@@ -609,9 +609,9 @@ def process_audio(lecture_id):
         transcriber = aai.Transcriber()
         config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
         transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
-        print("TRANSCRIPT STATUS:", transcript.status)
+        # print("TRANSCRIPT STATUS:", transcript.status)
         print("AUDIO DURATION:", transcript.audio_duration)
-        print("FULL TRANSCRIPT:", transcript.text)
+        # print("FULL TRANSCRIPT:", transcript.text)
         if transcript.status == "error":
             print("AssemblyAI error:", transcript.error)
             lecture.status = "failed"
@@ -630,19 +630,19 @@ def process_audio(lecture_id):
         lecture.status = "completed"
         lecture.save()
 
-        print("PROCESSING COMPLETED")
-        print("FILE EXISTS AFTER SAVE:", os.path.exists(file_path))
+        # print("PROCESSING COMPLETED")
+        # print("FILE EXISTS AFTER SAVE:", os.path.exists(file_path))
 
-        if os.path.exists(file_path):
-            print("FILE STILL EXISTS")
-            print("FILE SIZE AFTER SAVE:", os.path.getsize(file_path))
-        else:
-            print("⚠️ FILE WAS DELETED SOMEWHERE")
-
-        # File deletion temporarily disabled
         # if os.path.exists(file_path):
-        #     os.remove(file_path)
-        #     print('Audio file deleted successfully')
+        #     print("FILE STILL EXISTS")
+        #     print("FILE SIZE AFTER SAVE:", os.path.getsize(file_path))
+        # else:
+        #     print("⚠️ FILE WAS DELETED SOMEWHERE")
+
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print('Audio file deleted successfully')
             
     except Exception as e:
         print("Audio processing error:", str(e))
@@ -710,18 +710,45 @@ def generate_lecture_note(transcription):
 
           The notes should be easy to read and understand. Cover all relevant topics and important information from the lecture. Do not produce a simple summary. Instead, explain the concepts discussed in the lecture clearly and in enough depth for a student to learn from the notes without needing to listen to the recording again.
 
-          the notes into meaningful sections and paragraphs, with each section focusing on a particular topic or idea from the lecture. Preserve important definitions, explanations, examples, processes, comparisons, and other relevant details mentioned by the lecturer.
+          Organize the notes into meaningful sections and paragraphs, with each section focusing on a particular topic or idea. Preserve important definitions, explanations, examples, processes, comparisons, and other relevant details mentioned by the lecturer.
 
-          Use clear headings where appropriate, maintain a logical flow of ideas, and avoid unnecessary repetition.
+          Use clear headings and subheadings where appropriate, maintain a logical flow of ideas, and avoid unnecessary repetition.
 
-          End the notes with a concise conclusion that brings together the main ideas covered in the lecture and further reading suggestions.
+          When the lecture contains a comparison between two or more concepts, present the comparison in a clean and easy-to-read format. Use a simple structured comparison with clear labels rather than Markdown table syntax. Do not use characters such as `|`, `---`, or Markdown table separators to create tables. Instead, organize comparisons using clearly labeled items or sections so that they remain readable on mobile devices.
 
-          Transcript:
 
-          {transcription[:10000]}
+          For example, instead of:
 
-          Lecture Notes:
-          """
+          | Feature | Type A | Type B |
+          | ------- | ------ | ------ |
+          | Speed   | Fast   | Slow   |
+          | Cost    | High   | Low    |
+
+          write:
+
+          Comparison: Type A vs Type B...
+
+          Feature: Speed
+          Type A: Fast
+          Type B: Slow
+
+          Feature: Cost
+          Type A: High
+          Type B: Low
+
+         Do not output raw Markdown table syntax, Markdown table separators, escaped Unicode sequences such as `\u0026`, or unnecessary formatting characters. Return normal readable text that can be displayed directly in the application.
+
+         Use bullet points or numbered lists when they make information clearer. Keep code examples, commands, technical syntax, and programming keywords properly formatted using backticks where necessary.
+
+         End the notes with a concise conclusion that brings together the main ideas covered in the lecture, followed by relevant further reading suggestions when appropriate.
+
+         Transcript:
+
+        {transcription[:10000]}
+
+        Lecture Notes:
+
+        """
         
         payload = {
             "model": "openai/gpt-oss-20b",
