@@ -799,7 +799,8 @@ def get_tutorial_details(request, id):
             "id": tutorial.id,
             "title": tutorial.youtube_title,
             "text": tutorial.youtube_text,
-            "video_link": tutorial.youtube_link
+            "video_link": tutorial.youtube_link,
+            "created_at": tutorial.created_at
         })
     except Tutorial.DoesNotExist:
         return JsonResponse(
@@ -824,7 +825,8 @@ def get_all_tutorials(request):
             {
                 "id": tutorial.id,
                 "title": tutorial.youtube_title,
-                "text": tutorial.youtube_text
+                "text": tutorial.youtube_text,
+                "created_at": tutorial.created_at
             }
             for tutorial in tutorials
         ]
