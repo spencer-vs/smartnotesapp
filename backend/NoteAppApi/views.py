@@ -974,7 +974,7 @@ def generate_tutorial_from_transcript(transcription):
             print("Groq API key not found")
             return None
         client = Groq(api_key=api_key)
-        transcription = transcription[:1200]
+        transcription = transcription
         prompt = f"""
         Based on the generated transcript, create lecture notes, covering all relevant aspects of the video, it should be easily readable and well structured in paragraphs, with each paragraph explaining a particular section of the video, do not give a simple summary instead dive into deep explanations of the points mentioned in the video and finally a conclusion.
         Transcript:
@@ -987,7 +987,7 @@ def generate_tutorial_from_transcript(transcription):
                     model="openai/gpt-oss-20b",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.7,
-                    max_tokens=1000,
+                    max_tokens=4000,
                 )
                 return completion.choices[0].message.content.strip()
             except Exception as e:
