@@ -768,7 +768,8 @@ Schedule all {len(user_items)} items.
             ],
 
             temperature=0.2,
-            max_tokens=1000
+            max_tokens=3000,
+            response_format={"type": "json_object"}
         )
 
         response_text = (
