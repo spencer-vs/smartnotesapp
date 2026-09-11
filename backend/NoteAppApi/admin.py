@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Note, Contact, Task, Lecture, Tutorial, Subscription, Quiz, QuizAnswer, QuizQuestion
+from .models import Note, Contact, Task, TaskItem, Lecture, Tutorial, Subscription, Quiz, QuizAnswer, QuizQuestion
 
 # Register your models here.
 @admin.register(Note)
@@ -14,11 +14,102 @@ class ContactAdmin(admin.ModelAdmin):
     search_fields = ('author',)
     
     
+# @admin.register(Task)
+# class TaskAdmin(admin.ModelAdmin):
+#     list_display = ("id", "todo_title", "todo_list")
+#     search_fields = ('ToDo',)
+  
+  
+class TaskItemInline(admin.TabularInline):
+    model = TaskItem
+    extra = 0
+
+    fields = (
+        'description',
+        'date',
+        'start_time',
+        'end_time',
+        'completed',
+        'order',
+    )
+
+    ordering = (
+        'date',
+        'start_time',
+        'order',
+    )
+
+
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ("id", "todo_title", "todo_list")
-    search_fields = ('ToDo',)
-    
+
+    list_display = (
+        'id',
+        'todo_title',
+        'user',
+        'week_start',
+        'week_end',
+        'completed',
+        'created_at',
+        'is_deleted',
+    )
+
+    list_filter = (
+        'is_deleted',
+        'week_start',
+        'week_end',
+        'completed',
+    )
+
+    search_fields = (
+        'todo_title',
+        'user__username',
+        'user__email',
+    )
+
+    readonly_fields = (
+        'created_at',
+    )
+
+    inlines = [
+        TaskItemInline,
+    ]  
+  
+
+@admin.register(TaskItem)
+class TaskItemAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'id',
+        'task',
+        'description',
+        'date',
+        'start_time',
+        'end_time',
+        'completed',
+        'order',
+    )
+
+    list_filter = (
+        'completed',
+        'date',
+    )
+
+    search_fields = (
+        'description',
+        'task__todo_title',
+        'task__user__username',
+    )
+
+    ordering = (
+        'date',
+        'start_time',
+        'order',
+    )
+
+
+
+  
 @admin.register(Lecture)
 class LectureAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "lecture", "created_at")
@@ -151,3 +242,25 @@ class QuizAnswerAdmin(admin.ModelAdmin):
         "question__question",
     )
 
+
+
+
+
+# Finalize Task and TaskItem models
+# Update Django admin so weekly tasks and checklist items are easy to inspect
+# Create serializers
+# Rewrite Groq scheduling to return structured Monday–Saturday data
+# Rewrite create_task()
+# title + checklist items from user
+# enforce one active task
+# calculate next Monday → Saturday
+# send items to Groq
+# validate Groq's response
+# create TaskItem records
+# Rewrite task_detail()
+# Rewrite get_all_task() to return weekly Task records with progress
+# Add the simple checklist completion operation
+# Change deletion to soft delete
+# Update URLs
+# Test the complete backend in Postman
+# Then move to the Create Task → Task Display → Tasks/weekly history mobile flow.

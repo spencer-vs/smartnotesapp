@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from . models import Note, Contact, Task, Lecture, Tutorial, Subscription
+from . models import Note, Contact, Task, TaskItem, Lecture, Tutorial, Subscription
 from django.utils import timezone
 
 
@@ -20,14 +20,49 @@ class ContactSerializer(serializers.ModelSerializer):
         fields = ["id", "author", "email", "phone", "message", "created_at"]
         read_only_fields = ["created_at"]
         
-        
+
+
+
+
+class TaskItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskItem
+        fields = [
+            "id",
+            "description",
+            "date",
+            "start_time",
+            "end_time",
+            "completed",
+            "order",
+        ]
+        read_only_fields = [
+            "id",
+        ]
+
+
 class TaskSerializer(serializers.ModelSerializer):
-    
-   class Meta:   
-    model = Task
-    fields = ["id", "todo_title", "todo_list", "created_at"]
-    read_only_fields = ["created_at"]
-    
+    items = TaskItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "todo_title",
+            "week_start",
+            "week_end",
+            "completed",
+            "items",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "week_start",
+            "week_end",
+            "completed",
+            "created_at",
+        ]        
+
     
     
 class LectureSerializer(serializers.ModelSerializer):

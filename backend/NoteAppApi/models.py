@@ -49,22 +49,96 @@ class Contact(models.Model):
    
    
    
-   
 class Task(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='ToDo'
     )
-    todo_title = models.CharField(max_length=100, blank=True)
-    todo_list = models.TextField(null=True, blank=True)  
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_deleted = models.BooleanField(default=False)
+
+    todo_title = models.CharField(
+        max_length=150
+    )
+
+    week_start = models.DateField()
+    week_end = models.DateField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    is_deleted = models.BooleanField(
+        default=False
+    )
     
-    
-    
+    completed = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_deleted=False, completed=False),
+                name='one_active_task_per_user'
+            )
+        ]
+
     def __str__(self):
         return self.todo_title or 'Task'
+
+
+class TaskItem(models.Model):
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+
+    description = models.TextField()
+
+    date = models.DateField()
+
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    completed = models.BooleanField(
+        default=False
+    )
+
+    order = models.PositiveIntegerField(
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = [
+            'date',
+            'start_time',
+            'order'
+        ]
+
+    def __str__(self):
+        return self.description[:50]   
+   
+   
+
+# class Task(models.Model):
+#     user = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.CASCADE,
+#         related_name='ToDo'
+#     )
+#     todo_title = models.CharField(max_length=100, blank=True)
+#     todo_list = models.TextField(null=True, blank=True)  
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     is_deleted = models.BooleanField(default=False)
+    
+    
+    
+#     def __str__(self):
+#         return self.todo_title or 'Task'
     
     
     

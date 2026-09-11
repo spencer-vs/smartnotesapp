@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer, TutorialSerializer, SubscriptionSerializer
+from .serializers import NoteSerializer, ContactSerializer, TaskSerializer, LectureSerializer, TutorialSerializer, SubscriptionSerializer, TaskItemSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer
+from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer, Task, TaskItem
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
@@ -13,6 +13,7 @@ from datetime import datetime
 from .quiz_generator import generate_quiz, save_generated_quiz
 import time
 from datetime import timedelta
+from django.db import transaction
 from openai import OpenAI
 from django.http import JsonResponse
 import json
@@ -326,169 +327,826 @@ class NoteDetailView(generics.RetrieveAPIView):
     
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
-def create_task(request):
-    try:
-        title = request.data.get("title")
-        task_input = request.data.get("task")
-        # task_id = request.data.get(id=id)
-        # Task.objects.get(id=task_id)
-       # print("API KEY:", os.environ.get('GROQ_API_KEY'))
-        if not title or not task_input:
-            return JsonResponse({'error': 'Missing data'}, status=400)
-        todo_list = generate_todo_list(task_input)
-        if not todo_list:
-            return JsonResponse({'error': 'Could not generate To Do list'}, status=500)
-        new_todo = Task.objects.create(
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated, HasPremiumSubscription])
+# def create_task(request):
+#     try:
+#         title = request.data.get("title")
+#         task_input = request.data.get("task")
+#         # task_id = request.data.get(id=id)
+#         # Task.objects.get(id=task_id)
+#        # print("API KEY:", os.environ.get('GROQ_API_KEY'))
+#         if not title or not task_input:
+#             return JsonResponse({'error': 'Missing data'}, status=400)
+#         todo_list = generate_todo_list(task_input)
+#         if not todo_list:
+#             return JsonResponse({'error': 'Could not generate To Do list'}, status=500)
+#         new_todo = Task.objects.create(
            
-            user=request.user,
-            todo_list=todo_list,
-            todo_title=title
-        )
-        new_todo.save()
-        return JsonResponse({
-            'id': new_todo.id,
-            'todo_list': new_todo.todo_list,
-            'todo_title': new_todo.todo_title
+#             user=request.user,
+#             todo_list=todo_list,
+#             todo_title=title
+#         )
+#         new_todo.save()
+#         return JsonResponse({
+#             'id': new_todo.id,
+#             'todo_list': new_todo.todo_list,
+#             'todo_title': new_todo.todo_title
             
-            }, status=201)
-    except Exception as e:
-        print("error:", e)
-        return JsonResponse({'error': 'Server error'}, status=500)
+#             }, status=201)
+#     except Exception as e:
+#         print("error:", e)
+#         return JsonResponse({'error': 'Server error'}, status=500)
         
     
     
 
 
-def generate_todo_list(user_input):
+# def generate_todo_list(user_input):
+#     try:
+#         api_key = os.getenv("GROQ_API_KEY")
+#         if api_key:
+#             api_key = api_key.strip()
+#         if not api_key:
+#             print("❌ Groq API key not found")
+#             return None
+#         client = Groq(api_key=api_key)
+#         prompt = f"""
+#             Create a study timetable using these tasks:
+#             {user_input}
+#             Requirements:
+#             - Monday to Saturday only.
+#             - Sunday should be excluded.
+#             - Every task lasts exactly 2 hours.
+#             - Begin each day at 8:00 AM.
+#             - Give a 1 hour break between tasks.
+#             - Each day should contain no more than two task.
+#             - Use this format:
+#             ## Monday
+#             8:00 AM - 10:00 AM: Task
+#             10:00 AM - 12:00 PM: Task
+#             ## Tuesday
+#             ...
+#             Return only the timetable.
+#             Do not write code.
+#             Do not explain how you generated it.
+#             """
+#         completion = client.chat.completions.create(
+#             model="openai/gpt-oss-20b",
+#             messages=[
+#                 {"role": "system", 
+#                  "content": ("You are a timetable generator. " 
+#                              "Never write Python code"
+#                              "Only return a completed timetable in Markdown"
+#                              ),
+#                  },
+#                 {
+#                     "role": "user",
+#                     "content": prompt
+#                 },
+#             ],
+#             temperature=0.4,
+#             max_tokens=800,
+#         )
+#         return completion.choices[0].message.content.strip()
+#     except Exception as e:
+#         print("❌ Groq error:")
+#         traceback.print_exc()   # VERY IMPORTANT
+#         return None
+    
+    
+    
+    
+# # ✅ GET SINGLE TASK
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def task_detail(request, id):
+#     try:
+#         task = Task.objects.get(id=id, user=request.user, is_deleted=False)
+#         return JsonResponse({
+#             "id": task.id,
+#             "todo_title": task.todo_title,
+#             "todo_list": task.todo_list
+#         })
+#     except Task.DoesNotExist:
+#         return JsonResponse({'error': 'Task not found'}, status=404)
+#     except Exception:
+#         traceback.print_exc()
+#         return JsonResponse({'error': 'Server error'}, status=500)
+# # ✅ GET ALL TASKS
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def get_all_task(request):
+#     try:
+#         tasks = Task.objects.filter(user=request.user).order_by('-id')
+#         data = [
+#             {
+#                 "id": task.id,
+#                 "todo_title": task.todo_title,
+#                 "todo_list": task.todo_list
+#             }
+#             for task in tasks
+#         ]
+#         return JsonResponse(data, safe=False)
+#     except Exception:
+#         traceback.print_exc()
+#         return JsonResponse({'error': 'Server error'}, status=500)
+# # ✅ UPDATE TASK
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def update_task(request, id):
+#     try:
+#         task = Task.objects.get(id=id, user=request.user)
+#         todo_title = request.data.get("todo_title")
+#         todo_list = request.data.get("todo_list")
+#         if todo_title:
+#             task.todo_title = todo_title
+#         if todo_list:
+#             task.todo_list = todo_list
+#         task.save()
+#         return JsonResponse({
+#             "id": task.id,
+#             "todo_title": task.todo_title,
+#             "todo_list": task.todo_list
+#         }, status=200)
+#     except Task.DoesNotExist:
+#         return JsonResponse({'error': 'Task not found'}, status=404)
+#     except Exception:
+#         traceback.print_exc()
+#         return JsonResponse({'error': 'Server error'}, status=500)
+    
+    
+# @api_view(["DELETE"])
+# @permission_classes([IsAuthenticated])
+# def delete_task(request, id):
+#     try:
+#         task = Task.objects.get(id=id, user=request.user)
+#         task.delete()
+#         return JsonResponse({"message": "Task deleted successfully"}, status=200)
+#     except Task.DoesNotExist:
+#         return JsonResponse({'error': 'Task not found'}, status=404)
+#     except Exception:
+#         traceback.print_exc()
+#         return JsonResponse({'error': 'Server error'}, status=500)
+
+# ============================================================
+# CREATE TASK
+# ============================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, HasPremiumSubscription])
+def create_task(request):
+
     try:
+        title = request.data.get("title")
+        items = request.data.get("items")
+
+        # ----------------------------------------------------
+        # Basic validation
+        # ----------------------------------------------------
+
+        if not title:
+            return JsonResponse(
+                {"error": "Task title is required."},
+                status=400
+            )
+
+        if not isinstance(items, list) or not items:
+            return JsonResponse(
+                {"error": "At least one task item is required."},
+                status=400
+            )
+
+        # Remove empty items and clean whitespace
+        cleaned_items = []
+
+        for item in items:
+            if not isinstance(item, str):
+                return JsonResponse(
+                    {"error": "Every task item must be text."},
+                    status=400
+                )
+
+            item = item.strip()
+
+            if item:
+                cleaned_items.append(item)
+
+        if not cleaned_items:
+            return JsonResponse(
+                {"error": "At least one valid task item is required."},
+                status=400
+            )
+
+        # ----------------------------------------------------
+        # Check if user already has an active task
+        # ----------------------------------------------------
+
+        active_task_exists = Task.objects.filter(
+            user=request.user,
+            is_deleted=False,
+            completed=False
+        ).exists()
+
+        if active_task_exists:
+            return JsonResponse(
+                {
+                    "error": "You already have an active task. "
+                             "Complete or delete it before creating a new one."
+                },
+                status=400
+            )
+
+        # ----------------------------------------------------
+        # Calculate next Monday
+        # ----------------------------------------------------
+
+        today = timezone.localdate()
+
+        days_until_monday = (7 - today.weekday()) % 7
+
+        week_start = today + timedelta(days=days_until_monday)
+        week_end = week_start + timedelta(days=5)
+
+        # ----------------------------------------------------
+        # Ask Groq to organize the user's items
+        # ----------------------------------------------------
+
+        schedule = generate_task_schedule(cleaned_items)
+
+        if not schedule:
+            return JsonResponse(
+                {"error": "Could not generate task schedule."},
+                status=500
+            )
+
+        # ----------------------------------------------------
+        # Validate Groq response
+        # ----------------------------------------------------
+
+        validation_error = validate_task_schedule(
+            schedule,
+            len(cleaned_items)
+        )
+
+        if validation_error:
+            print("❌ Schedule validation failed:", validation_error)
+
+            return JsonResponse(
+                {
+                    "error": "Generated schedule was invalid.",
+                    "details": validation_error
+                },
+                status=500
+            )
+
+        # ----------------------------------------------------
+        # Create Task + TaskItems atomically
+        # ----------------------------------------------------
+
+        with transaction.atomic():
+
+            task = Task.objects.create(
+                user=request.user,
+                todo_title=title.strip(),
+                week_start=week_start,
+                week_end=week_end,
+                completed=False,
+                is_deleted=False
+            )
+
+            for scheduled_item in schedule:
+
+                item_index = scheduled_item["item_index"]
+
+                # Convert 1-based index from Groq
+                # into the actual user-provided item
+                description = cleaned_items[item_index - 1]
+
+                day_name = scheduled_item["day"]
+
+                # Convert day name into an offset from Monday
+                day_offsets = {
+                    "Monday": 0,
+                    "Tuesday": 1,
+                    "Wednesday": 2,
+                    "Thursday": 3,
+                    "Friday": 4,
+                    "Saturday": 5,
+                }
+
+                item_date = week_start + timedelta(
+                    days=day_offsets[day_name]
+                )
+
+                start_time = scheduled_item["start_time"]
+                end_time = scheduled_item["end_time"]
+
+                TaskItem.objects.create(
+                    task=task,
+                    description=description,
+                    date=item_date,
+                    start_time=start_time,
+                    end_time=end_time,
+                    completed=False,
+                    order=item_index
+                )
+
+        # ----------------------------------------------------
+        # Return complete task
+        # ----------------------------------------------------
+
+        task.refresh_from_db()
+
+        serializer = TaskSerializer(task)
+
+        return JsonResponse(
+            serializer.data,
+            status=201
+        )
+
+    except Exception as e:
+
+        print("❌ CREATE TASK ERROR:")
+        traceback.print_exc()
+
+        return JsonResponse(
+            {
+                "error": "Server error.",
+                "details": str(e)
+            },
+            status=500
+        )
+
+
+# ============================================================
+# GROQ TASK SCHEDULER
+# ============================================================
+
+def generate_task_schedule(user_items):
+
+    try:
+
         api_key = os.getenv("GROQ_API_KEY")
+
         if api_key:
             api_key = api_key.strip()
+
         if not api_key:
             print("❌ Groq API key not found")
             return None
+
         client = Groq(api_key=api_key)
+
+        # Number the user's items so Groq can reference them
+        numbered_items = "\n".join(
+            f"{index}. {item}"
+            for index, item in enumerate(user_items, start=1)
+        )
+
         prompt = f"""
-            Create a study timetable using these tasks:
-            {user_input}
-            Requirements:
-            - Monday to Saturday only.
-            - Sunday should be excluded.
-            - Every task lasts exactly 2 hours.
-            - Begin each day at 8:00 AM.
-            - Give a 1 hour break between tasks.
-            - Each day should contain no more than two task.
-            - Use this format:
-            ## Monday
-            8:00 AM - 10:00 AM: Task
-            10:00 AM - 12:00 PM: Task
-            ## Tuesday
-            ...
-            Return only the timetable.
-            Do not write code.
-            Do not explain how you generated it.
-            """
+You are a weekly task scheduling assistant.
+
+The user has provided the following task items:
+
+{numbered_items}
+
+Your job is ONLY to organize these exact items across Monday to Saturday.
+
+IMPORTANT RULES:
+
+1. You MUST use every item exactly once.
+2. You MUST NOT create new items.
+3. You MUST NOT remove any item.
+4. You MUST NOT rewrite, summarize, combine, or modify any item.
+5. Use Monday through Saturday only.
+6. Never schedule anything on Sunday.
+7. Maximum 2 items per day.
+8. Every item lasts exactly 2 hours.
+9. The first item of each day starts at 08:00.
+10. If there are two items on the same day, the second starts after a 1-hour break.
+11. Therefore the only valid time slots are:
+    - 08:00 - 10:00
+    - 11:00 - 13:00
+12. Return ONLY valid JSON.
+13. Do not return Markdown.
+14. Do not include explanations.
+
+Return this exact JSON structure:
+
+{{
+    "items": [
+        {{
+            "item_index": 1,
+            "day": "Monday",
+            "start_time": "08:00",
+            "end_time": "10:00"
+        }}
+    ]
+}}
+
+Schedule all {len(user_items)} items.
+"""
+
         completion = client.chat.completions.create(
+
             model="openai/gpt-oss-20b",
+
             messages=[
-                {"role": "system", 
-                 "content": ("You are a timetable generator. " 
-                             "Never write Python code"
-                             "Only return a completed timetable in Markdown"
-                             ),
-                 },
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a strict task scheduling assistant. "
+                        "Return JSON only. "
+                        "Never write explanations or Markdown."
+                    )
+                },
                 {
                     "role": "user",
                     "content": prompt
-                },
+                }
             ],
-            temperature=0.4,
-            max_tokens=800,
+
+            temperature=0.2,
+            max_tokens=1000
         )
-        return completion.choices[0].message.content.strip()
-    except Exception as e:
-        print("❌ Groq error:")
-        traceback.print_exc()   # VERY IMPORTANT
+
+        response_text = (
+            completion
+            .choices[0]
+            .message
+            .content
+            .strip()
+        )
+
+        print("🤖 GROQ RESPONSE:")
+        print(response_text)
+
+        # ----------------------------------------------------
+        # Remove accidental Markdown code fences
+        # ----------------------------------------------------
+
+        if response_text.startswith("```"):
+
+            response_text = response_text.replace(
+                "```json",
+                ""
+            ).replace(
+                "```",
+                ""
+            ).strip()
+
+        schedule_data = json.loads(response_text)
+
+        return schedule_data.get("items")
+
+    except json.JSONDecodeError:
+
+        print("❌ Groq returned invalid JSON")
+        traceback.print_exc()
+
         return None
-    
-    
-    
-    
-# ✅ GET SINGLE TASK
+
+    except Exception:
+
+        print("❌ Groq scheduling error:")
+        traceback.print_exc()
+
+        return None
+
+
+# ============================================================
+# VALIDATE GROQ SCHEDULE
+# ============================================================
+
+def validate_task_schedule(schedule, total_items):
+
+    if not isinstance(schedule, list):
+        return "Schedule must be a list."
+
+    # --------------------------------------------------------
+    # Every user item must appear exactly once
+    # --------------------------------------------------------
+
+    indexes = []
+
+    for item in schedule:
+
+        if not isinstance(item, dict):
+            return "Each scheduled item must be an object."
+
+        if "item_index" not in item:
+            return "Missing item_index."
+
+        indexes.append(item["item_index"])
+
+    expected_indexes = set(range(1, total_items + 1))
+    actual_indexes = set(indexes)
+
+    if len(indexes) != total_items:
+        return (
+            f"Expected {total_items} scheduled items, "
+            f"but received {len(indexes)}."
+        )
+
+    if len(indexes) != len(set(indexes)):
+        return "An item was scheduled more than once."
+
+    if actual_indexes != expected_indexes:
+        return "Some user-provided items were missing."
+
+    # --------------------------------------------------------
+    # Valid days
+    # --------------------------------------------------------
+
+    valid_days = {
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    }
+
+    daily_counts = {}
+
+    # --------------------------------------------------------
+    # Validate each scheduled item
+    # --------------------------------------------------------
+
+    for item in schedule:
+
+        day = item.get("day")
+        start_time = item.get("start_time")
+        end_time = item.get("end_time")
+
+        if day not in valid_days:
+            return f"Invalid day: {day}"
+
+        # Count items per day
+        daily_counts[day] = daily_counts.get(day, 0) + 1
+
+        if daily_counts[day] > 2:
+            return f"More than 2 items scheduled on {day}."
+
+        # ----------------------------------------------------
+        # Only two valid time slots
+        # ----------------------------------------------------
+
+        valid_slots = {
+            ("08:00", "10:00"),
+            ("11:00", "13:00"),
+        }
+
+        if (start_time, end_time) not in valid_slots:
+            return (
+                f"Invalid time slot on {day}: "
+                f"{start_time} - {end_time}"
+            )
+
+    # --------------------------------------------------------
+    # Prevent duplicate time slots on the same day
+    # --------------------------------------------------------
+
+    used_slots = set()
+
+    for item in schedule:
+
+        slot = (
+            item["day"],
+            item["start_time"],
+            item["end_time"]
+        )
+
+        if slot in used_slots:
+            return (
+                f"Duplicate time slot: "
+                f"{item['day']} "
+                f"{item['start_time']}-{item['end_time']}"
+            )
+
+        used_slots.add(slot)
+
+    return None
+
+
+# ============================================================
+# GET SINGLE TASK
+# ============================================================
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def task_detail(request, id):
+
     try:
-        task = Task.objects.get(id=id, user=request.user, is_deleted=False)
-        return JsonResponse({
-            "id": task.id,
-            "todo_title": task.todo_title,
-            "todo_list": task.todo_list
-        })
+
+        task = Task.objects.get(
+            id=id,
+            user=request.user,
+            is_deleted=False
+        )
+
+        serializer = TaskSerializer(task)
+
+        return JsonResponse(
+            serializer.data,
+            status=200
+        )
+
     except Task.DoesNotExist:
-        return JsonResponse({'error': 'Task not found'}, status=404)
+
+        return JsonResponse(
+            {"error": "Task not found"},
+            status=404
+        )
+
     except Exception:
+
         traceback.print_exc()
-        return JsonResponse({'error': 'Server error'}, status=500)
-# ✅ GET ALL TASKS
+
+        return JsonResponse(
+            {"error": "Server error"},
+            status=500
+        )
+
+
+# ============================================================
+# GET ALL TASKS
+# ============================================================
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_all_task(request):
+
     try:
-        tasks = Task.objects.filter(user=request.user).order_by('-id')
-        data = [
-            {
+
+        tasks = Task.objects.filter(
+            user=request.user,
+            is_deleted=False
+        ).order_by('-created_at')
+
+        data = []
+
+        for task in tasks:
+
+            total_items = task.items.count()
+
+            completed_items = task.items.filter(
+                completed=True
+            ).count()
+
+            data.append({
                 "id": task.id,
                 "todo_title": task.todo_title,
-                "todo_list": task.todo_list
-            }
-            for task in tasks
-        ]
-        return JsonResponse(data, safe=False)
+                "week_start": task.week_start,
+                "week_end": task.week_end,
+                "completed": task.completed,
+                "total_items": total_items,
+                "completed_items": completed_items,
+                "created_at": task.created_at,
+            })
+
+        return JsonResponse(
+            data,
+            safe=False,
+            status=200
+        )
+
     except Exception:
+
         traceback.print_exc()
-        return JsonResponse({'error': 'Server error'}, status=500)
-# ✅ UPDATE TASK
-@api_view(['PUT'])
+
+        return JsonResponse(
+            {"error": "Server error"},
+            status=500
+        )
+
+
+# ============================================================
+# COMPLETE / UNCOMPLETE TASK ITEM
+# ============================================================
+
+@api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def update_task(request, id):
+def update_task_item(request, task_id, item_id):
+
     try:
-        task = Task.objects.get(id=id, user=request.user)
-        todo_title = request.data.get("todo_title")
-        todo_list = request.data.get("todo_list")
-        if todo_title:
-            task.todo_title = todo_title
-        if todo_list:
-            task.todo_list = todo_list
-        task.save()
-        return JsonResponse({
-            "id": task.id,
-            "todo_title": task.todo_title,
-            "todo_list": task.todo_list
-        }, status=200)
+
+        task = Task.objects.get(
+            id=task_id,
+            user=request.user,
+            is_deleted=False
+        )
+
+        item = TaskItem.objects.get(
+            id=item_id,
+            task=task
+        )
+
+        completed = request.data.get("completed")
+
+        if not isinstance(completed, bool):
+            return JsonResponse(
+                {
+                    "error": (
+                        "completed must be either true or false."
+                    )
+                },
+                status=400
+            )
+
+        item.completed = completed
+        item.save(update_fields=["completed"])
+
+        # ----------------------------------------------------
+        # Task is completed only when ALL items are completed
+        # ----------------------------------------------------
+
+        all_items_completed = not task.items.filter(
+            completed=False
+        ).exists()
+
+        task.completed = all_items_completed
+
+        task.save(update_fields=["completed"])
+
+        return JsonResponse(
+            {
+                "message": "Task item updated successfully.",
+                "item": TaskItemSerializer(item).data,
+                "task_completed": task.completed,
+            },
+            status=200
+        )
+
     except Task.DoesNotExist:
-        return JsonResponse({'error': 'Task not found'}, status=404)
+
+        return JsonResponse(
+            {"error": "Task not found"},
+            status=404
+        )
+
+    except TaskItem.DoesNotExist:
+
+        return JsonResponse(
+            {"error": "Task item not found"},
+            status=404
+        )
+
     except Exception:
+
         traceback.print_exc()
-        return JsonResponse({'error': 'Server error'}, status=500)
-    
-    
+
+        return JsonResponse(
+            {"error": "Server error"},
+            status=500
+        )
+
+
+# ============================================================
+# DELETE TASK - SOFT DELETE
+# ============================================================
+
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_task(request, id):
+
     try:
-        task = Task.objects.get(id=id, user=request.user)
-        task.delete()
-        return JsonResponse({"message": "Task deleted successfully"}, status=200)
+
+        task = Task.objects.get(
+            id=id,
+            user=request.user,
+            is_deleted=False
+        )
+
+        task.is_deleted = True
+        task.save(update_fields=["is_deleted"])
+
+        return JsonResponse(
+            {
+                "message": "Task deleted successfully."
+            },
+            status=200
+        )
+
     except Task.DoesNotExist:
-        return JsonResponse({'error': 'Task not found'}, status=404)
+
+        return JsonResponse(
+            {"error": "Task not found"},
+            status=404
+        )
+
     except Exception:
+
         traceback.print_exc()
-        return JsonResponse({'error': 'Server error'}, status=500)
 
-
+        return JsonResponse(
+            {"error": "Server error"},
+            status=500
+        )
+        
+        
+        
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_lecture_detail(request, id):
