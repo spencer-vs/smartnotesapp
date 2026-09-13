@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,  upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,  upload_audio, generate_lecture_note, get_all_lectures, get_lecture_detail, lecture_status, generate_tutorial, search_lectures, search_tasks, delete_lectures, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, get_active_task
 
 urlpatterns = [
    path("notes/", NoteListCreate.as_view(), name="note_list_create"),
@@ -13,6 +13,7 @@ urlpatterns = [
    path("notes/search_tutorials/", search_tutorials),
    path("notes/contact/", ContactListCreate.as_view(), name="contact_us"),
    path('notes/tasks/create/', views.create_task, name='create_task'),
+   path('notes/tasks/active/', views.get_active_task, name='get_active_task'),
    path('notes/tasks/<int:id>/', views.task_detail, name='task_detail'),
    path('notes/tasks/', views.get_all_task, name='get_all_task'),
     path('notes/tasks/<int:task_id>/items/<int:item_id>/', views.update_task_item, name='update_task_item'),

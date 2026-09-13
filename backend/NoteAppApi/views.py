@@ -937,6 +937,25 @@ def validate_task_schedule(schedule, total_items):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_active_task(request):
+    task = Task.objects.filter(
+        user=request.user,
+        is_deleted=False,
+        completed=False
+    ).prefetch_related('items').first()
+
+    if not task:
+        return Response(
+            {"detail": "No active task found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = TaskSerializer(task)
+
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def task_detail(request, id):
 
     try:
