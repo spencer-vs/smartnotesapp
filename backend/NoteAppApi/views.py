@@ -327,167 +327,9 @@ class NoteDetailView(generics.RetrieveAPIView):
     
 
 
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated, HasPremiumSubscription])
-# def create_task(request):
-#     try:
-#         title = request.data.get("title")
-#         task_input = request.data.get("task")
-#         # task_id = request.data.get(id=id)
-#         # Task.objects.get(id=task_id)
-#        # print("API KEY:", os.environ.get('GROQ_API_KEY'))
-#         if not title or not task_input:
-#             return JsonResponse({'error': 'Missing data'}, status=400)
-#         todo_list = generate_todo_list(task_input)
-#         if not todo_list:
-#             return JsonResponse({'error': 'Could not generate To Do list'}, status=500)
-#         new_todo = Task.objects.create(
-           
-#             user=request.user,
-#             todo_list=todo_list,
-#             todo_title=title
-#         )
-#         new_todo.save()
-#         return JsonResponse({
-#             'id': new_todo.id,
-#             'todo_list': new_todo.todo_list,
-#             'todo_title': new_todo.todo_title
-            
-#             }, status=201)
-#     except Exception as e:
-#         print("error:", e)
-#         return JsonResponse({'error': 'Server error'}, status=500)
-        
-    
-    
-
-
-# def generate_todo_list(user_input):
-#     try:
-#         api_key = os.getenv("GROQ_API_KEY")
-#         if api_key:
-#             api_key = api_key.strip()
-#         if not api_key:
-#             print("❌ Groq API key not found")
-#             return None
-#         client = Groq(api_key=api_key)
-#         prompt = f"""
-#             Create a study timetable using these tasks:
-#             {user_input}
-#             Requirements:
-#             - Monday to Saturday only.
-#             - Sunday should be excluded.
-#             - Every task lasts exactly 2 hours.
-#             - Begin each day at 8:00 AM.
-#             - Give a 1 hour break between tasks.
-#             - Each day should contain no more than two task.
-#             - Use this format:
-#             ## Monday
-#             8:00 AM - 10:00 AM: Task
-#             10:00 AM - 12:00 PM: Task
-#             ## Tuesday
-#             ...
-#             Return only the timetable.
-#             Do not write code.
-#             Do not explain how you generated it.
-#             """
-#         completion = client.chat.completions.create(
-#             model="openai/gpt-oss-20b",
-#             messages=[
-#                 {"role": "system", 
-#                  "content": ("You are a timetable generator. " 
-#                              "Never write Python code"
-#                              "Only return a completed timetable in Markdown"
-#                              ),
-#                  },
-#                 {
-#                     "role": "user",
-#                     "content": prompt
-#                 },
-#             ],
-#             temperature=0.4,
-#             max_tokens=800,
-#         )
-#         return completion.choices[0].message.content.strip()
-#     except Exception as e:
-#         print("❌ Groq error:")
-#         traceback.print_exc()   # VERY IMPORTANT
-#         return None
-    
-    
-    
-    
-# # ✅ GET SINGLE TASK
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def task_detail(request, id):
-#     try:
-#         task = Task.objects.get(id=id, user=request.user, is_deleted=False)
-#         return JsonResponse({
-#             "id": task.id,
-#             "todo_title": task.todo_title,
-#             "todo_list": task.todo_list
-#         })
-#     except Task.DoesNotExist:
-#         return JsonResponse({'error': 'Task not found'}, status=404)
-#     except Exception:
-#         traceback.print_exc()
-#         return JsonResponse({'error': 'Server error'}, status=500)
-# # ✅ GET ALL TASKS
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def get_all_task(request):
-#     try:
-#         tasks = Task.objects.filter(user=request.user).order_by('-id')
-#         data = [
-#             {
-#                 "id": task.id,
-#                 "todo_title": task.todo_title,
-#                 "todo_list": task.todo_list
-#             }
-#             for task in tasks
-#         ]
-#         return JsonResponse(data, safe=False)
-#     except Exception:
-#         traceback.print_exc()
-#         return JsonResponse({'error': 'Server error'}, status=500)
-# # ✅ UPDATE TASK
-# @api_view(['PUT'])
-# @permission_classes([IsAuthenticated])
-# def update_task(request, id):
-#     try:
-#         task = Task.objects.get(id=id, user=request.user)
-#         todo_title = request.data.get("todo_title")
-#         todo_list = request.data.get("todo_list")
-#         if todo_title:
-#             task.todo_title = todo_title
-#         if todo_list:
-#             task.todo_list = todo_list
-#         task.save()
-#         return JsonResponse({
-#             "id": task.id,
-#             "todo_title": task.todo_title,
-#             "todo_list": task.todo_list
-#         }, status=200)
-#     except Task.DoesNotExist:
-#         return JsonResponse({'error': 'Task not found'}, status=404)
-#     except Exception:
-#         traceback.print_exc()
-#         return JsonResponse({'error': 'Server error'}, status=500)
-    
-    
-# @api_view(["DELETE"])
-# @permission_classes([IsAuthenticated])
-# def delete_task(request, id):
-#     try:
-#         task = Task.objects.get(id=id, user=request.user)
-#         task.delete()
-#         return JsonResponse({"message": "Task deleted successfully"}, status=200)
-#     except Task.DoesNotExist:
-#         return JsonResponse({'error': 'Task not found'}, status=404)
-#     except Exception:
-#         traceback.print_exc()
-#         return JsonResponse({'error': 'Server error'}, status=500)
+# ============================================================
+# CREATE TASK
+# ============================================================
 
 # ============================================================
 # CREATE TASK
@@ -502,28 +344,58 @@ def create_task(request):
         items = request.data.get("items")
 
         # ----------------------------------------------------
-        # Basic validation
+        # Validate title
         # ----------------------------------------------------
 
-        if not title:
+        if not isinstance(title, str) or not title.strip():
             return JsonResponse(
                 {"error": "Task title is required."},
                 status=400
             )
 
-        if not isinstance(items, list) or not items:
+        title = title.strip()
+
+        if len(title) > 150:
             return JsonResponse(
-                {"error": "At least one task item is required."},
+                {
+                    "error": "Task title cannot exceed 150 characters."
+                },
                 status=400
             )
 
-        # Remove empty items and clean whitespace
+        # ----------------------------------------------------
+        # Validate items
+        # ----------------------------------------------------
+
+        if not isinstance(items, list):
+            return JsonResponse(
+                {
+                    "error": "Task items must be provided as a list."
+                },
+                status=400
+            )
+
+        if len(items) < 2:
+            return JsonResponse(
+                {
+                    "error": "At least 2 task items are required."
+                },
+                status=400
+            )
+
+        # ----------------------------------------------------
+        # Clean and validate individual items
+        # ----------------------------------------------------
+
         cleaned_items = []
 
         for item in items:
+
             if not isinstance(item, str):
                 return JsonResponse(
-                    {"error": "Every task item must be text."},
+                    {
+                        "error": "Every task item must be text."
+                    },
                     status=400
                 )
 
@@ -532,9 +404,34 @@ def create_task(request):
             if item:
                 cleaned_items.append(item)
 
-        if not cleaned_items:
+        # ----------------------------------------------------
+        # Minimum valid items
+        # ----------------------------------------------------
+
+        if len(cleaned_items) < 2:
             return JsonResponse(
-                {"error": "At least one valid task item is required."},
+                {
+                    "error": "At least 2 valid task items are required."
+                },
+                status=400
+            )
+
+        # ----------------------------------------------------
+        # Maximum items
+        #
+        # Monday-Saturday = 6 days
+        # Maximum 2 items per day
+        # 6 × 2 = 12 items maximum
+        # ----------------------------------------------------
+
+        if len(cleaned_items) > 12:
+            return JsonResponse(
+                {
+                    "error": (
+                        "A weekly task can contain a maximum "
+                        "of 12 items."
+                    )
+                },
                 status=400
             )
 
@@ -551,8 +448,11 @@ def create_task(request):
         if active_task_exists:
             return JsonResponse(
                 {
-                    "error": "You already have an active task. "
-                             "Complete or delete it before creating a new one."
+                    "error": (
+                        "You already have an active task. "
+                        "Complete or delete it before "
+                        "creating a new one."
+                    )
                 },
                 status=400
             )
@@ -565,7 +465,11 @@ def create_task(request):
 
         days_until_monday = (7 - today.weekday()) % 7
 
-        week_start = today + timedelta(days=days_until_monday)
+        week_start = today + timedelta(
+            days=days_until_monday
+        )
+
+        # Monday + 5 days = Saturday
         week_end = week_start + timedelta(days=5)
 
         # ----------------------------------------------------
@@ -576,7 +480,12 @@ def create_task(request):
 
         if not schedule:
             return JsonResponse(
-                {"error": "Could not generate task schedule."},
+                {
+                    "error": (
+                        "Could not generate a task schedule. "
+                        "Please try again."
+                    )
+                },
                 status=500
             )
 
@@ -590,7 +499,10 @@ def create_task(request):
         )
 
         if validation_error:
-            print("❌ Schedule validation failed:", validation_error)
+            print(
+                "❌ Schedule validation failed:",
+                validation_error
+            )
 
             return JsonResponse(
                 {
@@ -601,6 +513,19 @@ def create_task(request):
             )
 
         # ----------------------------------------------------
+        # Valid day offsets
+        # ----------------------------------------------------
+
+        day_offsets = {
+            "Monday": 0,
+            "Tuesday": 1,
+            "Wednesday": 2,
+            "Thursday": 3,
+            "Friday": 4,
+            "Saturday": 5,
+        }
+
+        # ----------------------------------------------------
         # Create Task + TaskItems atomically
         # ----------------------------------------------------
 
@@ -608,39 +533,70 @@ def create_task(request):
 
             task = Task.objects.create(
                 user=request.user,
-                todo_title=title.strip(),
+                todo_title=title,
                 week_start=week_start,
                 week_end=week_end,
                 completed=False,
                 is_deleted=False
             )
 
+            # Track order separately from the user's
+            # original item index.
+            item_order = 1
+
             for scheduled_item in schedule:
 
                 item_index = scheduled_item["item_index"]
-
-                # Convert 1-based index from Groq
-                # into the actual user-provided item
-                description = cleaned_items[item_index - 1]
-
                 day_name = scheduled_item["day"]
 
-                # Convert day name into an offset from Monday
-                day_offsets = {
-                    "Monday": 0,
-                    "Tuesday": 1,
-                    "Wednesday": 2,
-                    "Thursday": 3,
-                    "Friday": 4,
-                    "Saturday": 5,
-                }
+                # ------------------------------------------------
+                # Get the original user-provided description
+                # ------------------------------------------------
+
+                description = cleaned_items[item_index - 1]
+
+                # ------------------------------------------------
+                # Calculate the actual date
+                # ------------------------------------------------
 
                 item_date = week_start + timedelta(
                     days=day_offsets[day_name]
                 )
 
-                start_time = scheduled_item["start_time"]
-                end_time = scheduled_item["end_time"]
+                # ------------------------------------------------
+                # Django determines the time slot.
+                #
+                # First item of the day:
+                # 08:00 - 10:00
+                #
+                # Second item:
+                # 11:00 - 13:00
+                # ------------------------------------------------
+
+                existing_items_today = TaskItem.objects.filter(
+                    task=task,
+                    date=item_date
+                ).count()
+
+                if existing_items_today == 0:
+
+                    start_time = time(8, 0)
+                    end_time = time(10, 0)
+
+                elif existing_items_today == 1:
+
+                    start_time = time(11, 0)
+                    end_time = time(13, 0)
+
+                else:
+
+                    raise ValueError(
+                        f"More than 2 items scheduled on {day_name}."
+                    )
+
+                # ------------------------------------------------
+                # Create TaskItem
+                # ------------------------------------------------
 
                 TaskItem.objects.create(
                     task=task,
@@ -649,8 +605,10 @@ def create_task(request):
                     start_time=start_time,
                     end_time=end_time,
                     completed=False,
-                    order=item_index
+                    order=item_order
                 )
+
+                item_order += 1
 
         # ----------------------------------------------------
         # Return complete task
@@ -677,7 +635,9 @@ def create_task(request):
             },
             status=500
         )
-
+# ============================================================
+# GROQ TASK SCHEDULER
+# ============================================================
 
 # ============================================================
 # GROQ TASK SCHEDULER
@@ -698,55 +658,74 @@ def generate_task_schedule(user_items):
 
         client = Groq(api_key=api_key)
 
+        # ----------------------------------------------------
         # Number the user's items so Groq can reference them
+        # ----------------------------------------------------
+
         numbered_items = "\n".join(
             f"{index}. {item}"
             for index, item in enumerate(user_items, start=1)
         )
 
+        # ----------------------------------------------------
+        # Scheduling prompt
+        # ----------------------------------------------------
+
         prompt = f"""
 You are a weekly task scheduling assistant.
 
-The user has provided the following task items:
+The user has provided these task items:
 
 {numbered_items}
 
-Your job is ONLY to organize these exact items across Monday to Saturday.
+Your ONLY job is to assign each item to a day from Monday
+through Saturday.
 
 IMPORTANT RULES:
 
 1. You MUST use every item exactly once.
 2. You MUST NOT create new items.
 3. You MUST NOT remove any item.
-4. You MUST NOT rewrite, summarize, combine, or modify any item.
-5. Use Monday through Saturday only.
-6. Never schedule anything on Sunday.
-7. Maximum 2 items per day.
-8. Every item lasts exactly 2 hours.
-9. The first item of each day starts at 08:00.
-10. If there are two items on the same day, the second starts after a 1-hour break.
-11. Therefore the only valid time slots are:
-    - 08:00 - 10:00
-    - 11:00 - 13:00
-12. Return ONLY valid JSON.
-13. Do not return Markdown.
-14. Do not include explanations.
+4. You MUST NOT rewrite any item.
+5. You MUST NOT summarize any item.
+6. You MUST NOT combine any items.
+7. You MUST NOT split any items.
+8. Use Monday through Saturday only.
+9. NEVER use Sunday.
+10. Maximum 2 items may be assigned to the same day.
+11. You MUST schedule all {len(user_items)} items.
+12. The "item_index" must refer to the original item number.
+13. Do not change the item_index.
+14. Return ONLY valid JSON.
+15. Do not return Markdown.
+16. Do not include explanations.
 
-Return this exact JSON structure:
+Return exactly this structure:
 
 {{
     "items": [
         {{
             "item_index": 1,
-            "day": "Monday",
-            "start_time": "08:00",
-            "end_time": "10:00"
+            "day": "Monday"
+        }},
+        {{
+            "item_index": 2,
+            "day": "Tuesday"
         }}
     ]
 }}
 
-Schedule all {len(user_items)} items.
+Remember:
+
+- Every item must appear exactly once.
+- Every item_index must be between 1 and {len(user_items)}.
+- Maximum 2 items per day.
+- Sunday is forbidden.
 """
+
+        # ----------------------------------------------------
+        # Ask Groq for the schedule
+        # ----------------------------------------------------
 
         completion = client.chat.completions.create(
 
@@ -756,9 +735,10 @@ Schedule all {len(user_items)} items.
                 {
                     "role": "system",
                     "content": (
-                        "You are a strict task scheduling assistant. "
-                        "Return JSON only. "
-                        "Never write explanations or Markdown."
+                        "You are a strict weekly task scheduling "
+                        "assistant. Return JSON only. "
+                        "Never write explanations or Markdown. "
+                        "Never modify the user's task items."
                     )
                 },
                 {
@@ -768,9 +748,13 @@ Schedule all {len(user_items)} items.
             ],
 
             temperature=0.2,
-            max_tokens=3000,
+            max_tokens=2000,
             response_format={"type": "json_object"}
         )
+
+        # ----------------------------------------------------
+        # Get Groq response
+        # ----------------------------------------------------
 
         response_text = (
             completion
@@ -797,9 +781,27 @@ Schedule all {len(user_items)} items.
                 ""
             ).strip()
 
+        # ----------------------------------------------------
+        # Parse JSON
+        # ----------------------------------------------------
+
         schedule_data = json.loads(response_text)
 
-        return schedule_data.get("items")
+        # ----------------------------------------------------
+        # Validate expected top-level structure
+        # ----------------------------------------------------
+
+        if not isinstance(schedule_data, dict):
+            print("❌ Groq response is not a JSON object")
+            return None
+
+        schedule = schedule_data.get("items")
+
+        if not isinstance(schedule, list):
+            print("❌ Groq response does not contain an items list")
+            return None
+
+        return schedule
 
     except json.JSONDecodeError:
 
@@ -815,6 +817,9 @@ Schedule all {len(user_items)} items.
 
         return None
 
+# ============================================================
+# VALIDATE GROQ SCHEDULE
+# ============================================================
 
 # ============================================================
 # VALIDATE GROQ SCHEDULE
@@ -822,39 +827,18 @@ Schedule all {len(user_items)} items.
 
 def validate_task_schedule(schedule, total_items):
 
+    # --------------------------------------------------------
+    # Basic structure
+    # --------------------------------------------------------
+
     if not isinstance(schedule, list):
         return "Schedule must be a list."
 
-    # --------------------------------------------------------
-    # Every user item must appear exactly once
-    # --------------------------------------------------------
-
-    indexes = []
-
-    for item in schedule:
-
-        if not isinstance(item, dict):
-            return "Each scheduled item must be an object."
-
-        if "item_index" not in item:
-            return "Missing item_index."
-
-        indexes.append(item["item_index"])
-
-    expected_indexes = set(range(1, total_items + 1))
-    actual_indexes = set(indexes)
-
-    if len(indexes) != total_items:
+    if len(schedule) != total_items:
         return (
             f"Expected {total_items} scheduled items, "
-            f"but received {len(indexes)}."
+            f"but received {len(schedule)}."
         )
-
-    if len(indexes) != len(set(indexes)):
-        return "An item was scheduled more than once."
-
-    if actual_indexes != expected_indexes:
-        return "Some user-provided items were missing."
 
     # --------------------------------------------------------
     # Valid days
@@ -869,6 +853,16 @@ def validate_task_schedule(schedule, total_items):
         "Saturday",
     }
 
+    # --------------------------------------------------------
+    # Expected item indexes
+    # --------------------------------------------------------
+
+    expected_indexes = set(
+        range(1, total_items + 1)
+    )
+
+    received_indexes = []
+
     daily_counts = {}
 
     # --------------------------------------------------------
@@ -877,59 +871,119 @@ def validate_task_schedule(schedule, total_items):
 
     for item in schedule:
 
-        day = item.get("day")
-        start_time = item.get("start_time")
-        end_time = item.get("end_time")
+        # ----------------------------------------------------
+        # Each schedule entry must be an object
+        # ----------------------------------------------------
+
+        if not isinstance(item, dict):
+            return "Each scheduled item must be an object."
+
+        # ----------------------------------------------------
+        # item_index
+        # ----------------------------------------------------
+
+        if "item_index" not in item:
+            return "Missing item_index."
+
+        item_index = item["item_index"]
+
+        if not isinstance(item_index, int):
+            return "item_index must be an integer."
+
+        if item_index not in expected_indexes:
+            return (
+                f"Invalid item_index: {item_index}. "
+                f"Expected values between 1 and {total_items}."
+            )
+
+        received_indexes.append(item_index)
+
+        # ----------------------------------------------------
+        # Day
+        # ----------------------------------------------------
+
+        if "day" not in item:
+            return (
+                f"Missing day for item {item_index}."
+            )
+
+        day = item["day"]
+
+        if not isinstance(day, str):
+            return (
+                f"Day must be text for item {item_index}."
+            )
 
         if day not in valid_days:
             return f"Invalid day: {day}"
 
+        # ----------------------------------------------------
         # Count items per day
-        daily_counts[day] = daily_counts.get(day, 0) + 1
-
-        if daily_counts[day] > 2:
-            return f"More than 2 items scheduled on {day}."
-
-        # ----------------------------------------------------
-        # Only two valid time slots
         # ----------------------------------------------------
 
-        valid_slots = {
-            ("08:00", "10:00"),
-            ("11:00", "13:00"),
-        }
-
-        if (start_time, end_time) not in valid_slots:
-            return (
-                f"Invalid time slot on {day}: "
-                f"{start_time} - {end_time}"
-            )
-
-    # --------------------------------------------------------
-    # Prevent duplicate time slots on the same day
-    # --------------------------------------------------------
-
-    used_slots = set()
-
-    for item in schedule:
-
-        slot = (
-            item["day"],
-            item["start_time"],
-            item["end_time"]
+        daily_counts[day] = (
+            daily_counts.get(day, 0) + 1
         )
 
-        if slot in used_slots:
+        # ----------------------------------------------------
+        # Maximum 2 items per day
+        # ----------------------------------------------------
+
+        if daily_counts[day] > 2:
             return (
-                f"Duplicate time slot: "
-                f"{item['day']} "
-                f"{item['start_time']}-{item['end_time']}"
+                f"More than 2 items scheduled on {day}."
             )
 
-        used_slots.add(slot)
+    # --------------------------------------------------------
+    # Make sure every item appears exactly once
+    # --------------------------------------------------------
+
+    if len(received_indexes) != len(set(received_indexes)):
+        return "An item was scheduled more than once."
+
+    received_indexes_set = set(received_indexes)
+
+    if received_indexes_set != expected_indexes:
+        missing_indexes = (
+            expected_indexes - received_indexes_set
+        )
+
+        extra_indexes = (
+            received_indexes_set - expected_indexes
+        )
+
+        if missing_indexes:
+            return (
+                "Some user-provided items were missing: "
+                f"{sorted(missing_indexes)}."
+            )
+
+        if extra_indexes:
+            return (
+                "Invalid item indexes were returned: "
+                f"{sorted(extra_indexes)}."
+            )
+
+        return "Scheduled items do not match the user's items."
+
+    # --------------------------------------------------------
+    # Final capacity check
+    #
+    # Monday-Saturday = 6 days
+    # Maximum 2 items/day = 12 items
+    # --------------------------------------------------------
+
+    if total_items > 12:
+        return (
+            "Too many items for the Monday-Saturday schedule. "
+            "Maximum is 12 items."
+        )
+
+    # --------------------------------------------------------
+    # Schedule is valid
+    # --------------------------------------------------------
 
     return None
-
 
 # ============================================================
 # GET SINGLE TASK
