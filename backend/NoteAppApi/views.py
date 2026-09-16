@@ -9,10 +9,8 @@ from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
-from datetime import datetime
+from datetime import datetime, timedelta, time
 from .quiz_generator import generate_quiz, save_generated_quiz
-import time
-from datetime import timedelta
 from django.db import transaction
 from openai import OpenAI
 from django.http import JsonResponse
@@ -1698,7 +1696,7 @@ def get_transcription_proxy(video_id):
 
 
 #---------------- AI BLOG GENERATION ---------------- #
-import time
+
 def generate_tutorial_from_transcript(transcription):
     try:
         api_key = os.getenv("GROQ_API_KEY", "").strip()
