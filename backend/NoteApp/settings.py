@@ -40,6 +40,8 @@ ALLOWED_HOSTS = [
     "smartnotesfrontend.onrender.com",
     "localhost",
     "127.0.0.1",
+    "smartnotes.cv",
+    "www.smartnotes.cv",
 ]
 
 
