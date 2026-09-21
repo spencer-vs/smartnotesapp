@@ -120,15 +120,90 @@ def request_password_reset(request):
 resend.api_key = settings.RESEND_API_KEY
 
 
+# def send_reset_email(to_email, reset_link):
+#     resend.Emails.send({
+#         "from": settings.FROM_EMAIL,
+#         "to": [to_email],
+#         "subject": "Password Reset",
+#         "html": f"""
+#         <h2>Password Reset</h2>
+#         <p>Click the link below to reset your password</p>
+#         <a href="{reset_link}">{reset_link}</a>"""
+#     })
+
+resend.api_key = settings.RESEND_API_KEY
+
 def send_reset_email(to_email, reset_link):
     resend.Emails.send({
         "from": settings.FROM_EMAIL,
         "to": [to_email],
-        "subject": "Password Reset",
+        "subject": "Reset Your SmartNotes Password",
         "html": f"""
-        <h2>Password Reset</h2>
-        <p>Click the link below to reset your password</p>
-        <a href="{reset_link}">{reset_link}</a>"""
+        <div style="
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #f7f7f7;
+        ">
+            <div style="
+                background-color: #00030E;
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+            ">
+                <h2 style="
+                    color: #FFB300;
+                    margin-bottom: 10px;
+                ">
+                    SmartNotes
+                </h2>
+
+                <p style="
+                    color: #FFFFFF;
+                    font-size: 16px;
+                ">
+                    Password Reset
+                </p>
+
+                <p style="
+                    color: #CCCCCC;
+                    font-size: 14px;
+                    line-height: 1.6;
+                ">
+                    We received a request to reset your SmartNotes
+                    password. Tap the button below to create a new password.
+                </p>
+
+                <a
+                    href="{reset_link}"
+                    style="
+                        display: inline-block;
+                        background-color: #FFB300;
+                        color: #00030E;
+                        padding: 14px 24px;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        font-size: 14px;
+                        margin-top: 15px;
+                    "
+                >
+                    Reset Password
+                </a>
+
+                <p style="
+                    color: #777980;
+                    font-size: 12px;
+                    line-height: 1.5;
+                    margin-top: 25px;
+                ">
+                    If you did not request a password reset, you can safely
+                    ignore this email.
+                </p>
+            </div>
+        </div>
+        """
     })
 
 
