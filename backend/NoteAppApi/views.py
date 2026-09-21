@@ -97,8 +97,8 @@ def request_password_reset(request):
         token = default_token_generator.make_token(user)
         # Frontend reset page URL
         reset_link = (
-            f"https://smartnotesfrontend.onrender.com/"
-            f"reset-password/{uidb64}/{token}/"
+            f"smartnotesmobile://auth/reset-password/"
+            f"{uidb64}/{token}"
         )
         # Send email using Resend
         send_reset_email(
