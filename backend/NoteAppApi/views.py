@@ -97,7 +97,7 @@ def request_password_reset(request):
         token = default_token_generator.make_token(user)
         # Frontend reset page URL
         reset_link = (
-            f"smartnotesmobile://auth/reset-password/"
+            f"https://smartnotes.cv/auth/reset-password/"
             f"{uidb64}/{token}"
         )
         # Send email using Resend
