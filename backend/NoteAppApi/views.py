@@ -1837,6 +1837,8 @@ def initialize_payment(request):
         {"detail": "You already have an active subscription."},
         status=400
      )
+     
+    source = request.data.get("source", "web") 
 
     
     plan_name = request.data.get("plan")
@@ -1874,8 +1876,11 @@ def initialize_payment(request):
         "user_id": request.user.id,
         "plan": plan_name,
     },
-    # "callback_url": "https://smartnotesfrontend.onrender.com/payment/callback",
-    "callback_url": "smartnotesmobile://payment/callback",
+    "callback_url": (
+    "https://smartnotes.cv/payment/callback"
+    if source == "mobile"
+    else "https://smartnotesfrontend.onrender.com/payment/callback"
+    ),
     }
 
     try:
