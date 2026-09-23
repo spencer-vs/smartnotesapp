@@ -1874,7 +1874,8 @@ def initialize_payment(request):
         "user_id": request.user.id,
         "plan": plan_name,
     },
-    "callback_url": "https://smartnotesfrontend.onrender.com/payment/callback",
+    # "callback_url": "https://smartnotesfrontend.onrender.com/payment/callback",
+    "callback_url": "smartnotesmobile://payment/callback",
     }
 
     try:
