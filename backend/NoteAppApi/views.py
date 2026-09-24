@@ -1839,6 +1839,8 @@ def initialize_payment(request):
      )
      
     source = request.data.get("source", "web") 
+    
+    print("Payment Source:", source)
 
     
     plan_name = request.data.get("plan")
