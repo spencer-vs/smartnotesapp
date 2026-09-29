@@ -66,11 +66,11 @@ class TaskSerializer(serializers.ModelSerializer):
     
     
 class LectureSerializer(serializers.ModelSerializer):
-   class Meta:
+
+    class Meta:
         model = Lecture
-        fields = ["id", "lecture", "created_at"]
-        # read_only_fields = ["created_at"]
-    
+        fields = ["id", "lecture", "transcript", "created_at"]
+          
     
 class TutorialSerializer(serializers.ModelSerializer):
     

@@ -1303,6 +1303,7 @@ def get_lecture_detail(request, id):
             "id": lecture.id,
             "title": lecture.title,
             "lecture": lecture.lecture,
+            "transcript": lecture.transcript,
             "created_at": lecture.created_at
         })
     except Lecture.DoesNotExist:
@@ -1324,6 +1325,7 @@ def get_all_lectures(request):
                 "id": lecture.id,
                 "title": lecture.title,
                 "lecture": lecture.lecture,
+                "transcript": lecture.transcript,
                 "created_at": lecture.created_at
             }
             for lecture in lectures
@@ -1359,13 +1361,7 @@ def upload_audio(request):
             }, status=400)
         folder = os.path.join(settings.MEDIA_ROOT, "audio")
         os.makedirs(folder, exist_ok=True)
-       # file_name = f"{uuid.uuid4()}.webm"
-        # # file_path = os.path.join(folder, file_name)
-        # with open(file_path, "wb+") as f:
-        #     for chunk in audio_file.chunks():
-        #         f.write(chunk)
-        # print("Audio saved at:", file_path)
-        
+      
         lecture = Lecture.objects.create(
            user=request.user,
            title=title,
@@ -1373,10 +1369,6 @@ def upload_audio(request):
            status="processing"
        )
         
-        # threading.Thread(
-        #     target=process_audio,
-        #     args=(lecture.id,)
-        # ).start()
         
         process_audio(lecture.id)
         
@@ -1422,28 +1414,31 @@ def process_audio(lecture_id):
             lecture.status = "failed"
             lecture.save()
             return
-        short_text = transcript.text
-        notes = generate_lecture_note(short_text)
+        transcript_text = transcript.text or ""
+
+        lecture.transcript = transcript_text
+        lecture.save(update_fields=["transcript"])
+        notes = generate_lecture_note(transcript_text)
         
         if not notes:
             print("Grok failed, no notes generated")
             lecture.status= "failed"
-            lecture.save()
+            lecture.save(update_fields=["status"])
             return
     
+        lecture.transcript = transcript_text
         lecture.lecture = notes
         lecture.status = "completed"
-        lecture.save()
+        
+        lecture.save(
+            update_fields=[
+            "transcript",
+            "lecture",
+            "status",
+        ]
+        )
 
-        # print("PROCESSING COMPLETED")
-        # print("FILE EXISTS AFTER SAVE:", os.path.exists(file_path))
-
-        # if os.path.exists(file_path):
-        #     print("FILE STILL EXISTS")
-        #     print("FILE SIZE AFTER SAVE:", os.path.getsize(file_path))
-        # else:
-        #     print("⚠️ FILE WAS DELETED SOMEWHERE")
-
+       
         
         if os.path.exists(file_path):
             os.remove(file_path)
