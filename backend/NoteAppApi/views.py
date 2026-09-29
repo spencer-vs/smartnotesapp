@@ -3331,9 +3331,13 @@ def review_quiz_view(request, quiz_id):
         # -----------------------------------
 
         try:
-            quiz = Quiz.objects.get(
-                id=quiz_id,
-                user=request.user
+            quiz = (
+                Quiz.objects
+                .prefetch_related("answers")
+                .get(
+                    id=quiz_id,
+                    user=request.user
+                )
             )
 
         except Quiz.DoesNotExist:
@@ -3381,10 +3385,28 @@ def review_quiz_view(request, quiz_id):
 
             answer = answers.get(question.id)
 
+            # -----------------------------------
+            # Get selected answer
+            # -----------------------------------
+
             selected_answer = ""
 
-            if answer:
-                selected_answer = answer.selected_answer
+            if answer and answer.selected_answer:
+                selected_answer = (
+                    str(answer.selected_answer)
+                    .strip()
+                    .upper()
+                )
+
+            # -----------------------------------
+            # Normalize correct answer
+            # -----------------------------------
+
+            correct_answer = (
+                str(question.correct_answer)
+                .strip()
+                .upper()
+            )
 
             # -----------------------------------
             # Build options
@@ -3411,7 +3433,7 @@ def review_quiz_view(request, quiz_id):
             )
 
             correct_answer_text = options.get(
-                question.correct_answer,
+                correct_answer,
                 ""
             )
 
@@ -3430,7 +3452,7 @@ def review_quiz_view(request, quiz_id):
                     "selected_answer": selected_answer,
                     "selected_answer_text": selected_answer_text,
 
-                    "correct_answer": question.correct_answer,
+                    "correct_answer": correct_answer,
                     "correct_answer_text": correct_answer_text,
 
                     "explanation": question.explanation or "",
@@ -3478,7 +3500,10 @@ def review_quiz_view(request, quiz_id):
 
     except Exception as e:
 
-        print("❌ QUIZ REVIEW ERROR:", repr(e))
+        print(
+            "❌ QUIZ REVIEW ERROR:",
+            repr(e)
+        )
         traceback.print_exc()
 
         return Response(
@@ -3492,6 +3517,12 @@ def review_quiz_view(request, quiz_id):
         )
         
         
+        
+        
+        
+        
+        
+        
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, HasPremiumSubscription])
 def saved_quizzes_view(request):
@@ -3501,9 +3532,12 @@ def saved_quizzes_view(request):
         # Get user's quizzes
         # -----------------------------------
 
-        quizzes = Quiz.objects.filter(
-            user=request.user
-        ).order_by("-created_at")
+        quizzes = (
+            Quiz.objects
+            .filter(user=request.user)
+            .select_related("lecture", "tutorial")
+            .order_by("-created_at")
+        )
 
         # -----------------------------------
         # Prepare quiz list
@@ -3524,19 +3558,21 @@ def saved_quizzes_view(request):
             if quiz.lecture:
                 source_type = "lecture"
                 source_id = quiz.lecture.id
+
                 source_title = (
                     re.sub(
-                    r"[*#_`]",
-                    "",
-                    quiz.lecture.lecture
+                        r"[*#_`]",
+                        "",
+                        quiz.lecture.lecture
                     ).strip()[:80]
                     if quiz.lecture.lecture
                     else "Lecture"
-                )             
+                )
 
             elif quiz.tutorial:
                 source_type = "tutorial"
                 source_id = quiz.tutorial.id
+
                 source_title = (
                     quiz.tutorial.youtube_title
                     if quiz.tutorial.youtube_title
@@ -3592,7 +3628,10 @@ def saved_quizzes_view(request):
 
     except Exception as e:
 
-        print("❌ SAVED QUIZZES ERROR:", repr(e))
+        print(
+            "❌ SAVED QUIZZES ERROR:",
+            repr(e)
+        )
         traceback.print_exc()
 
         return Response(
@@ -3604,9 +3643,6 @@ def saved_quizzes_view(request):
             },
             status=500
         )
-        
-        
-        
         
         
         

@@ -344,27 +344,27 @@ SOURCE MATERIAL:
             }
 
 
-            print("🧠 Generating quiz...")
+            # print("🧠 Generating quiz...")
 
-            print(
-                "Difficulty:",
-                difficulty
-            )
+            # print(
+            #     "Difficulty:",
+            #     difficulty
+            # )
 
-            print(
-                "Question type:",
-                question_type
-            )
+            # print(
+            #     "Question type:",
+            #     question_type
+            # )
 
-            print(
-                "Number of questions:",
-                number_of_questions
-            )
+            # print(
+            #     "Number of questions:",
+            #     number_of_questions
+            # )
 
-            print(
-                "Source length:",
-                len(source_text)
-            )
+            # print(
+            #     "Source length:",
+            #     len(source_text)
+            # )
 
 
             # -----------------------------------
@@ -413,15 +413,15 @@ SOURCE MATERIAL:
                 return None
 
 
-            print(
-                "QUIZ STATUS CODE:",
-                response.status_code
-            )
+            # print(
+            #     "QUIZ STATUS CODE:",
+            #     response.status_code
+            # )
 
-            print(
-                "QUIZ RAW RESPONSE:",
-                response.text
-            )
+            # print(
+            #     "QUIZ RAW RESPONSE:",
+            #     response.text
+            # )
 
 
             if response.status_code != 200:
