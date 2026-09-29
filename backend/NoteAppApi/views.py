@@ -2892,12 +2892,12 @@ def generate_quiz_view(request):
         difficulty = request.data.get("difficulty")
         question_type = request.data.get("question_type")
 
-        print("QUIZ REQUEST")
-        print("User:", request.user)
-        print("Lecture ID:", lecture_id)
-        print("Tutorial ID:", tutorial_id)
-        print("Difficulty:", difficulty)
-        print("Question Type:", question_type)
+        # print("QUIZ REQUEST")
+        # print("User:", request.user)
+        # print("Lecture ID:", lecture_id)
+        # print("Tutorial ID:", tutorial_id)
+        # print("Difficulty:", difficulty)
+        # print("Question Type:", question_type)
 
         # -----------------------------------
         # Validate source
@@ -3022,7 +3022,7 @@ def generate_quiz_view(request):
         # Generate quiz with AI
         # -----------------------------------
 
-        print("🧠 Starting quiz generation...")
+        # print("🧠 Starting quiz generation...")
 
         quiz_data = generate_quiz(
             source_text=source_text,
@@ -3124,173 +3124,190 @@ def generate_quiz_view(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, HasPremiumSubscription])
 def submit_quiz_view(request, quiz_id):
-
     try:
-        # -----------------------------------
-        # Get quiz
-        # -----------------------------------
+        with transaction.atomic():
 
-        try:
-            quiz = Quiz.objects.get(
-                id=quiz_id,
-                user=request.user
+            try:
+                quiz = (
+                    Quiz.objects
+                    .select_for_update()
+                    .get(
+                        id=quiz_id,
+                        user=request.user
+                    )
+                )
+            except Quiz.DoesNotExist:
+                return Response(
+                    {"error": "Quiz not found."},
+                    status=404
+                )
+
+            # Prevent submitting the same quiz twice
+            if quiz.completed:
+                return Response(
+                    {"error": "This quiz has already been completed."},
+                    status=400
+                )
+
+            answers = request.data.get("answers")
+
+            if not answers:
+                return Response(
+                    {"error": "Please provide your answers."},
+                    status=400
+                )
+
+            if not isinstance(answers, dict):
+                return Response(
+                    {"error": "Answers must be provided as an object."},
+                    status=400
+                )
+
+            questions = quiz.questions.all().order_by("order")
+
+            if not questions.exists():
+                return Response(
+                    {"error": "This quiz has no questions."},
+                    status=400
+                )
+
+            question_list = list(questions)
+
+            # IDs of questions that actually belong to this quiz
+            expected_question_ids = {
+                str(question.id)
+                for question in question_list
+            }
+
+            # IDs submitted by the mobile app
+            submitted_question_ids = {
+                str(question_id)
+                for question_id in answers.keys()
+            }
+
+            # Make sure every question has an answer
+            missing_question_ids = (
+                expected_question_ids - submitted_question_ids
             )
 
-        except Quiz.DoesNotExist:
-            return Response(
-                {
-                    "error": "Quiz not found."
-                },
-                status=404
+            if missing_question_ids:
+                return Response(
+                    {
+                        "error": "Please answer all questions before submitting."
+                    },
+                    status=400
+                )
+
+            # Make sure the request does not contain unrelated questions
+            unexpected_question_ids = (
+                submitted_question_ids - expected_question_ids
             )
 
-        # -----------------------------------
-        # Prevent resubmission
-        # -----------------------------------
+            if unexpected_question_ids:
+                return Response(
+                    {
+                        "error": "Invalid question IDs were submitted."
+                    },
+                    status=400
+                )
 
-        if quiz.completed:
-            return Response(
-                {
-                    "error": "This quiz has already been completed."
-                },
-                status=400
-            )
+            score = 0
+            results = []
 
-        # -----------------------------------
-        # Get submitted answers
-        # -----------------------------------
+            # Determine valid answer choices
+            if quiz.question_type == "true_false":
+                valid_answers = {"A", "B"}
+            else:
+                valid_answers = {"A", "B", "C", "D"}
 
-        answers = request.data.get("answers")
+            for question in question_list:
 
-        if not answers:
-            return Response(
-                {
-                    "error": "Please provide your answers."
-                },
-                status=400
-            )
+                question_id = str(question.id)
 
-        if not isinstance(answers, dict):
-            return Response(
-                {
-                    "error": "Answers must be provided as an object."
-                },
-                status=400
-            )
+                selected_answer = answers.get(question_id)
 
-        # -----------------------------------
-        # Get quiz questions
-        # -----------------------------------
+                if selected_answer is None:
+                    return Response(
+                        {
+                            "error": "Please answer all questions before submitting."
+                        },
+                        status=400
+                    )
 
-        questions = quiz.questions.all().order_by("order")
+                selected_answer = str(
+                    selected_answer
+                ).strip().upper()
 
-        if not questions.exists():
-            return Response(
-                {
-                    "error": "This quiz has no questions."
-                },
-                status=400
-            )
+                # Validate the submitted answer choice
+                if selected_answer not in valid_answers:
+                    return Response(
+                        {
+                            "error": (
+                                f"Invalid answer choice for question "
+                                f"{question.id}."
+                            )
+                        },
+                        status=400
+                    )
 
-        # -----------------------------------
-        # Score quiz
-        # -----------------------------------
+                correct_answer = str(
+                    question.correct_answer
+                ).strip().upper()
 
-        score = 0
-        results = []
+                is_correct = (
+                    selected_answer == correct_answer
+                )
 
-        for question in questions:
+                if is_correct:
+                    score += 1
 
-            question_id = str(question.id)
+                QuizAnswer.objects.create(
+                    quiz=quiz,
+                    question=question,
+                    selected_answer=selected_answer,
+                    is_correct=is_correct
+                )
 
-            selected_answer = answers.get(question_id)
-
-            if selected_answer is None:
-                selected_answer = ""
-
-            selected_answer = str(selected_answer).strip().upper()
-
-            correct_answer = (
-                str(question.correct_answer)
-                .strip()
-                .upper()
-            )
-
-            is_correct = selected_answer == correct_answer
-
-            if is_correct:
-                score += 1
-
-            # -----------------------------------
-            # Save user's answer
-            # -----------------------------------
-
-            QuizAnswer.objects.create(
-                quiz=quiz,
-                question=question,
-                selected_answer=selected_answer,
-                is_correct=is_correct
-            )
-
-            # -----------------------------------
-            # Prepare result
-            # -----------------------------------
-
-            results.append(
-                {
+                results.append({
                     "question_id": question.id,
                     "order": question.order,
                     "selected_answer": selected_answer,
                     "correct_answer": correct_answer,
                     "is_correct": is_correct,
-                }
+                })
+
+            total_questions = len(question_list)
+
+            percentage = round(
+                (score / total_questions) * 100
             )
 
-        # -----------------------------------
-        # Calculate percentage
-        # -----------------------------------
+            quiz.score = score
+            quiz.completed = True
+            quiz.completed_at = timezone.now()
 
-        total_questions = questions.count()
+            quiz.save(
+                update_fields=[
+                    "score",
+                    "completed",
+                    "completed_at"
+                ]
+            )
 
-        percentage = round(
-            (score / total_questions) * 100
-        )
+            return Response(
+                {
+                    "quiz_id": quiz.id,
+                    "score": score,
+                    "total_questions": total_questions,
+                    "percentage": percentage,
+                    "completed": quiz.completed,
+                    "completed_at": quiz.completed_at,
+                    "results": results,
+                },
+                status=200
+            )
 
-        # -----------------------------------
-        # Update quiz
-        # -----------------------------------
-
-        quiz.score = score
-        quiz.completed = True
-        quiz.completed_at = timezone.now()
-        quiz.save(
-            update_fields=[
-                "score",
-                "completed",
-                "completed_at"
-            ]
-        )
-
-        # -----------------------------------
-        # Return result
-        # -----------------------------------
-
-        return Response(
-            {
-                "quiz_id": quiz.id,
-                "score": score,
-                "total_questions": total_questions,
-                "percentage": percentage,
-                "completed": quiz.completed,
-                "completed_at": quiz.completed_at,
-                "results": results,
-            },
-            status=200
-        )
-
-    except Exception as e:
-
-        print("❌ QUIZ SUBMISSION ERROR:", repr(e))
+    except Exception:
         traceback.print_exc()
 
         return Response(
@@ -3298,10 +3315,7 @@ def submit_quiz_view(request, quiz_id):
                 "error": "An unexpected error occurred while submitting the quiz."
             },
             status=500
-        )
-        
-        
-        
+        )    
         
         
         

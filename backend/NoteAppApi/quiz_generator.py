@@ -122,6 +122,12 @@ C
 D
 
 There must be exactly ONE correct answer.
+
+All four option texts must be:
+- non-empty
+- meaningful
+- different from each other
+- plausible within the context of the source material
 """
 
         else:
@@ -250,16 +256,27 @@ IMPORTANT RULES:
 
 7. Make incorrect answers plausible.
 
-8. Include a short explanation for the
-   correct answer.
+8. Every question must contain:
+   - non-empty question text
+   - valid options
+   - a valid correct answer
+   - a non-empty explanation
 
-9. Return ONLY valid JSON.
+9. Option texts must not be empty.
 
-10. Do not include Markdown.
+10. For multiple-choice questions, all four
+    options must contain different answer texts.
 
-11. Do not include ```json or ```.
+11. Include a short explanation for the
+    correct answer.
 
-12. Before returning your response, count the
+12. Return ONLY valid JSON.
+
+13. Do not include Markdown.
+
+14. Do not include ```json or ```.
+
+15. Before returning your response, count the
     questions in the questions array and make
     sure the count is exactly {number_of_questions}.
 
@@ -509,7 +526,7 @@ SOURCE MATERIAL:
 
 
             # -----------------------------------
-            # Validate structure
+            # Validate response structure
             # -----------------------------------
 
             if not isinstance(
@@ -601,6 +618,10 @@ SOURCE MATERIAL:
                 start=1
             ):
 
+                # -----------------------------------
+                # Validate question object
+                # -----------------------------------
+
                 if not isinstance(
                     question,
                     dict
@@ -614,13 +635,15 @@ SOURCE MATERIAL:
                     break
 
 
-                required_fields = [
+                # -----------------------------------
+                # Validate required fields
+                # -----------------------------------
 
+                required_fields = [
                     "question",
                     "options",
                     "correct_answer",
                     "explanation",
-
                 ]
 
 
@@ -641,6 +664,74 @@ SOURCE MATERIAL:
                     break
 
 
+                # -----------------------------------
+                # Validate question text
+                # -----------------------------------
+
+                question_text = question["question"]
+
+
+                if not isinstance(
+                    question_text,
+                    str
+                ):
+
+                    print(
+                        f"❌ Question {index}: "
+                        "question text must be a string"
+                    )
+
+                    valid_quiz = False
+                    break
+
+
+                if not question_text.strip():
+
+                    print(
+                        f"❌ Question {index}: "
+                        "question text is empty"
+                    )
+
+                    valid_quiz = False
+                    break
+
+
+                # -----------------------------------
+                # Validate explanation
+                # -----------------------------------
+
+                explanation = question["explanation"]
+
+
+                if not isinstance(
+                    explanation,
+                    str
+                ):
+
+                    print(
+                        f"❌ Question {index}: "
+                        "explanation must be a string"
+                    )
+
+                    valid_quiz = False
+                    break
+
+
+                if not explanation.strip():
+
+                    print(
+                        f"❌ Question {index}: "
+                        "explanation is empty"
+                    )
+
+                    valid_quiz = False
+                    break
+
+
+                # -----------------------------------
+                # Validate options object
+                # -----------------------------------
+
                 options = question["options"]
 
 
@@ -659,7 +750,7 @@ SOURCE MATERIAL:
 
 
                 # -----------------------------------
-                # Multiple choice
+                # Validate option structure
                 # -----------------------------------
 
                 if question_type == "multiple_choice":
@@ -684,7 +775,7 @@ SOURCE MATERIAL:
 
 
                 # -----------------------------------
-                # True / False
+                # True / False structure
                 # -----------------------------------
 
                 else:
@@ -729,12 +820,97 @@ SOURCE MATERIAL:
 
 
                 # -----------------------------------
+                # Validate option values
+                # -----------------------------------
+
+                option_values = []
+
+                for option_key in expected_options:
+
+                    option_value = options.get(
+                        option_key
+                    )
+
+
+                    if not isinstance(
+                        option_value,
+                        str
+                    ):
+
+                        print(
+                            f"❌ Question {index}: "
+                            f"option {option_key} must be a string"
+                        )
+
+                        valid_quiz = False
+                        break
+
+
+                    if not option_value.strip():
+
+                        print(
+                            f"❌ Question {index}: "
+                            f"option {option_key} is empty"
+                        )
+
+                        valid_quiz = False
+                        break
+
+
+                    option_values.append(
+                        option_value.strip()
+                    )
+
+
+                if not valid_quiz:
+                    break
+
+
+                # -----------------------------------
+                # Validate duplicate options
+                # -----------------------------------
+
+                normalized_options = [
+                    option.lower()
+                    for option in option_values
+                ]
+
+
+                if len(normalized_options) != len(
+                    set(normalized_options)
+                ):
+
+                    print(
+                        f"❌ Question {index}: "
+                        "duplicate option values detected"
+                    )
+
+                    valid_quiz = False
+                    break
+
+
+                # -----------------------------------
                 # Validate correct answer
                 # -----------------------------------
 
-                correct_answer = (
-                    question["correct_answer"]
-                )
+                correct_answer = question["correct_answer"]
+
+
+                if not isinstance(
+                    correct_answer,
+                    str
+                ):
+
+                    print(
+                        f"❌ Question {index}: "
+                        "correct_answer must be a string"
+                    )
+
+                    valid_quiz = False
+                    break
+
+
+                correct_answer = correct_answer.strip().upper()
 
 
                 if correct_answer not in options:
@@ -810,7 +986,23 @@ SOURCE MATERIAL:
 
         traceback.print_exc()
 
-        return None
+        return None    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
 
 @transaction.atomic
 def save_generated_quiz(
