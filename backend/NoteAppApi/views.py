@@ -1666,16 +1666,18 @@ def generate_tutorial(request):
         if not transcription:
             return JsonResponse({'error': 'Transcript not available for this video'}, status=500)
         # Translate transcript to English
-        # english_transcription = translate_transcript_to_english(transcription)
+        print(">>> RAPIDAPI TRANSCRIPT RECEIVED")
+        print(">>> STARTING TRANSCRIPT TRANSLATION")
+        english_transcription = translate_transcript_to_english(transcription)
 
-        # if not english_transcription:
-        #    return JsonResponse(
-        #    {'error': 'Failed to translate transcript to English'},
-        #    status=500
-        #    )
+        if not english_transcription:
+           return JsonResponse(
+           {'error': 'Failed to translate transcript to English'},
+           status=500
+           )
 
         # Generate blog
-        tutorial = generate_tutorial_from_transcript(transcription)
+        tutorial = generate_tutorial_from_transcript(english_transcription)
         if not tutorial:
             return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
         # Save blog to database
@@ -1684,7 +1686,7 @@ def generate_tutorial(request):
             youtube_title=title,
             youtube_link=yt_link,
             youtube_text=tutorial,
-            transcript=transcription
+            transcript=english_transcription
         )
         new_tutorial.save()
         
@@ -1742,6 +1744,7 @@ def get_transcription(video_id):
 
 def get_transcription_proxy(video_id):
     """Fetch transcript using RapidAPI proxy"""
+    print(">>> STARTING RAPIDAPI TRANSCRIPT REQUEST:", video_id)
     try:
         url = "https://youtube-transcript3.p.rapidapi.com/api/transcript"
         querystring = {"videoId": video_id}  # FIXED
