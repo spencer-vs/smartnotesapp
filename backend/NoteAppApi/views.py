@@ -1665,8 +1665,17 @@ def generate_tutorial(request):
         transcription = get_transcription(video_id)
         if not transcription:
             return JsonResponse({'error': 'Transcript not available for this video'}, status=500)
+        # Translate transcript to English
+        english_transcription = translate_transcript_to_english(transcription)
+
+        if not english_transcription:
+           return JsonResponse(
+           {'error': 'Failed to translate transcript to English'},
+           status=500
+           )
+
         # Generate blog
-        tutorial = generate_tutorial_from_transcript(transcription)
+        tutorial = generate_tutorial_from_transcript(english_transcription)
         if not tutorial:
             return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
         # Save blog to database
@@ -1675,7 +1684,7 @@ def generate_tutorial(request):
             youtube_title=title,
             youtube_link=yt_link,
             youtube_text=tutorial,
-            transcript=transcription
+            transcript=english_transcription
         )
         new_tutorial.save()
         
@@ -1763,6 +1772,66 @@ def get_transcription_proxy(video_id):
         print("Proxy status:", response.status_code)
         print("Proxy response:", response.text[:500])
     return None
+
+
+
+
+def translate_transcript_to_english(transcription):
+    try:
+        api_key = os.getenv("GROQ_API_KEY", "").strip()
+
+        if not api_key:
+            print("Groq API key not found")
+            return None
+
+        client = Groq(api_key=api_key)
+
+        prompt = f"""
+Translate the following transcript into clear, natural English.
+
+Important:
+- Preserve the original meaning.
+- Do not summarize.
+- Do not add information.
+- Do not remove information.
+- Keep names, dates, places, and numbers accurate.
+- Return only the translated transcript.
+
+Transcript:
+{transcription}
+"""
+
+        for attempt in range(3):
+            try:
+                completion = client.chat.completions.create(
+                    model="openai/gpt-oss-20b",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature=0.2,
+                    max_tokens=6000,
+                )
+
+                translated = completion.choices[0].message.content.strip()
+
+                if translated:
+                    return translated
+
+            except Exception as e:
+                print(
+                    f"Transcript translation attempt {attempt + 1} failed:",
+                    e
+                )
+                time.sleep(2)
+
+        return None
+
+    except Exception as e:
+        print("Transcript translation fatal error:", e)
+        return None
 
 
 
