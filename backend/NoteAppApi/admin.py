@@ -112,7 +112,7 @@ class TaskItemAdmin(admin.ModelAdmin):
   
 @admin.register(Lecture)
 class LectureAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "lecture", "created_at")
+    list_display = ("id", "title", "lecture", "transcript", "created_at")
     search_fields = ("Lectures",)
     
     
