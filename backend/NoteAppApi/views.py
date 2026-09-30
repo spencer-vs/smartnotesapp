@@ -1599,6 +1599,7 @@ def get_tutorial_details(request, id):
             "id": tutorial.id,
             "title": tutorial.youtube_title,
             "text": tutorial.youtube_text,
+            "transcript": tutorial.transcript,
             "video_link": tutorial.youtube_link,
             "created_at": tutorial.created_at
         })
@@ -1674,6 +1675,7 @@ def generate_tutorial(request):
             youtube_title=title,
             youtube_link=yt_link,
             youtube_text=tutorial,
+            transcript=transcription
         )
         new_tutorial.save()
         

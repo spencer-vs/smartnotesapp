@@ -76,7 +76,7 @@ class TutorialSerializer(serializers.ModelSerializer):
     
   class Meta:  
     model = Tutorial
-    fields = ["id", "youtube_title", "youtube_text", "youtube_link", "created_at"]
+    fields = ["id", "youtube_title", "youtube_text", "youtube_link", "transcript", "created_at"]
     # read_only_fields = ["created_at"]
     
     

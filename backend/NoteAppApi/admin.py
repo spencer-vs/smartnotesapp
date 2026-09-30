@@ -121,7 +121,7 @@ class LectureAdmin(admin.ModelAdmin):
     
 @admin.register(Tutorial)
 class TutorialAdmin(admin.ModelAdmin):
-    list_display = ("id", "youtube_title", "youtube_text", "youtube_link")
+    list_display = ("id", "youtube_title", "youtube_text", "youtube_link", "transcript")
     search_fields = ("Tutorials", )
     
     
