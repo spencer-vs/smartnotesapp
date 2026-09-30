@@ -1649,25 +1649,32 @@ def generate_tutorial(request):
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request method'}, status=405)
     try:
-        print("User:", request.user)
+       
         yt_link = request.data.get('link')
         if not yt_link:
             return JsonResponse({'error': 'No YouTube link provided'}, status=400)
-        print(f"Generating blog for: {yt_link}")
+       
         # Extract video ID
         video_id = get_video_id(yt_link)
         title = get_youtube_title(video_id)
-        print("Extracted video ID:", video_id)
+       
         if not video_id:
             return JsonResponse({'error': 'Invalid YouTube URL'}, status=400)
         # Get transcript
         # transcription = transcription[:1200]
         transcription = get_transcription(video_id)
         if not transcription:
-            return JsonResponse({'error': 'Transcript not available for this video'}, status=500)
+            return JsonResponse(
+            {
+            'error': (
+                'A transcript could not be retrieved for this YouTube video. '
+                'Please try another video.'
+            )
+            },
+        status=400
+    )
         # Translate transcript to English
-        print(">>> RAPIDAPI TRANSCRIPT RECEIVED")
-        print(">>> STARTING TRANSCRIPT TRANSLATION")
+        
         english_transcription = translate_transcript_to_english(transcription)
 
         if not english_transcription:
@@ -1744,7 +1751,7 @@ def get_transcription(video_id):
 
 def get_transcription_proxy(video_id):
     """Fetch transcript using RapidAPI proxy"""
-    print(">>> STARTING RAPIDAPI TRANSCRIPT REQUEST:", video_id)
+    
     try:
         url = "https://youtube-transcript3.p.rapidapi.com/api/transcript"
         querystring = {"videoId": video_id}  # FIXED
@@ -1755,7 +1762,7 @@ def get_transcription_proxy(video_id):
         response = requests.get(url, headers=headers, params=querystring)
         if response.status_code == 200:
             data = response.json()
-            print("RAW TRANSCRIPT API RESPONSE:", data)
+            
             if isinstance(data, dict) and "transcript" in data:
                 transcript_list = data["transcript"]
             elif isinstance(data, list):
