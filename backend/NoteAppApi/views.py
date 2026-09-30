@@ -1666,16 +1666,16 @@ def generate_tutorial(request):
         if not transcription:
             return JsonResponse({'error': 'Transcript not available for this video'}, status=500)
         # Translate transcript to English
-        english_transcription = translate_transcript_to_english(transcription)
+        # english_transcription = translate_transcript_to_english(transcription)
 
-        if not english_transcription:
-           return JsonResponse(
-           {'error': 'Failed to translate transcript to English'},
-           status=500
-           )
+        # if not english_transcription:
+        #    return JsonResponse(
+        #    {'error': 'Failed to translate transcript to English'},
+        #    status=500
+        #    )
 
         # Generate blog
-        tutorial = generate_tutorial_from_transcript(english_transcription)
+        tutorial = generate_tutorial_from_transcript(transcription)
         if not tutorial:
             return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
         # Save blog to database
@@ -1684,7 +1684,7 @@ def generate_tutorial(request):
             youtube_title=title,
             youtube_link=yt_link,
             youtube_text=tutorial,
-            transcript=english_transcription
+            transcript=transcription
         )
         new_tutorial.save()
         
@@ -1812,7 +1812,7 @@ Transcript:
                         }
                     ],
                     temperature=0.2,
-                    max_tokens=6000,
+                    max_tokens=16000,
                 )
 
                 translated = completion.choices[0].message.content.strip()
