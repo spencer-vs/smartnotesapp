@@ -138,7 +138,11 @@ class UserView(APIView):
         # Cancel Paystack recurring billing
         # --------------------------------
 
-        if subscription.paystack_subscription_code:
+        if (
+            subscription.paystack_subscription_code
+            and not subscription.cancel_at_period_end
+            and subscription.status != "cancelled"
+        ):
 
             from NoteAppApi.views import (
                 disable_paystack_subscription
