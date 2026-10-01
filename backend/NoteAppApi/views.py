@@ -1970,19 +1970,8 @@ def initialize_payment(request):
 
         response_data = response.json()
         
-        # print(
-        # "PAYSTACK KEY:",
-        # settings.PAYSTACK_SECRET_KEY[:12]
-        # if settings.PAYSTACK_SECRET_KEY
-        # else "MISSING"
-        # )
-        
-        # print("USER:", request.user)
-        # print("EMAIL:", request.user.email)
-        # print("PLAN:", plan_name)
-        # print("PAYSTACK STATUS:", response.status_code)
-        # print("PAYSTACK RESPONSE:", response_data)
-
+       
+       
     except requests.RequestException:
         return Response(
             {"detail": "Unable to connect to Paystack."},
@@ -2042,16 +2031,7 @@ def verify_payment(request, reference):
     # Validate payment reference
     # -----------------------------------
     
-    print("========== PAYMENT VERIFICATION DEBUG ==========")
-    print("User:", request.user.id)
-    print("Reference from URL:", reference)
-    print("Reference in database:", subscription.paystack_reference)
-    print("Subscription status:", subscription.status)
-    print("Subscription plan:", subscription.plan)
-    print("Paystack transaction ID:", subscription.paystack_transaction_id)
-    print("Paystack subscription code:", subscription.paystack_subscription_code)
-    print("================================================")
-
+    
     if subscription.paystack_reference != reference:
         return Response(
             {"detail": "Invalid payment reference."},
@@ -2506,11 +2486,7 @@ def renew_subscription(subscription, transaction):
         subscription.paystack_transaction_id
         == transaction_id
     ):
-        print(
-            "RENEWAL ALREADY PROCESSED:",
-            transaction_id
-        )
-
+        
         return subscription
 
     # ---------------------------------------
@@ -2560,11 +2536,7 @@ def renew_subscription(subscription, transaction):
         ]
     )
 
-    print(
-        "SUBSCRIPTION RENEWED:",
-        transaction_id
-    )
-
+    
     return subscription
 
 
@@ -2610,12 +2582,7 @@ def get_paystack_subscription(customer_id, plan_code):
 @api_view(["POST"])
 def paystack_webhook(request):
 
-    print("PAYSTACK WEBHOOK RECEIVED")
-    print("BODY:", request.body)
-    print(
-        "SIGNATURE:",
-        request.headers.get("x-paystack-signature")
-    )
+   
 
     # ---------------------------------------
     # Verify Paystack signature
@@ -3091,13 +3058,7 @@ def generate_quiz_view(request):
         difficulty = request.data.get("difficulty")
         question_type = request.data.get("question_type")
 
-        # print("QUIZ REQUEST")
-        # print("User:", request.user)
-        # print("Lecture ID:", lecture_id)
-        # print("Tutorial ID:", tutorial_id)
-        # print("Difficulty:", difficulty)
-        # print("Question Type:", question_type)
-
+        
         # -----------------------------------
         # Validate source
         # -----------------------------------
