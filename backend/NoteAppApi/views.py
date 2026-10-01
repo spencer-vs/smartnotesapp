@@ -2607,7 +2607,6 @@ def get_paystack_subscription(customer_id, plan_code):
     return None
 
 
-
 @api_view(["POST"])
 def paystack_webhook(request):
 
@@ -2670,7 +2669,111 @@ def paystack_webhook(request):
         return Response(
             {
                 "message":
-                "Payment failed. Subscription was not renewed."
+                    "Payment failed. Subscription was not renewed."
+            },
+            status=200
+        )
+
+    # ---------------------------------------
+    # Subscription no longer renewing
+    # ---------------------------------------
+
+    if event_type == "subscription.not_renew":
+
+        subscription_data = event.get("data", {})
+
+        subscription_code = subscription_data.get(
+            "subscription_code"
+        )
+
+        if not subscription_code:
+            return Response(
+                {
+                    "message":
+                        "Missing subscription code."
+                },
+                status=200
+            )
+
+        subscription = (
+            Subscription.objects
+            .filter(
+                paystack_subscription_code=subscription_code
+            )
+            .first()
+        )
+
+        if subscription:
+
+            subscription.cancel_at_period_end = True
+
+            if not subscription.cancelled_at:
+                subscription.cancelled_at = timezone.now()
+
+            subscription.save(
+                update_fields=[
+                    "cancel_at_period_end",
+                    "cancelled_at",
+                    "updated_at",
+                ]
+            )
+
+        return Response(
+            {
+                "message":
+                    "Subscription marked as non-renewing."
+            },
+            status=200
+        )
+
+    # ---------------------------------------
+    # Subscription disabled
+    # ---------------------------------------
+
+    if event_type == "subscription.disable":
+
+        subscription_data = event.get("data", {})
+
+        subscription_code = subscription_data.get(
+            "subscription_code"
+        )
+
+        if not subscription_code:
+            return Response(
+                {
+                    "message":
+                        "Missing subscription code."
+                },
+                status=200
+            )
+
+        subscription = (
+            Subscription.objects
+            .filter(
+                paystack_subscription_code=subscription_code
+            )
+            .first()
+        )
+
+        if subscription:
+
+            subscription.cancel_at_period_end = True
+
+            if not subscription.cancelled_at:
+                subscription.cancelled_at = timezone.now()
+
+            subscription.save(
+                update_fields=[
+                    "cancel_at_period_end",
+                    "cancelled_at",
+                    "updated_at",
+                ]
+            )
+
+        return Response(
+            {
+                "message":
+                    "Subscription marked as disabled."
             },
             status=200
         )
@@ -2682,7 +2785,10 @@ def paystack_webhook(request):
     if event_type != "charge.success":
 
         return Response(
-            {"message": "Event ignored."},
+            {
+                "message":
+                    "Event ignored."
+            },
             status=200
         )
 
@@ -2697,7 +2803,10 @@ def paystack_webhook(request):
     if not reference:
 
         return Response(
-            {"detail": "Missing transaction reference."},
+            {
+                "detail":
+                    "Missing transaction reference."
+            },
             status=400
         )
 
@@ -2751,7 +2860,7 @@ def paystack_webhook(request):
         return Response(
             {
                 "detail":
-                "Unable to identify the SmartNotes subscription."
+                    "Unable to identify the SmartNotes subscription."
             },
             status=404
         )
@@ -2795,7 +2904,9 @@ def paystack_webhook(request):
     except ValueError as e:
 
         return Response(
-            {"detail": str(e)},
+            {
+                "detail": str(e)
+            },
             status=400
         )
 
