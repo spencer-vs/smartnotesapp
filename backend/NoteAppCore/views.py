@@ -42,20 +42,7 @@ def expire_subscription_if_needed(subscription):
 
     return subscription        
         
-        
-# class UserView(APIView):
-
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-        
-#         subscription = request.user.subscription
-        
-#         expire_subscription_if_needed(subscription)
-
-#         serializer = UserProfileSerializer(request.user)
-
-#         return Response(serializer.data)
+   
 
 
 
@@ -137,3 +124,66 @@ class UserView(APIView):
         serializer = UserProfileSerializer(request.user)
 
         return Response(serializer.data, status=200)
+    
+    
+    
+    
+    
+    
+    def delete(self, request):
+
+        subscription = request.user.subscription
+
+        # --------------------------------
+        # Cancel Paystack recurring billing
+        # --------------------------------
+
+        if subscription.paystack_subscription_code:
+
+            from NoteAppApi.views import (
+                disable_paystack_subscription
+            )
+
+            success, error_message = (
+                disable_paystack_subscription(
+                    subscription
+                )
+            )
+
+            if not success:
+
+                if error_message == "Unable to contact Paystack.":
+
+                    return Response(
+                        {
+                            "detail":
+                                "Unable to contact Paystack. "
+                                "Your account was not deleted. "
+                                "Please try again."
+                        },
+                        status=503
+                    )
+
+                return Response(
+                    {
+                        "detail":
+                            "We could not cancel your "
+                            "Paystack subscription. "
+                            "Your account was not deleted."
+                    },
+                    status=400
+                )
+
+        # --------------------------------
+        # Delete SmartNotes account
+        # --------------------------------
+
+        request.user.delete()
+
+        return Response(
+            {
+                "message":
+                    "Your SmartNotes account has been deleted."
+            },
+            status=200
+        )

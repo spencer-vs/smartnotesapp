@@ -2812,6 +2812,50 @@ def paystack_webhook(request):
 
 
 
+def disable_paystack_subscription(subscription):
+
+    if not subscription.paystack_subscription_code:
+        return False, "No Paystack subscription found."
+
+    if not subscription.paystack_email_token:
+        return False, "Missing Paystack subscription verification token."
+
+    headers = {
+        "Authorization":
+            f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    data = {
+        "code": subscription.paystack_subscription_code,
+        "token": subscription.paystack_email_token,
+    }
+
+    try:
+
+        response = requests.post(
+            "https://api.paystack.co/subscription/disable",
+            json=data,
+            headers=headers,
+            timeout=30,
+        )
+
+        response_data = response.json()
+
+    except requests.RequestException:
+
+        return False, "Unable to contact Paystack."
+
+    if not response_data.get("status"):
+
+        return False, response_data.get(
+            "message",
+            "Unable to cancel the Paystack subscription."
+        )
+
+    return True, None
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def cancel_subscription(request):
@@ -2856,49 +2900,24 @@ def cancel_subscription(request):
             status=400
         )
 
-    headers = {
-        "Authorization":
-            f"Bearer {settings.PAYSTACK_SECRET_KEY}",
-        "Content-Type": "application/json",
-    }
+    success, error_message = disable_paystack_subscription(
+        subscription
+    )
 
-    data = {
-        "code": subscription.paystack_subscription_code,
-        "token": subscription.paystack_email_token,
-    }
+    if not success:
 
-    try:
+        if error_message == "Unable to contact Paystack.":
 
-        response = requests.post(
-            "https://api.paystack.co/subscription/disable",
-            json=data,
-            headers=headers,
-            timeout=30,
-        )
-
-        response_data = response.json()
-
-    except requests.RequestException:
+            return Response(
+                {
+                    "detail": error_message
+                },
+                status=503
+            )
 
         return Response(
             {
-                "detail":
-                "Unable to contact Paystack. "
-                "Please try again."
-            },
-            status=503
-        )
-
-    # Paystack rejected the cancellation
-    if not response_data.get("status"):
-
-        return Response(
-            {
-                "detail":
-                response_data.get(
-                    "message",
-                    "Unable to cancel your subscription."
-                )
+                "detail": error_message
             },
             status=400
         )
@@ -2921,9 +2940,9 @@ def cancel_subscription(request):
     return Response(
         {
             "message":
-            "Your subscription has been cancelled. "
-            "You will continue to have premium access "
-            "until the end of your current billing period.",
+                "Your subscription has been cancelled. "
+                "You will continue to have premium access "
+                "until the end of your current billing period.",
 
             "status": subscription.status,
 
@@ -2938,12 +2957,6 @@ def cancel_subscription(request):
         },
         status=200
     )
-    
-    
-    
-    
-    
-    
     
     
     
