@@ -2617,6 +2617,11 @@ def paystack_webhook(request):
 
     event = request.data
     event_type = event.get("event")
+    
+    print(
+    "PAYSTACK WEBHOOK EVENT:",
+    event_type
+    )
 
     # ---------------------------------------
     # Failed payment
