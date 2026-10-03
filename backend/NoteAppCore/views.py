@@ -8,9 +8,34 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from NoteAppApi.subscription import has_premium_access
 from django.utils import timezone
+from rest_framework import status
+from rest_framework_simplejwt.views import TokenRefreshView
+from .models import CustomUser
 
 
 User = get_user_model()
+
+
+class CustomTokenRefreshView(TokenRefreshView):
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+            return super().post(
+                request,
+                *args,
+                **kwargs
+            )
+
+        except CustomUser.DoesNotExist:
+
+            return Response(
+                {
+                    "detail": "User account no longer exists.",
+                    "code": "account_deleted",
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class RegisterView(APIView):

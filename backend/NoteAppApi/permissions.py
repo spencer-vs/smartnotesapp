@@ -34,10 +34,13 @@ class HasPremiumSubscription(BasePermission):
             and subscription.subscription_end <= now
         ):
             subscription.status = "expired"
+            subscription.cancel_at_period_end = False
+
             subscription.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
+               update_fields=[
+                "status",
+                "cancel_at_period_end",
+                "updated_at",
                 ]
             )
 
@@ -52,10 +55,13 @@ class HasPremiumSubscription(BasePermission):
 
             # Trial has expired
             subscription.status = "expired"
+            subscription.cancel_at_period_end = False
+
             subscription.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
+               update_fields=[
+                 "status",
+                 "cancel_at_period_end",
+                 "updated_at",
                 ]
             )
 

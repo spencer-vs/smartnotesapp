@@ -3484,7 +3484,7 @@ def submit_quiz_view(request, quiz_id):
         
         
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
+@permission_classes([IsAuthenticated])
 def review_quiz_view(request, quiz_id):
 
     try:
@@ -3686,7 +3686,7 @@ def review_quiz_view(request, quiz_id):
         
         
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
+@permission_classes([IsAuthenticated])
 def saved_quizzes_view(request):
 
     try:
