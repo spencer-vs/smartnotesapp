@@ -1393,9 +1393,6 @@ def process_audio(lecture_id):
         lecture = Lecture.objects.get(id=lecture_id)
         file_path = lecture.audio_file.path
         
-        print("AUDIO FILE PATH:", file_path)
-        print("AUDIO FILE SIZE:", os.path.getsize(file_path))
-        print("AUDIO FILE EXISTS:", os.path.exists(file_path))
         api_key = os.getenv("ASSEMBLYAI_API_KEY")
         if not api_key:
             print("AssemblyAI key missing!")
@@ -1406,8 +1403,7 @@ def process_audio(lecture_id):
         transcriber = aai.Transcriber()
         config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
         transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
-        # print("TRANSCRIPT STATUS:", transcript.status)
-        print("AUDIO DURATION:", transcript.audio_duration)
+       
         # print("FULL TRANSCRIPT:", transcript.text)
         if transcript.status == "error":
             print("AssemblyAI error:", transcript.error)
@@ -1494,15 +1490,12 @@ def lecture_status(request, id):
 def generate_lecture_note(transcription):
     try:
         api_key = os.getenv("GROQ_API_KEY", " ").strip()
-        print("Key Lenght", len(api_key))
-        print("Last Five", repr(api_key[-5]))
+        
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        print("TRANSCRIPT LENGTH:", len(transcription))
-        print("TRANSCRIPT PREVIEW END:", transcription[-500:])
         # prompt = f"Convert this into structured lecture notes:\n{transcription[:10000]}"
         
         prompt = f"""
@@ -1559,8 +1552,7 @@ def generate_lecture_note(transcription):
             "max_tokens": 4000,
         }
         response = requests.post(url, json=payload, headers=headers, timeout=60)
-        print("STATUS CODE:", response.status_code)
-        print("RAW RESPONSE:", response.text)
+        
         if response.status_code != 200:
             return None
         data = response.json()
