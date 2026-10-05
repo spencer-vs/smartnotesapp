@@ -9,7 +9,8 @@ from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
-from datetime import datetime, timedelta, time
+from datetime import timedelta, time
+from datetime import time as datetime_time
 from .quiz_generator import generate_quiz, save_generated_quiz
 from django.db import transaction
 from openai import OpenAI
@@ -271,7 +272,7 @@ def search_tasks(request):
     tasks = Task.objects.filter(user=request.user)
     try:
         # Try date search
-        date_obj = datetime.strptime(query, "%Y-%m-%d").date()
+        date_obj = datetime_time.strptime(query, "%Y-%m-%d").date()
         tasks = tasks.filter(created_at__date=date_obj)
     except ValueError:
         # Text search
@@ -318,7 +319,7 @@ def search_lectures(request):
         # ✅ Handle FULL DATE (YYYY-MM-DD)
         if len(query) == 10:
             try:
-                date_obj = datetime.strptime(query, "%Y-%m-%d").date()
+                date_obj = datetime_time.strptime(query, "%Y-%m-%d").date()
                 lectures = lectures.filter(created_at__date=date_obj)
             except ValueError:
                 lectures = Lecture.objects.none()
@@ -1648,10 +1649,11 @@ def generate_tutorial(request):
        
         # Extract video ID
         video_id = get_video_id(yt_link)
-        title = get_youtube_title(video_id)
+        
        
         if not video_id:
             return JsonResponse({'error': 'Invalid YouTube URL'}, status=400)
+        title = get_youtube_title(video_id)
         # Get transcript
         # transcription = transcription[:1200]
         transcription = get_transcription(video_id)
@@ -1777,8 +1779,106 @@ def get_transcription_proxy(video_id):
 
 
 
+def split_transcript_into_chunks(transcript, max_chars=20000):
+    """
+
+    Split a transcript into manageable chunks without cutting
+    words unnecessarily.
+    """
+
+    words = transcript.split()
+    chunks = []
+    current_chunk = []
+    current_length = 0
+
+    for word in words:
+        word_length = len(word) + 1
+
+        if current_length + word_length > max_chars:
+            if current_chunk:
+                chunks.append(" ".join(current_chunk))
+
+            current_chunk = [word]
+            current_length = word_length
+
+        else:
+            current_chunk.append(word)
+            current_length += word_length
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+
+
+
+
+
+
+
+# def translate_transcript_to_english(transcription):
+#     try:
+#         api_key = os.getenv("GROQ_API_KEY", "").strip()
+
+#         if not api_key:
+#             print("Groq API key not found")
+#             return None
+
+#         client = Groq(api_key=api_key)
+
+#         prompt = f"""
+# Translate the following transcript into clear, natural English.
+
+# Important:
+# - Preserve the original meaning.
+# - Do not summarize.
+# - Do not add information.
+# - Do not remove information.
+# - Keep names, dates, places, and numbers accurate.
+# - Return only the translated transcript.
+
+# Transcript:
+# {transcription}
+# """
+
+#         for attempt in range(3):
+#             try:
+#                 completion = client.chat.completions.create(
+#                     model="openai/gpt-oss-20b",
+#                     messages=[
+#                         {
+#                             "role": "user",
+#                             "content": prompt
+#                         }
+#                     ],
+#                     temperature=0.2,
+#                     max_tokens=16000,
+#                 )
+
+#                 translated = completion.choices[0].message.content.strip()
+
+#                 if translated:
+#                     return translated
+
+#             except Exception as e:
+#                 print(
+#                     f"Transcript translation attempt {attempt + 1} failed:",
+#                     e
+#                 )
+#                 time.sleep(2)
+
+#         return None
+
+#     except Exception as e:
+#         print("Transcript translation fatal error:", e)
+#         return None
+
+
+
+
 
 def translate_transcript_to_english(transcription):
+
     try:
         api_key = os.getenv("GROQ_API_KEY", "").strip()
 
@@ -1788,7 +1888,20 @@ def translate_transcript_to_english(transcription):
 
         client = Groq(api_key=api_key)
 
-        prompt = f"""
+        chunks = split_transcript_into_chunks(transcription)
+
+        print(f"Transcript split into {len(chunks)} chunk(s) for translation")
+
+        translated_chunks = []
+
+        for index, chunk in enumerate(chunks):
+
+            print(
+                f"Translating chunk {index + 1}/{len(chunks)} "
+                f"({len(chunk)} characters)"
+            )
+
+            prompt = f"""
 Translate the following transcript into clear, natural English.
 
 Important:
@@ -1800,40 +1913,67 @@ Important:
 - Return only the translated transcript.
 
 Transcript:
-{transcription}
+{chunk}
 """
 
-        for attempt in range(3):
-            try:
-                completion = client.chat.completions.create(
-                    model="openai/gpt-oss-20b",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-                    temperature=0.2,
-                    max_tokens=16000,
-                )
+            translated_chunk = None
 
-                translated = completion.choices[0].message.content.strip()
+            for attempt in range(3):
 
-                if translated:
-                    return translated
+                try:
 
-            except Exception as e:
+                    completion = client.chat.completions.create(
+                        model="openai/gpt-oss-20b",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        temperature=0.2,
+                        max_tokens=5000,
+                    )
+
+                    translated_chunk = (
+                        completion.choices[0].message.content.strip()
+                    )
+
+                    if translated_chunk:
+                        break
+
+                except Exception as e:
+
+                    print(
+                        f"Translation chunk {index + 1}, "
+                        f"attempt {attempt + 1} failed:",
+                        e
+                    )
+
+                    time.sleep(2)
+
+            if not translated_chunk:
+
                 print(
-                    f"Transcript translation attempt {attempt + 1} failed:",
-                    e
+                    f"Failed to translate chunk "
+                    f"{index + 1}"
                 )
-                time.sleep(2)
 
-        return None
+                return None
+
+            translated_chunks.append(translated_chunk)
+
+        return "\n\n".join(translated_chunks)
 
     except Exception as e:
-        print("Transcript translation fatal error:", e)
+
+        print(
+            "Transcript translation fatal error:",
+            e
+        )
+
         return None
+
+
 
 
 
