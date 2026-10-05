@@ -1779,7 +1779,7 @@ def get_transcription_proxy(video_id):
 
 
 
-def split_transcript_into_chunks(transcript, max_chars=20000):
+def split_transcript_into_chunks(transcript, max_chars=12000):
     """
 
     Split a transcript into manageable chunks without cutting
@@ -1877,6 +1877,9 @@ def split_transcript_into_chunks(transcript, max_chars=20000):
 
 
 
+
+
+
 def translate_transcript_to_english(transcription):
 
     try:
@@ -1886,11 +1889,20 @@ def translate_transcript_to_english(transcription):
             print("Groq API key not found")
             return None
 
-        client = Groq(api_key=api_key)
+        client = Groq(
+            api_key=api_key,
+            max_retries=0
+        )
 
-        chunks = split_transcript_into_chunks(transcription)
+        chunks = split_transcript_into_chunks(
+            transcription,
+            max_chars=12000
+        )
 
-        print(f"Transcript split into {len(chunks)} chunk(s) for translation")
+        print(
+            f"Transcript split into {len(chunks)} "
+            f"chunk(s) for translation"
+        )
 
         translated_chunks = []
 
@@ -1918,7 +1930,7 @@ Transcript:
 
             translated_chunk = None
 
-            for attempt in range(3):
+            for attempt in range(2):
 
                 try:
 
@@ -1931,11 +1943,13 @@ Transcript:
                             }
                         ],
                         temperature=0.2,
-                        max_tokens=5000,
+                        max_tokens=4000,
                     )
 
                     translated_chunk = (
-                        completion.choices[0].message.content.strip()
+                        completion.choices[0]
+                        .message.content
+                        .strip()
                     )
 
                     if translated_chunk:
@@ -1943,13 +1957,29 @@ Transcript:
 
                 except Exception as e:
 
+                    error_message = str(e)
+
                     print(
-                        f"Translation chunk {index + 1}, "
+                        f"Translation chunk "
+                        f"{index + 1}, "
                         f"attempt {attempt + 1} failed:",
-                        e
+                        error_message
                     )
 
-                    time.sleep(2)
+                    # Rate limit
+                    if "429" in error_message:
+
+                        if attempt == 0:
+                            print(
+                                "Groq rate limit reached. "
+                                "Waiting 10 seconds..."
+                            )
+                            time.sleep(10)
+
+                    else:
+
+                        if attempt == 0:
+                            time.sleep(2)
 
             if not translated_chunk:
 
@@ -1960,7 +1990,14 @@ Transcript:
 
                 return None
 
-            translated_chunks.append(translated_chunk)
+            translated_chunks.append(
+                translated_chunk
+            )
+
+            # Small pause between successful requests
+            # to reduce the chance of hitting Groq limits.
+            if index < len(chunks) - 1:
+                time.sleep(2)
 
         return "\n\n".join(translated_chunks)
 
@@ -1975,42 +2012,280 @@ Transcript:
 
 
 
-
-
 #---------------- AI BLOG GENERATION ---------------- #
 
+# def generate_tutorial_from_transcript(transcription):
+#     try:
+#         api_key = os.getenv("GROQ_API_KEY", "").strip()
+#         if not api_key:
+#             print("Groq API key not found")
+#             return None
+#         client = Groq(api_key=api_key)
+#         transcription = transcription
+#         prompt = f"""
+#         Based on the generated transcript, create lecture notes, covering all relevant aspects of the video, it should be easily readable and well structured in paragraphs, with each paragraph explaining a particular section of the video, do not give a simple summary instead dive into deep explanations of the points mentioned in the video and finally a conclusion.
+#         Transcript:
+#         {transcription}
+#         Article:
+#         """
+#         for attempt in range(3):  # ✅ retry 3 times
+#             try:
+#                 completion = client.chat.completions.create(
+#                     model="openai/gpt-oss-20b",
+#                     messages=[{"role": "user", "content": prompt}],
+#                     temperature=0.7,
+#                     max_tokens=4000,
+#                 )
+#                 return completion.choices[0].message.content.strip()
+#             except Exception as e:
+#                 print(f"Groq attempt {attempt+1} failed:", e)
+#                 time.sleep(2)
+#         return None
+#     except Exception as e:
+#         print("Groq fatal error:", e)
+#         return None
+    
+    
+
+
+
+
+
 def generate_tutorial_from_transcript(transcription):
+
     try:
         api_key = os.getenv("GROQ_API_KEY", "").strip()
+
         if not api_key:
             print("Groq API key not found")
             return None
-        client = Groq(api_key=api_key)
-        transcription = transcription
-        prompt = f"""
-        Based on the generated transcript, create lecture notes, covering all relevant aspects of the video, it should be easily readable and well structured in paragraphs, with each paragraph explaining a particular section of the video, do not give a simple summary instead dive into deep explanations of the points mentioned in the video and finally a conclusion.
-        Transcript:
-        {transcription}
-        Article:
-        """
-        for attempt in range(3):  # ✅ retry 3 times
-            try:
-                completion = client.chat.completions.create(
-                    model="openai/gpt-oss-20b",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.7,
-                    max_tokens=4000,
+
+        client = Groq(
+            api_key=api_key,
+            max_retries=0
+        )
+
+        # -----------------------------------
+        # Split transcript into smaller chunks
+        # -----------------------------------
+
+        chunks = split_transcript_into_chunks(
+            transcription,
+            max_chars=12000
+        )
+
+        print(
+            f"Transcript split into {len(chunks)} "
+            f"chunk(s) for tutorial generation"
+        )
+
+        generated_sections = []
+
+        # -----------------------------------
+        # Generate tutorial section by section
+        # -----------------------------------
+
+        for index, chunk in enumerate(chunks):
+
+            print(
+                f"Generating tutorial section "
+                f"{index + 1}/{len(chunks)} "
+                f"({len(chunk)} characters)"
+            )
+
+            prompt = f"""
+Based on the transcript below, create a detailed educational
+section of lecture notes.
+
+Requirements:
+
+- Explain the important ideas and concepts clearly.
+- Do not simply summarize the transcript.
+- Provide meaningful explanations of the points discussed.
+- Preserve important facts, examples, names, dates, places,
+  numbers, and terminology.
+- Organize the content into readable paragraphs.
+- Use headings where appropriate.
+- Do not invent information that is not supported by the transcript.
+- Do not repeat the introduction or conclusion unnecessarily.
+- Focus only on the material contained in this transcript section.
+- Return only the educational lecture-note content.
+
+Transcript section:
+{chunk}
+
+Lecture notes:
+"""
+
+            generated_section = None
+
+            # -----------------------------------
+            # Only allow two attempts per chunk
+            # -----------------------------------
+
+            for attempt in range(2):
+
+                try:
+
+                    completion = client.chat.completions.create(
+                        model="openai/gpt-oss-20b",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        temperature=0.5,
+                        max_tokens=3500,
+                    )
+
+                    generated_section = (
+                        completion.choices[0]
+                        .message.content
+                        .strip()
+                    )
+
+                    if generated_section:
+                        break
+
+                except Exception as e:
+
+                    error_message = str(e)
+
+                    print(
+                        f"Tutorial section "
+                        f"{index + 1}, "
+                        f"attempt {attempt + 1} failed:",
+                        error_message
+                    )
+
+                    # -----------------------------------
+                    # Handle Groq rate limits manually
+                    # -----------------------------------
+
+                    if "429" in error_message:
+
+                        if attempt == 0:
+                            print(
+                                "Groq rate limit reached. "
+                                "Waiting 10 seconds before retry..."
+                            )
+
+                            time.sleep(10)
+
+                    else:
+
+                        if attempt == 0:
+                            time.sleep(2)
+
+            # -----------------------------------
+            # Stop if a section could not be generated
+            # -----------------------------------
+
+            if not generated_section:
+
+                print(
+                    f"Failed to generate tutorial section "
+                    f"{index + 1}"
                 )
-                return completion.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"Groq attempt {attempt+1} failed:", e)
+
+                return None
+
+            generated_sections.append(
+                generated_section
+            )
+
+            # -----------------------------------
+            # Small delay between Groq requests
+            # -----------------------------------
+
+            if index < len(chunks) - 1:
+
+                print(
+                    "Waiting 2 seconds before "
+                    "the next tutorial section..."
+                )
+
                 time.sleep(2)
-        return None
+
+        # -----------------------------------
+        # Combine all generated sections
+        # -----------------------------------
+
+        tutorial = "\n\n".join(
+            generated_sections
+        )
+
+        # -----------------------------------
+        # Add a simple conclusion
+        # -----------------------------------
+
+        conclusion_prompt = f"""
+Write a concise educational conclusion for the lecture notes
+below.
+
+Requirements:
+- Summarize the main concepts that were explained.
+- Do not introduce new information.
+- Do not repeat the entire lecture.
+- Keep the conclusion clear and useful for a student.
+- Return only the conclusion.
+
+Lecture notes:
+{tutorial}
+"""
+
+        try:
+
+            completion = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": conclusion_prompt
+                    }
+                ],
+                temperature=0.4,
+                max_tokens=800,
+            )
+
+            conclusion = (
+                completion.choices[0]
+                .message.content
+                .strip()
+            )
+
+            if conclusion:
+
+                tutorial += (
+                    "\n\n## Conclusion\n\n"
+                    + conclusion
+                )
+
+        except Exception as e:
+
+            print(
+                "Conclusion generation failed:",
+                e
+            )
+
+            # Do not discard the tutorial if only
+            # the conclusion request fails.
+            pass
+
+        return tutorial
+
     except Exception as e:
-        print("Groq fatal error:", e)
+
+        print(
+            "Tutorial generation fatal error:",
+            e
+        )
+
         return None
-    
-    
+
+
+
 
 
 @api_view(["GET"])
