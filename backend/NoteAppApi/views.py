@@ -9,7 +9,8 @@ from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
-from datetime import timedelta, time
+import time
+from datetime import timedelta
 from datetime import time as datetime_time
 from .quiz_generator import generate_quiz, save_generated_quiz
 from django.db import transaction
