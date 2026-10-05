@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 import re
 from NoteAppApi.serializers import SubscriptionSerializer
+
 User = get_user_model()
 
 
@@ -70,7 +71,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        return value.strip().lower()
+        value = value.strip().lower()
+    
+        if User.objects.filter(email__iexact=value).exist():
+            raise serializers.ValidationError("An account with this email already exists.")
 
     def validate_address(self, value):
 

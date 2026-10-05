@@ -2166,10 +2166,7 @@ def verify_payment(request, reference):
         subscription.paystack_transaction_id == transaction_id
     ):
 
-        print(
-            "Payment already processed:",
-            transaction_id
-        )
+        
 
         return Response(
             {
@@ -2201,10 +2198,7 @@ def verify_payment(request, reference):
 
         if not subscription.paystack_transaction_id:
 
-            print(
-                "Processing FIRST payment:",
-                transaction_id
-            )
+            
 
             activate_subscription(
                 subscription,
@@ -2224,11 +2218,7 @@ def verify_payment(request, reference):
 
         else:
 
-            print(
-                "Processing NEW payment:",
-                transaction_id
-            )
-
+            
             # ----------------------------
             # Don't renew a subscription
             # that has been marked as
@@ -2237,10 +2227,7 @@ def verify_payment(request, reference):
 
             if subscription.cancel_at_period_end:
 
-                print(
-                    "WARNING: Payment received for "
-                    "a cancelled/non-renewing subscription."
-                )
+                
 
                 return Response(
                     {
