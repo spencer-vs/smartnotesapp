@@ -1876,7 +1876,6 @@ def split_transcript_into_chunks(transcript, max_chars=12000):
 
 
 
-
 def translate_transcript_to_english(transcription):
 
     try:
@@ -1886,20 +1885,31 @@ def translate_transcript_to_english(transcription):
             print("Groq API key not found")
             return None
 
-        # Disable Groq SDK automatic retries.
-        # We handle rate limits ourselves.
+        # -------------------------------------------------
+        # Groq client
+        # -------------------------------------------------
+
         client = Groq(
             api_key=api_key,
             max_retries=0
         )
 
         # -------------------------------------------------
-        # Split transcript into smaller chunks
+        # Use a separate model for translation.
+        #
+        # GPT-OSS-20B will be reserved for tutorial
+        # generation.
+        # -------------------------------------------------
+
+        translation_model = "qwen/qwen3.8-27b"
+
+        # -------------------------------------------------
+        # Smaller chunks to reduce TPM pressure
         # -------------------------------------------------
 
         chunks = split_transcript_into_chunks(
             transcription,
-            max_chars=8000
+            max_chars=5500
         )
 
         print(
@@ -1916,7 +1926,8 @@ def translate_transcript_to_english(transcription):
         for index, chunk in enumerate(chunks):
 
             print(
-                f"Translating chunk {index + 1}/{len(chunks)} "
+                f"Translating chunk "
+                f"{index + 1}/{len(chunks)} "
                 f"({len(chunk)} characters)"
             )
 
@@ -1924,14 +1935,15 @@ def translate_transcript_to_english(transcription):
 Translate the following transcript into clear, natural English.
 
 Important:
-- Preserve the original meaning.
+- Preserve the original meaning exactly.
 - Do not summarize.
 - Do not add information.
 - Do not remove information.
-- Keep names, dates, places, numbers, and terminology accurate.
+- Preserve names, dates, places, numbers, examples,
+  and technical terminology.
 - Preserve the order of the information.
+- Do not add explanations.
 - Return only the translated transcript.
-- Do not add comments or explanations.
 
 Transcript:
 {chunk}
@@ -1940,7 +1952,7 @@ Transcript:
             translated_chunk = None
 
             # -------------------------------------------------
-            # Maximum of 2 attempts per chunk
+            # Maximum of 2 attempts
             # -------------------------------------------------
 
             for attempt in range(2):
@@ -1948,19 +1960,18 @@ Transcript:
                 try:
 
                     completion = client.chat.completions.create(
-                        model="openai/gpt-oss-20b",
+                        model=translation_model,
                         messages=[
                             {
                                 "role": "user",
                                 "content": prompt
                             }
                         ],
-                        temperature=0.2,
+                        temperature=0.1,
 
-                        # Keep output controlled so that
-                        # the request stays well below the
-                        # 8,000 TPM limit.
-                        max_tokens=2500,
+                        # Translation should not need
+                        # a huge output allowance.
+                        max_tokens=2200,
                     )
 
                     translated_chunk = (
@@ -1976,32 +1987,57 @@ Transcript:
 
                 except RateLimitError as e:
 
+                    error_message = str(e)
+
                     print(
-                        f"Groq rate limit reached while "
-                        f"translating chunk {index + 1}, "
-                        f"attempt {attempt + 1}:"
+                        f"Translation chunk "
+                        f"{index + 1}, "
+                        f"attempt {attempt + 1} "
+                        f"rate limited:"
                     )
 
-                    print(e)
+                    print(error_message)
 
                     # -----------------------------------------
-                    # Groq TPM limit
+                    # Try to extract Groq's suggested wait time
+                    # -----------------------------------------
+
+                    wait_seconds = 10
+
+                    match = re.search(
+                        r"try again in ([0-9.]+)s",
+                        error_message,
+                        re.IGNORECASE
+                    )
+
+                    if match:
+
+                        try:
+                            wait_seconds = (
+                                float(match.group(1)) + 3
+                            )
+                        except ValueError:
+                            wait_seconds = 10
+
+                    # -----------------------------------------
+                    # Don't retry forever
                     # -----------------------------------------
 
                     if attempt == 0:
 
                         print(
-                            "Waiting 25 seconds before "
-                            "retrying this chunk..."
+                            f"Waiting "
+                            f"{wait_seconds:.1f} seconds "
+                            f"before retrying..."
                         )
 
-                        time.sleep(25)
+                        time.sleep(wait_seconds)
 
                     else:
 
                         print(
-                            f"Chunk {index + 1} failed "
-                            "after rate-limit retry."
+                            f"Chunk {index + 1} "
+                            "failed after rate-limit retry."
                         )
 
                 except Exception as e:
@@ -2013,17 +2049,17 @@ Transcript:
                         e
                     )
 
-                    # Retry ordinary errors once.
                     if attempt == 0:
 
                         print(
-                            "Waiting 3 seconds before retry..."
+                            "Waiting 3 seconds "
+                            "before retry..."
                         )
 
                         time.sleep(3)
 
             # -------------------------------------------------
-            # Stop if this chunk could not be translated
+            # Stop if translation failed
             # -------------------------------------------------
 
             if not translated_chunk:
@@ -2040,23 +2076,23 @@ Transcript:
             )
 
             # -------------------------------------------------
-            # Pace successful requests
+            # Pace requests
             #
-            # This is important because Groq has an
-            # 8,000-token-per-minute limit on this model.
+            # We intentionally leave time between requests
+            # instead of immediately sending the next chunk.
             # -------------------------------------------------
 
             if index < len(chunks) - 1:
 
                 print(
-                    "Waiting 10 seconds before "
+                    "Waiting 5 seconds before "
                     "the next translation request..."
                 )
 
-                time.sleep(10)
+                time.sleep(5)
 
         # -------------------------------------------------
-        # Combine translated chunks
+        # Combine all translated chunks
         # -------------------------------------------------
 
         translated_transcript = "\n\n".join(
@@ -2078,7 +2114,8 @@ Transcript:
 
         return None
 
-    
+
+
 
 
 
