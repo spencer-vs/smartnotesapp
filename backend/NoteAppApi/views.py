@@ -1876,6 +1876,9 @@ def split_transcript_into_chunks(transcript, max_chars=12000):
 
 
 
+
+
+
 def translate_transcript_to_english(transcription):
 
     try:
@@ -1885,31 +1888,25 @@ def translate_transcript_to_english(transcription):
             print("Groq API key not found")
             return None
 
-        # -------------------------------------------------
-        # Groq client
-        # -------------------------------------------------
-
         client = Groq(
             api_key=api_key,
             max_retries=0
         )
 
         # -------------------------------------------------
-        # Use a separate model for translation.
-        #
-        # GPT-OSS-20B will be reserved for tutorial
-        # generation.
+        # Translation model
         # -------------------------------------------------
 
         translation_model = "qwen/qwen3.8-27b"
 
         # -------------------------------------------------
-        # Smaller chunks to reduce TPM pressure
+        # Keep chunks small enough for the model's
+        # current 1,000-token limit.
         # -------------------------------------------------
 
         chunks = split_transcript_into_chunks(
             transcription,
-            max_chars=5500
+            max_chars=3000
         )
 
         print(
@@ -1934,16 +1931,13 @@ def translate_transcript_to_english(transcription):
             prompt = f"""
 Translate the following transcript into clear, natural English.
 
-Important:
-- Preserve the original meaning exactly.
+Rules:
+- Preserve the original meaning.
 - Do not summarize.
 - Do not add information.
 - Do not remove information.
-- Preserve names, dates, places, numbers, examples,
-  and technical terminology.
-- Preserve the order of the information.
-- Do not add explanations.
-- Return only the translated transcript.
+- Preserve names, dates, places, numbers, and terminology.
+- Return only the translation.
 
 Transcript:
 {chunk}
@@ -1961,17 +1955,20 @@ Transcript:
 
                     completion = client.chat.completions.create(
                         model=translation_model,
+
                         messages=[
                             {
                                 "role": "user",
                                 "content": prompt
                             }
                         ],
+
                         temperature=0.1,
 
-                        # Translation should not need
-                        # a huge output allowance.
-                        max_tokens=2200,
+                        # IMPORTANT:
+                        # Your current model/account has a
+                        # 1,000-token output limit.
+                        max_completion_tokens=900,
                     )
 
                     translated_chunk = (
@@ -1999,7 +1996,7 @@ Transcript:
                     print(error_message)
 
                     # -----------------------------------------
-                    # Try to extract Groq's suggested wait time
+                    # Read Groq's suggested retry time
                     # -----------------------------------------
 
                     wait_seconds = 10
@@ -2019,10 +2016,6 @@ Transcript:
                         except ValueError:
                             wait_seconds = 10
 
-                    # -----------------------------------------
-                    # Don't retry forever
-                    # -----------------------------------------
-
                     if attempt == 0:
 
                         print(
@@ -2037,7 +2030,7 @@ Transcript:
 
                         print(
                             f"Chunk {index + 1} "
-                            "failed after rate-limit retry."
+                            "failed after retry."
                         )
 
                 except Exception as e:
@@ -2059,7 +2052,7 @@ Transcript:
                         time.sleep(3)
 
             # -------------------------------------------------
-            # Stop if translation failed
+            # If translation failed, stop
             # -------------------------------------------------
 
             if not translated_chunk:
@@ -2076,10 +2069,7 @@ Transcript:
             )
 
             # -------------------------------------------------
-            # Pace requests
-            #
-            # We intentionally leave time between requests
-            # instead of immediately sending the next chunk.
+            # Give the TPM window time to recover
             # -------------------------------------------------
 
             if index < len(chunks) - 1:
@@ -2092,7 +2082,7 @@ Transcript:
                 time.sleep(5)
 
         # -------------------------------------------------
-        # Combine all translated chunks
+        # Combine translated chunks
         # -------------------------------------------------
 
         translated_transcript = "\n\n".join(
