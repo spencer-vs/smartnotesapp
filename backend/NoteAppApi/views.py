@@ -20,6 +20,7 @@ import json
 import os
 import re
 import requests
+from langdetect import detect
 from groq import Groq, RateLimitError
 from .models import Task, Lecture
 import traceback
@@ -2238,53 +2239,210 @@ def get_all_tutorials(request):
  
  
  
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated, HasPremiumSubscription])
+# def generate_tutorial(request):
+  
+#     if request.method != "POST":
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+#     try:
+       
+#         yt_link = request.data.get('link')
+#         if not yt_link:
+#             return JsonResponse({'error': 'No YouTube link provided'}, status=400)
+       
+#         # Extract video ID
+#         video_id = get_video_id(yt_link)
+        
+       
+#         if not video_id:
+#             return JsonResponse({'error': 'Invalid YouTube URL'}, status=400)
+#         title = get_youtube_title(video_id)
+#         # Get transcript
+#         # transcription = transcription[:1200]
+#         transcription = get_transcription(video_id)
+#         if not transcription:
+#             return JsonResponse(
+#             {
+#             'error': (
+#                 'A transcript could not be retrieved for this YouTube video. '
+#                 'Please try another video.'
+#             )
+#             },
+#         status=400
+#     )
+#         # Translate transcript to English
+        
+#         english_transcription = translate_transcript_to_english(transcription)
+
+#         if not english_transcription:
+#            return JsonResponse(
+#            {'error': 'Failed to translate transcript to English'},
+#            status=500
+#            )
+
+#         # Generate blog
+#         tutorial = generate_tutorial_from_transcript(english_transcription)
+#         if not tutorial:
+#             return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
+#         # Save blog to database
+#         new_tutorial = Tutorial.objects.create(
+#             user=request.user,
+#             youtube_title=title,
+#             youtube_link=yt_link,
+#             youtube_text=tutorial,
+#             transcript=english_transcription
+#         )
+#         new_tutorial.save()
+        
+        
+        
+#         return JsonResponse({'content': tutorial})
+#     except Exception as e:
+#         print("SERVER ERROR:", e)
+#         return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
+
+
+
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, HasPremiumSubscription])
 def generate_tutorial(request):
-  
+
     if request.method != "POST":
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
+        return JsonResponse(
+            {'error': 'Invalid request method'},
+            status=405
+        )
+
     try:
-       
+
         yt_link = request.data.get('link')
+
         if not yt_link:
-            return JsonResponse({'error': 'No YouTube link provided'}, status=400)
-       
+            return JsonResponse(
+                {'error': 'No YouTube link provided'},
+                status=400
+            )
+
+        # -----------------------------------
         # Extract video ID
+        # -----------------------------------
+
         video_id = get_video_id(yt_link)
-        
-       
+
         if not video_id:
-            return JsonResponse({'error': 'Invalid YouTube URL'}, status=400)
+            return JsonResponse(
+                {'error': 'Invalid YouTube URL'},
+                status=400
+            )
+
+        # -----------------------------------
+        # Get YouTube title
+        # -----------------------------------
+
         title = get_youtube_title(video_id)
+
+        # -----------------------------------
         # Get transcript
-        # transcription = transcription[:1200]
+        # -----------------------------------
+
         transcription = get_transcription(video_id)
+
         if not transcription:
             return JsonResponse(
-            {
-            'error': (
-                'A transcript could not be retrieved for this YouTube video. '
-                'Please try another video.'
+                {
+                    'error': (
+                        'A transcript could not be retrieved for '
+                        'this YouTube video. Please try another video.'
+                    )
+                },
+                status=400
             )
-            },
-        status=400
-    )
-        # Translate transcript to English
-        
-        english_transcription = translate_transcript_to_english(transcription)
 
-        if not english_transcription:
-           return JsonResponse(
-           {'error': 'Failed to translate transcript to English'},
-           status=500
-           )
+        # -----------------------------------
+        # Detect transcript language
+        # -----------------------------------
 
-        # Generate blog
-        tutorial = generate_tutorial_from_transcript(english_transcription)
+        try:
+
+            detected_language = detect(
+                transcription
+            )
+
+            print(
+                "Detected transcript language:",
+                detected_language
+            )
+
+        except Exception as e:
+
+            print(
+                "⚠️ Language detection failed:",
+                repr(e)
+            )
+
+            detected_language = None
+
+        # -----------------------------------
+        # Translate only if necessary
+        # -----------------------------------
+
+        if detected_language == "en":
+
+            print(
+                "🇬🇧 Transcript is already in English. "
+                "Skipping translation."
+            )
+
+            english_transcription = transcription
+
+        else:
+
+            print(
+                "🌍 Transcript is not English. "
+                "Translating to English..."
+            )
+
+            english_transcription = (
+                translate_transcript_to_english(
+                    transcription
+                )
+            )
+
+            if not english_transcription:
+
+                return JsonResponse(
+                    {
+                        'error': (
+                            'Failed to translate transcript to English'
+                        )
+                    },
+                    status=500
+                )
+
+        # -----------------------------------
+        # Generate tutorial
+        # -----------------------------------
+
+        tutorial = generate_tutorial_from_transcript(
+            english_transcription
+        )
+
         if not tutorial:
-            return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
-        # Save blog to database
+
+            return JsonResponse(
+                {
+                    'error': 'Failed to generate tutorial'
+                },
+                status=500
+            )
+
+        # -----------------------------------
+        # Save tutorial
+        # -----------------------------------
+
         new_tutorial = Tutorial.objects.create(
             user=request.user,
             youtube_title=title,
@@ -2292,15 +2450,42 @@ def generate_tutorial(request):
             youtube_text=tutorial,
             transcript=english_transcription
         )
+
         new_tutorial.save()
-        
-        
-        
-        return JsonResponse({'content': tutorial})
+
+        # -----------------------------------
+        # Return tutorial
+        # -----------------------------------
+
+        return JsonResponse(
+            {
+                'content': tutorial
+            }
+        )
+
     except Exception as e:
-        print("SERVER ERROR:", e)
-        return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
-# ---------------- TRANSCRIPT FUNCTIONS ---------------- #
+
+        print(
+            "SERVER ERROR:",
+            e
+        )
+
+        return JsonResponse(
+            {
+                'error': f'Server error: {str(e)}'
+            },
+            status=500
+        )
+
+
+
+
+
+
+
+
+
+# # ---------------- TRANSCRIPT FUNCTIONS ---------------- #
 def get_video_id(url):
     try:
         regex = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
@@ -2421,14 +2606,15 @@ def split_transcript_into_chunks(transcript, max_chars=12000):
 
 
 
-
-
 def translate_transcript_to_english(transcription):
     """
-    Translate a transcript into clear, natural English using Groq.
+    Translate a non-English transcript into English using Groq.
 
-    The entire transcript is sent in one request.
-    No manual chunking is performed.
+    The translation must preserve the original information,
+    meaning, order, and important details.
+
+    The model must not summarize, explain, expand, interpret,
+    or add information that is not present in the transcript.
     """
 
     try:
@@ -2464,24 +2650,58 @@ def translate_transcript_to_english(transcription):
         # -----------------------------------
 
         prompt = f"""
-Translate the following transcript into clear, natural English.
+You are a professional translator for SmartNotes.
 
-Requirements:
+Translate the transcript below into clear, natural English.
 
-- Preserve the original meaning.
-- Do not summarize.
-- Do not add information.
-- Do not remove information.
-- Preserve names, dates, places, numbers, examples,
-  terminology, and other important details.
-- Translate the entire transcript.
-- Maintain the original order of the information.
-- Do not explain the translation.
-- Return only the translated transcript.
+Your task is ONLY to translate the transcript.
 
-Transcript:
+STRICT RULES:
+
+1. Translate the entire transcript.
+2. Preserve the original meaning exactly.
+3. Do NOT summarize the transcript.
+4. Do NOT explain anything.
+5. Do NOT interpret what the speaker meant beyond the words provided.
+6. Do NOT add facts, examples, explanations, opinions, conclusions, or context.
+7. Do NOT remove information from the transcript.
+8. Do NOT expand short statements into longer explanations.
+9. Do NOT repeat information that appears only once in the original.
+10. Preserve names, dates, places, numbers, terminology, examples,
+    technical terms, and other important details.
+11. Preserve the original order of information.
+12. Preserve the structure of the speaker's ideas as closely as possible.
+13. If the speaker repeats something, preserve the repetition where
+    it is meaningful to the original transcript.
+14. Do not turn spoken content into a summary or lecture note.
+15. Do not add a conclusion.
+16. Do not add headings unless they are clearly present in the original.
+17. Do not add comments about the quality or meaning of the transcript.
+18. Do not mention that you are translating.
+19. Do not mention these instructions.
+20. Return ONLY the translated transcript.
+
+IMPORTANT:
+
+The transcript may contain:
+- informal speech
+- incomplete sentences
+- grammatical errors
+- transcription mistakes
+- repeated words
+- filler words
+
+Translate the intended meaning faithfully, but do not invent
+information to "fix" or complete something that is unclear.
+
+If a statement is unclear in the original transcript, translate
+it as faithfully as possible without guessing additional information.
+
+SOURCE TRANSCRIPT:
 
 {transcription}
+
+TRANSLATED ENGLISH TRANSCRIPT:
 """
 
         # -----------------------------------
@@ -2504,7 +2724,7 @@ Transcript:
                         }
                     ],
 
-                    temperature=0.2,
+                    temperature=0.1,
 
                     max_tokens=16000,
                 )
@@ -2569,10 +2789,11 @@ Transcript:
                 )
 
                 if attempt < max_attempts:
+                    print("🔄 Retrying translation...")
                     time.sleep(2)
 
         print(
-            "❌ Transcript translation failed "
+            "❌ Translation failed "
             "after all attempts"
         )
 
@@ -2581,16 +2802,22 @@ Transcript:
     except Exception as e:
 
         print(
-            "❌ Transcript translation fatal error:",
+            "❌ Translation fatal error:",
             repr(e)
         )
 
         traceback.print_exc()
 
         return None
-    
-    
-    
+
+
+
+
+
+
+
+
+
 
 
 

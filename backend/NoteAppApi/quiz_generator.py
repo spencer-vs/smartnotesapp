@@ -24,13 +24,16 @@ QUESTION_TYPES = {
     "true_false",
 }
 
+
+
+
 def generate_quiz(source_text, difficulty, question_type):
     """
     Generate quiz questions from Lecture or Tutorial content
     using Groq GPT-OSS 20B.
 
-    The complete source text is sent in one request.
-    No manual truncation or chunking is performed.
+    Uses strict JSON Schema output to ensure the generated
+    questions contain the required fields and structure.
 
     Returns:
         dict containing generated questions
@@ -52,7 +55,6 @@ def generate_quiz(source_text, difficulty, question_type):
 
             return None
 
-
         # -----------------------------------
         # Validate question type
         # -----------------------------------
@@ -66,7 +68,6 @@ def generate_quiz(source_text, difficulty, question_type):
 
             return None
 
-
         # -----------------------------------
         # Validate source text
         # -----------------------------------
@@ -74,27 +75,21 @@ def generate_quiz(source_text, difficulty, question_type):
         if not source_text or not source_text.strip():
 
             print(
-                "❌ No source text provided for quiz generation"
+                "❌ No source text provided "
+                "for quiz generation"
             )
 
             return None
 
-
-        # -----------------------------------
-        # Clean source text
-        # -----------------------------------
-
         source_text = source_text.strip()
 
-
         # -----------------------------------
-        # Determine number of questions
+        # Determine question count
         # -----------------------------------
 
         number_of_questions = (
             DIFFICULTY_QUESTION_COUNT[difficulty]
         )
-
 
         # -----------------------------------
         # Get Groq API key
@@ -105,16 +100,16 @@ def generate_quiz(source_text, difficulty, question_type):
             ""
         ).strip()
 
-
         if not api_key:
 
-            print("❌ GROQ_API_KEY is missing")
+            print(
+                "❌ GROQ_API_KEY is missing"
+            )
 
             return None
 
-
         # -----------------------------------
-        # Create Groq client
+        # Groq client
         # -----------------------------------
 
         client = Groq(
@@ -122,9 +117,8 @@ def generate_quiz(source_text, difficulty, question_type):
             max_retries=0
         )
 
-
         # -----------------------------------
-        # Question type instructions
+        # Question format
         # -----------------------------------
 
         if question_type == "multiple_choice":
@@ -139,13 +133,42 @@ D
 
 There must be exactly ONE correct answer.
 
-All four option texts must be:
+All four options must:
 
-- non-empty
-- meaningful
-- different from each other
-- plausible within the source material
+- be non-empty
+- be meaningful
+- be different
+- be plausible based on the source material
 """
+
+            option_properties = {
+                "A": {
+                    "type": "string"
+                },
+                "B": {
+                    "type": "string"
+                },
+                "C": {
+                    "type": "string"
+                },
+                "D": {
+                    "type": "string"
+                }
+            }
+
+            option_required = [
+                "A",
+                "B",
+                "C",
+                "D"
+            ]
+
+            correct_answer_enum = [
+                "A",
+                "B",
+                "C",
+                "D"
+            ]
 
         else:
 
@@ -156,8 +179,31 @@ A = True
 B = False
 
 There must be exactly ONE correct answer.
+
+Option A must be exactly "True".
+Option B must be exactly "False".
 """
 
+            option_properties = {
+                "A": {
+                    "type": "string",
+                    "enum": ["True"]
+                },
+                "B": {
+                    "type": "string",
+                    "enum": ["False"]
+                }
+            }
+
+            option_required = [
+                "A",
+                "B"
+            ]
+
+            correct_answer_enum = [
+                "A",
+                "B"
+            ]
 
         # -----------------------------------
         # Difficulty instructions
@@ -179,34 +225,106 @@ understanding, and moderate reasoning.
             "hard": """
 Create challenging questions that require
 deeper understanding, comparison, interpretation,
-and application of concepts contained in the material.
+and application of concepts contained in the
+material.
 """
-
         }
 
-
         # -----------------------------------
-        # Maximum generation attempts
+        # Strict JSON Schema
         # -----------------------------------
 
-        max_attempts = 2
+        quiz_schema = {
 
+            "name": "smartnotes_quiz",
+
+            "strict": True,
+
+            "schema": {
+
+                "type": "object",
+
+                "properties": {
+
+                    "questions": {
+
+                        "type": "array",
+
+                        "items": {
+
+                            "type": "object",
+
+                            "properties": {
+
+                                "question": {
+                                    "type": "string"
+                                },
+
+                                "options": {
+
+                                    "type": "object",
+
+                                    "properties":
+                                        option_properties,
+
+                                    "required":
+                                        option_required,
+
+                                    "additionalProperties":
+                                        False
+                                },
+
+                                "correct_answer": {
+
+                                    "type": "string",
+
+                                    "enum":
+                                        correct_answer_enum
+                                },
+
+                                "explanation": {
+
+                                    "type": "string"
+                                }
+                            },
+
+                            "required": [
+                                "question",
+                                "options",
+                                "correct_answer",
+                                "explanation"
+                            ],
+
+                            "additionalProperties":
+                                False
+                        }
+                    }
+                },
+
+                "required": [
+                    "questions"
+                ],
+
+                "additionalProperties":
+                    False
+            }
+        }
 
         # -----------------------------------
         # Generate quiz
         # -----------------------------------
 
-        for attempt in range(1, max_attempts + 1):
+        max_attempts = 2
+
+        for attempt in range(
+            1,
+            max_attempts + 1
+        ):
 
             print(
                 f"🧠 Quiz generation attempt "
                 f"{attempt}/{max_attempts}"
             )
-
-
-            # -----------------------------------
-            # Prompt
-            # -----------------------------------
 
             prompt = f"""
 You are the SmartNotes Quiz Generator.
@@ -214,22 +332,25 @@ You are the SmartNotes Quiz Generator.
 Create an educational quiz using ONLY the
 source material provided below.
 
-Do NOT introduce facts that are not contained
+DO NOT introduce facts that are not contained
 in the source material.
 
 DIFFICULTY:
+
 {difficulty}
 
 {difficulty_instructions[difficulty]}
 
 QUESTION TYPE:
+
 {question_type}
 
 EXACT NUMBER OF QUESTIONS:
+
 {number_of_questions}
 
-You MUST generate exactly {number_of_questions}
-questions.
+You MUST generate exactly
+{number_of_questions} questions.
 
 {question_format}
 
@@ -238,79 +359,72 @@ IMPORTANT RULES:
 1. Generate exactly {number_of_questions} questions.
 
 2. Every question must be answerable using
-   the supplied source material.
+   ONLY the supplied source material.
 
 3. Do not invent information.
 
-4. Avoid duplicate or nearly identical questions.
+4. Do not use outside knowledge.
 
-5. Each question must have exactly one
-   correct answer.
+5. Avoid duplicate or nearly identical questions.
 
-6. Make incorrect answers plausible.
+6. Each question must have exactly one correct answer.
 
 7. Every question must contain:
-   - non-empty question text
-   - valid options
-   - a valid correct answer
-   - a non-empty explanation
+   - question
+   - options
+   - correct_answer
+   - explanation
 
-8. Every option must contain meaningful text.
+8. Every question must have meaningful
+   non-empty text.
 
-9. For multiple-choice questions, all four
-   options must contain different answer texts.
+9. All options must contain meaningful text.
 
-10. For true/false questions:
-    A must be exactly "True".
-    B must be exactly "False".
+10. The correct_answer must identify one of
+    the supplied option letters.
 
 11. The explanation must briefly explain why
-    the correct answer is correct.
+    the selected answer is correct.
 
-12. Questions should test the requested
+12. Questions must match the requested
     difficulty level.
 
 13. Do not repeat the same concept unnecessarily.
 
-14. Use only information contained in the
-    source material.
+14. Do not add information that is not present
+    in the source material.
 
-15. Return the quiz using the requested
-    JSON structure.
+15. Return ONLY the requested JSON structure.
 
 SOURCE MATERIAL:
 
 {source_text}
 """
 
-
-            # -----------------------------------
-            # Groq request
-            # -----------------------------------
-
             try:
 
-                completion = client.chat.completions.create(
+                completion = (
+                    client.chat.completions.create(
 
-                    model="openai/gpt-oss-20b",
+                        model="openai/gpt-oss-20b",
 
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+
+                        temperature=0.3,
+
+                        max_tokens=7000,
+
+                        response_format={
+                            "type": "json_schema",
+                            "json_schema": quiz_schema
                         }
-                    ],
-
-                    temperature=0.3,
-
-                    max_tokens=7000,
-
-                    response_format={
-                        "type": "json_object"
-                    }
-
+                    )
                 )
-
 
             except Exception as e:
 
@@ -331,14 +445,15 @@ SOURCE MATERIAL:
 
                 return None
 
-
             # -----------------------------------
-            # Log token usage
+            # Token usage
             # -----------------------------------
 
             if completion.usage:
 
-                print("Quiz generation usage:")
+                print(
+                    "Quiz generation usage:"
+                )
 
                 print(
                     "Input tokens:",
@@ -355,9 +470,8 @@ SOURCE MATERIAL:
                     completion.usage.total_tokens
                 )
 
-
             # -----------------------------------
-            # Extract AI response
+            # Extract response
             # -----------------------------------
 
             try:
@@ -373,7 +487,8 @@ SOURCE MATERIAL:
             except Exception as e:
 
                 print(
-                    "❌ Unable to extract Groq quiz response:",
+                    "❌ Unable to extract "
+                    "Groq quiz response:",
                     repr(e)
                 )
 
@@ -389,11 +504,11 @@ SOURCE MATERIAL:
 
                 return None
 
-
             if not content:
 
                 print(
-                    "❌ Groq returned an empty quiz response"
+                    "❌ Groq returned an "
+                    "empty quiz response"
                 )
 
                 if attempt < max_attempts:
@@ -408,14 +523,15 @@ SOURCE MATERIAL:
 
                 return None
 
-
             # -----------------------------------
             # Parse JSON
             # -----------------------------------
 
             try:
 
-                quiz_data = json.loads(content)
+                quiz_data = json.loads(
+                    content
+                )
 
             except json.JSONDecodeError as e:
 
@@ -441,9 +557,8 @@ SOURCE MATERIAL:
 
                 return None
 
-
             # -----------------------------------
-            # Validate response structure
+            # Validate root structure
             # -----------------------------------
 
             if not isinstance(
@@ -452,7 +567,8 @@ SOURCE MATERIAL:
             ):
 
                 print(
-                    "❌ Quiz response is not a dictionary"
+                    "❌ Quiz response is not "
+                    "a dictionary"
                 )
 
                 if attempt < max_attempts:
@@ -467,11 +583,9 @@ SOURCE MATERIAL:
 
                 return None
 
-
             questions = quiz_data.get(
                 "questions"
             )
-
 
             if not isinstance(
                 questions,
@@ -479,7 +593,8 @@ SOURCE MATERIAL:
             ):
 
                 print(
-                    "❌ Quiz questions are missing or invalid"
+                    "❌ Quiz questions are "
+                    "missing or invalid"
                 )
 
                 if attempt < max_attempts:
@@ -493,7 +608,6 @@ SOURCE MATERIAL:
                     continue
 
                 return None
-
 
             # -----------------------------------
             # Validate question count
@@ -524,22 +638,16 @@ SOURCE MATERIAL:
 
                 return None
 
-
             # -----------------------------------
-            # Validate individual questions
+            # Additional validation
             # -----------------------------------
 
             valid_quiz = True
-
 
             for index, question in enumerate(
                 questions,
                 start=1
             ):
-
-                # -----------------------------------
-                # Validate question object
-                # -----------------------------------
 
                 if not isinstance(
                     question,
@@ -547,24 +655,24 @@ SOURCE MATERIAL:
                 ):
 
                     print(
-                        f"❌ Question {index} is invalid"
+                        f"❌ Question {index} "
+                        "is invalid"
                     )
 
                     valid_quiz = False
+
                     break
 
-
                 # -----------------------------------
-                # Validate required fields
+                # Required fields
                 # -----------------------------------
 
                 required_fields = [
                     "question",
                     "options",
                     "correct_answer",
-                    "explanation",
+                    "explanation"
                 ]
-
 
                 for field in required_fields:
 
@@ -576,19 +684,19 @@ SOURCE MATERIAL:
                         )
 
                         valid_quiz = False
-                        break
 
+                        break
 
                 if not valid_quiz:
                     break
 
-
                 # -----------------------------------
-                # Validate question text
+                # Question text
                 # -----------------------------------
 
-                question_text = question["question"]
-
+                question_text = question[
+                    "question"
+                ]
 
                 if not isinstance(
                     question_text,
@@ -597,12 +705,13 @@ SOURCE MATERIAL:
 
                     print(
                         f"❌ Question {index}: "
-                        "question text must be a string"
+                        "question text must be "
+                        "a string"
                     )
 
                     valid_quiz = False
-                    break
 
+                    break
 
                 if not question_text.strip():
 
@@ -612,15 +721,16 @@ SOURCE MATERIAL:
                     )
 
                     valid_quiz = False
+
                     break
 
-
                 # -----------------------------------
-                # Validate explanation
+                # Explanation
                 # -----------------------------------
 
-                explanation = question["explanation"]
-
+                explanation = question[
+                    "explanation"
+                ]
 
                 if not isinstance(
                     explanation,
@@ -629,12 +739,13 @@ SOURCE MATERIAL:
 
                     print(
                         f"❌ Question {index}: "
-                        "explanation must be a string"
+                        "explanation must be "
+                        "a string"
                     )
 
                     valid_quiz = False
-                    break
 
+                    break
 
                 if not explanation.strip():
 
@@ -644,15 +755,16 @@ SOURCE MATERIAL:
                     )
 
                     valid_quiz = False
+
                     break
 
-
                 # -----------------------------------
-                # Validate options
+                # Options
                 # -----------------------------------
 
-                options = question["options"]
-
+                options = question[
+                    "options"
+                ]
 
                 if not isinstance(
                     options,
@@ -665,12 +777,8 @@ SOURCE MATERIAL:
                     )
 
                     valid_quiz = False
+
                     break
-
-
-                # -----------------------------------
-                # Expected option structure
-                # -----------------------------------
 
                 if question_type == "multiple_choice":
 
@@ -678,18 +786,19 @@ SOURCE MATERIAL:
                         "A",
                         "B",
                         "C",
-                        "D",
+                        "D"
                     }
 
                 else:
 
                     expected_options = {
                         "A",
-                        "B",
+                        "B"
                     }
 
-
-                if set(options.keys()) != expected_options:
+                if set(
+                    options.keys()
+                ) != expected_options:
 
                     print(
                         f"❌ Question {index}: "
@@ -700,8 +809,8 @@ SOURCE MATERIAL:
                     )
 
                     valid_quiz = False
-                    break
 
+                    break
 
                 # -----------------------------------
                 # True / False validation
@@ -717,8 +826,8 @@ SOURCE MATERIAL:
                         )
 
                         valid_quiz = False
-                        break
 
+                        break
 
                     if options["B"] != "False":
 
@@ -728,22 +837,20 @@ SOURCE MATERIAL:
                         )
 
                         valid_quiz = False
+
                         break
 
-
                 # -----------------------------------
-                # Validate option values
+                # Validate option text
                 # -----------------------------------
 
                 option_values = []
-
 
                 for option_key in expected_options:
 
                     option_value = options.get(
                         option_key
                     )
-
 
                     if not isinstance(
                         option_value,
@@ -757,34 +864,34 @@ SOURCE MATERIAL:
                         )
 
                         valid_quiz = False
+
                         break
 
-
-                    option_value = option_value.strip()
-
+                    option_value = (
+                        option_value.strip()
+                    )
 
                     if not option_value:
 
                         print(
                             f"❌ Question {index}: "
-                            f"option {option_key} is empty"
+                            f"option {option_key} "
+                            "is empty"
                         )
 
                         valid_quiz = False
-                        break
 
+                        break
 
                     option_values.append(
                         option_value
                     )
 
-
                 if not valid_quiz:
                     break
 
-
                 # -----------------------------------
-                # Validate duplicate options
+                # Detect duplicate options
                 # -----------------------------------
 
                 normalized_options = [
@@ -792,19 +899,21 @@ SOURCE MATERIAL:
                     for option in option_values
                 ]
 
-
-                if len(normalized_options) != len(
+                if len(
+                    normalized_options
+                ) != len(
                     set(normalized_options)
                 ):
 
                     print(
                         f"❌ Question {index}: "
-                        "duplicate option values detected"
+                        "duplicate option values "
+                        "detected"
                     )
 
                     valid_quiz = False
-                    break
 
+                    break
 
                 # -----------------------------------
                 # Validate correct answer
@@ -814,7 +923,6 @@ SOURCE MATERIAL:
                     "correct_answer"
                 ]
 
-
                 if not isinstance(
                     correct_answer,
                     str
@@ -822,19 +930,19 @@ SOURCE MATERIAL:
 
                     print(
                         f"❌ Question {index}: "
-                        "correct_answer must be a string"
+                        "correct_answer must "
+                        "be a string"
                     )
 
                     valid_quiz = False
-                    break
 
+                    break
 
                 correct_answer = (
                     correct_answer
                     .strip()
                     .upper()
                 )
-
 
                 if correct_answer not in expected_options:
 
@@ -844,20 +952,17 @@ SOURCE MATERIAL:
                     )
 
                     valid_quiz = False
+
                     break
 
-
-                # -----------------------------------
-                # Normalize correct answer
-                # -----------------------------------
+                # Normalize answer
 
                 question[
                     "correct_answer"
                 ] = correct_answer
 
-
             # -----------------------------------
-            # Retry invalid quiz
+            # Final validation result
             # -----------------------------------
 
             if not valid_quiz:
@@ -877,11 +982,11 @@ SOURCE MATERIAL:
                     continue
 
                 print(
-                    "❌ Maximum quiz generation attempts reached"
+                    "❌ Maximum quiz generation "
+                    "attempts reached"
                 )
 
                 return None
-
 
             # -----------------------------------
             # Success
@@ -898,18 +1003,12 @@ SOURCE MATERIAL:
 
             return quiz_data
 
-
-        # -----------------------------------
-        # All attempts failed
-        # -----------------------------------
-
         print(
             "❌ Quiz generation failed after "
             f"{max_attempts} attempts"
         )
 
         return None
-
 
     except Exception as e:
 
@@ -920,9 +1019,7 @@ SOURCE MATERIAL:
 
         traceback.print_exc()
 
-        return None   
-    
-    
+        return None
     
     
     
