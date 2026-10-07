@@ -4,6 +4,9 @@ import requests
 from .models import Quiz, QuizQuestion
 from django.db import transaction
 import traceback
+from groq import Groq, RateLimitError
+import time
+
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "openai/gpt-oss-20b"
@@ -21,10 +24,13 @@ QUESTION_TYPES = {
     "true_false",
 }
 
-
 def generate_quiz(source_text, difficulty, question_type):
     """
-    Generate quiz questions from Lecture or Tutorial content.
+    Generate quiz questions from Lecture or Tutorial content
+    using Groq GPT-OSS 20B.
+
+    The complete source text is sent in one request.
+    No manual truncation or chunking is performed.
 
     Returns:
         dict containing generated questions
@@ -75,19 +81,19 @@ def generate_quiz(source_text, difficulty, question_type):
 
 
         # -----------------------------------
+        # Clean source text
+        # -----------------------------------
+
+        source_text = source_text.strip()
+
+
+        # -----------------------------------
         # Determine number of questions
         # -----------------------------------
 
         number_of_questions = (
             DIFFICULTY_QUESTION_COUNT[difficulty]
         )
-
-
-        # -----------------------------------
-        # Limit source content
-        # -----------------------------------
-
-        source_text = source_text.strip()[:10000]
 
 
         # -----------------------------------
@@ -108,13 +114,23 @@ def generate_quiz(source_text, difficulty, question_type):
 
 
         # -----------------------------------
+        # Create Groq client
+        # -----------------------------------
+
+        client = Groq(
+            api_key=api_key,
+            max_retries=0
+        )
+
+
+        # -----------------------------------
         # Question type instructions
         # -----------------------------------
 
         if question_type == "multiple_choice":
 
             question_format = """
-Each question must have exactly four options:
+Each question must contain exactly four options:
 
 A
 B
@@ -124,16 +140,17 @@ D
 There must be exactly ONE correct answer.
 
 All four option texts must be:
+
 - non-empty
 - meaningful
 - different from each other
-- plausible within the context of the source material
+- plausible within the source material
 """
 
         else:
 
             question_format = """
-Each question must have exactly two options:
+Each question must contain exactly two options:
 
 A = True
 B = False
@@ -176,20 +193,7 @@ and application of concepts contained in the material.
 
 
         # -----------------------------------
-        # Request headers
-        # -----------------------------------
-
-        headers = {
-
-            "Authorization": f"Bearer {api_key}",
-
-            "Content-Type": "application/json",
-
-        }
-
-
-        # -----------------------------------
-        # Try generation
+        # Generate quiz
         # -----------------------------------
 
         for attempt in range(1, max_attempts + 1):
@@ -210,7 +214,7 @@ You are the SmartNotes Quiz Generator.
 Create an educational quiz using ONLY the
 source material provided below.
 
-DO NOT introduce facts that are not contained
+Do NOT introduce facts that are not contained
 in the source material.
 
 DIFFICULTY:
@@ -224,16 +228,8 @@ QUESTION TYPE:
 EXACT NUMBER OF QUESTIONS:
 {number_of_questions}
 
-IMPORTANT:
-You MUST generate EXACTLY {number_of_questions}
+You MUST generate exactly {number_of_questions}
 questions.
-
-Do NOT generate fewer than {number_of_questions}.
-
-Do NOT generate more than {number_of_questions}.
-
-The "questions" array MUST contain exactly
-{number_of_questions} items.
 
 {question_format}
 
@@ -241,78 +237,46 @@ IMPORTANT RULES:
 
 1. Generate exactly {number_of_questions} questions.
 
-2. The questions array must contain exactly
-   {number_of_questions} items.
-
-3. Every question must be answerable from
+2. Every question must be answerable using
    the supplied source material.
 
-4. Do not invent information.
+3. Do not invent information.
 
-5. Avoid duplicate or nearly identical questions.
+4. Avoid duplicate or nearly identical questions.
 
-6. Each question must have exactly one
+5. Each question must have exactly one
    correct answer.
 
-7. Make incorrect answers plausible.
+6. Make incorrect answers plausible.
 
-8. Every question must contain:
+7. Every question must contain:
    - non-empty question text
    - valid options
    - a valid correct answer
    - a non-empty explanation
 
-9. Option texts must not be empty.
+8. Every option must contain meaningful text.
 
-10. For multiple-choice questions, all four
-    options must contain different answer texts.
+9. For multiple-choice questions, all four
+   options must contain different answer texts.
 
-11. Include a short explanation for the
-    correct answer.
+10. For true/false questions:
+    A must be exactly "True".
+    B must be exactly "False".
 
-12. Return ONLY valid JSON.
+11. The explanation must briefly explain why
+    the correct answer is correct.
 
-13. Do not include Markdown.
+12. Questions should test the requested
+    difficulty level.
 
-14. Do not include ```json or ```.
+13. Do not repeat the same concept unnecessarily.
 
-15. Before returning your response, count the
-    questions in the questions array and make
-    sure the count is exactly {number_of_questions}.
+14. Use only information contained in the
+    source material.
 
-RETURN THIS EXACT JSON STRUCTURE:
-
-{{
-    "questions": [
-        {{
-            "question": "Question text",
-            "options": {{
-                "A": "Option A",
-                "B": "Option B",
-                "C": "Option C",
-                "D": "Option D"
-            }},
-            "correct_answer": "A",
-            "explanation": "Explanation"
-        }}
-    ]
-}}
-
-For True/False questions use:
-
-{{
-    "questions": [
-        {{
-            "question": "Question text",
-            "options": {{
-                "A": "True",
-                "B": "False"
-            }},
-            "correct_answer": "A",
-            "explanation": "Explanation"
-        }}
-    ]
-}}
+15. Return the quiz using the requested
+    JSON structure.
 
 SOURCE MATERIAL:
 
@@ -321,113 +285,38 @@ SOURCE MATERIAL:
 
 
             # -----------------------------------
-            # Payload
-            # -----------------------------------
-
-            payload = {
-
-                "model": GROQ_MODEL,
-
-                "messages": [
-
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    }
-
-                ],
-
-                "temperature": 0.3,
-
-                "max_tokens": 5000,
-
-            }
-
-
-            # print("🧠 Generating quiz...")
-
-            # print(
-            #     "Difficulty:",
-            #     difficulty
-            # )
-
-            # print(
-            #     "Question type:",
-            #     question_type
-            # )
-
-            # print(
-            #     "Number of questions:",
-            #     number_of_questions
-            # )
-
-            # print(
-            #     "Source length:",
-            #     len(source_text)
-            # )
-
-
-            # -----------------------------------
-            # Request to Groq
+            # Groq request
             # -----------------------------------
 
             try:
 
-                response = requests.post(
+                completion = client.chat.completions.create(
 
-                    GROQ_URL,
+                    model="openai/gpt-oss-20b",
 
-                    json=payload,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
 
-                    headers=headers,
+                    temperature=0.3,
 
-                    timeout=120,
+                    max_tokens=7000,
+
+                    response_format={
+                        "type": "json_object"
+                    }
 
                 )
 
 
-            except requests.exceptions.Timeout:
+            except Exception as e:
 
                 print(
-                    "❌ Groq quiz request timed out"
-                )
-
-                if attempt < max_attempts:
-                    print("🔄 Retrying quiz generation...")
-                    continue
-
-                return None
-
-
-            except requests.exceptions.RequestException as e:
-
-                print(
-                    "❌ Groq HTTP error:",
+                    "❌ Groq quiz request failed:",
                     repr(e)
-                )
-
-                if attempt < max_attempts:
-                    print("🔄 Retrying quiz generation...")
-                    continue
-
-                return None
-
-
-            # print(
-            #     "QUIZ STATUS CODE:",
-            #     response.status_code
-            # )
-
-            # print(
-            #     "QUIZ RAW RESPONSE:",
-            #     response.text
-            # )
-
-
-            if response.status_code != 200:
-
-                print(
-                    "❌ Groq quiz generation failed"
                 )
 
                 if attempt < max_attempts:
@@ -436,9 +325,35 @@ SOURCE MATERIAL:
                         "🔄 Retrying quiz generation..."
                     )
 
+                    time.sleep(2)
+
                     continue
 
                 return None
+
+
+            # -----------------------------------
+            # Log token usage
+            # -----------------------------------
+
+            if completion.usage:
+
+                print("Quiz generation usage:")
+
+                print(
+                    "Input tokens:",
+                    completion.usage.prompt_tokens
+                )
+
+                print(
+                    "Output tokens:",
+                    completion.usage.completion_tokens
+                )
+
+                print(
+                    "Total tokens:",
+                    completion.usage.total_tokens
+                )
 
 
             # -----------------------------------
@@ -447,17 +362,18 @@ SOURCE MATERIAL:
 
             try:
 
-                data = response.json()
-
                 content = (
-                    data["choices"][0]["message"]["content"]
+                    completion
+                    .choices[0]
+                    .message
+                    .content
                     .strip()
                 )
 
             except Exception as e:
 
                 print(
-                    "❌ Unable to extract Groq response:",
+                    "❌ Unable to extract Groq quiz response:",
                     repr(e)
                 )
 
@@ -467,31 +383,30 @@ SOURCE MATERIAL:
                         "🔄 Retrying quiz generation..."
                     )
 
+                    time.sleep(2)
+
                     continue
 
                 return None
 
 
-            # -----------------------------------
-            # Remove accidental Markdown fences
-            # -----------------------------------
+            if not content:
 
-            if content.startswith("```json"):
+                print(
+                    "❌ Groq returned an empty quiz response"
+                )
 
-                content = content[7:]
+                if attempt < max_attempts:
 
+                    print(
+                        "🔄 Retrying quiz generation..."
+                    )
 
-            elif content.startswith("```"):
+                    time.sleep(2)
 
-                content = content[3:]
+                    continue
 
-
-            if content.endswith("```"):
-
-                content = content[:-3]
-
-
-            content = content.strip()
+                return None
 
 
             # -----------------------------------
@@ -520,6 +435,8 @@ SOURCE MATERIAL:
                         "🔄 Retrying quiz generation..."
                     )
 
+                    time.sleep(2)
+
                     continue
 
                 return None
@@ -543,6 +460,8 @@ SOURCE MATERIAL:
                     print(
                         "🔄 Retrying quiz generation..."
                     )
+
+                    time.sleep(2)
 
                     continue
 
@@ -568,6 +487,8 @@ SOURCE MATERIAL:
                     print(
                         "🔄 Retrying quiz generation..."
                     )
+
+                    time.sleep(2)
 
                     continue
 
@@ -597,11 +518,9 @@ SOURCE MATERIAL:
                         "🔄 Retrying quiz generation..."
                     )
 
-                    continue
+                    time.sleep(2)
 
-                print(
-                    "❌ Maximum quiz generation attempts reached"
-                )
+                    continue
 
                 return None
 
@@ -729,7 +648,7 @@ SOURCE MATERIAL:
 
 
                 # -----------------------------------
-                # Validate options object
+                # Validate options
                 # -----------------------------------
 
                 options = question["options"]
@@ -741,7 +660,7 @@ SOURCE MATERIAL:
                 ):
 
                     print(
-                        f"❌ Question {index} "
+                        f"❌ Question {index}: "
                         "options are invalid"
                     )
 
@@ -750,7 +669,7 @@ SOURCE MATERIAL:
 
 
                 # -----------------------------------
-                # Validate option structure
+                # Expected option structure
                 # -----------------------------------
 
                 if question_type == "multiple_choice":
@@ -762,22 +681,6 @@ SOURCE MATERIAL:
                         "D",
                     }
 
-
-                    if set(options.keys()) != expected_options:
-
-                        print(
-                            f"❌ Question {index} must contain "
-                            "A, B, C and D"
-                        )
-
-                        valid_quiz = False
-                        break
-
-
-                # -----------------------------------
-                # True / False structure
-                # -----------------------------------
-
                 else:
 
                     expected_options = {
@@ -786,16 +689,25 @@ SOURCE MATERIAL:
                     }
 
 
-                    if set(options.keys()) != expected_options:
+                if set(options.keys()) != expected_options:
 
-                        print(
-                            f"❌ Question {index} must contain "
-                            "A and B"
-                        )
+                    print(
+                        f"❌ Question {index}: "
+                        f"expected options "
+                        f"{sorted(expected_options)} "
+                        f"but received "
+                        f"{sorted(options.keys())}"
+                    )
 
-                        valid_quiz = False
-                        break
+                    valid_quiz = False
+                    break
 
+
+                # -----------------------------------
+                # True / False validation
+                # -----------------------------------
+
+                if question_type == "true_false":
 
                     if options["A"] != "True":
 
@@ -825,6 +737,7 @@ SOURCE MATERIAL:
 
                 option_values = []
 
+
                 for option_key in expected_options:
 
                     option_value = options.get(
@@ -839,14 +752,18 @@ SOURCE MATERIAL:
 
                         print(
                             f"❌ Question {index}: "
-                            f"option {option_key} must be a string"
+                            f"option {option_key} "
+                            "must be a string"
                         )
 
                         valid_quiz = False
                         break
 
 
-                    if not option_value.strip():
+                    option_value = option_value.strip()
+
+
+                    if not option_value:
 
                         print(
                             f"❌ Question {index}: "
@@ -858,7 +775,7 @@ SOURCE MATERIAL:
 
 
                     option_values.append(
-                        option_value.strip()
+                        option_value
                     )
 
 
@@ -893,7 +810,9 @@ SOURCE MATERIAL:
                 # Validate correct answer
                 # -----------------------------------
 
-                correct_answer = question["correct_answer"]
+                correct_answer = question[
+                    "correct_answer"
+                ]
 
 
                 if not isinstance(
@@ -910,18 +829,31 @@ SOURCE MATERIAL:
                     break
 
 
-                correct_answer = correct_answer.strip().upper()
+                correct_answer = (
+                    correct_answer
+                    .strip()
+                    .upper()
+                )
 
 
-                if correct_answer not in options:
+                if correct_answer not in expected_options:
 
                     print(
-                        f"❌ Question {index} has an invalid "
-                        "correct answer"
+                        f"❌ Question {index}: "
+                        "invalid correct answer"
                     )
 
                     valid_quiz = False
                     break
+
+
+                # -----------------------------------
+                # Normalize correct answer
+                # -----------------------------------
+
+                question[
+                    "correct_answer"
+                ] = correct_answer
 
 
             # -----------------------------------
@@ -939,6 +871,8 @@ SOURCE MATERIAL:
                     print(
                         "🔄 Retrying quiz generation..."
                     )
+
+                    time.sleep(2)
 
                     continue
 
@@ -986,7 +920,7 @@ SOURCE MATERIAL:
 
         traceback.print_exc()
 
-        return None    
+        return None   
     
     
     

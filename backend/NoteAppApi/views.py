@@ -1340,119 +1340,499 @@ def get_all_lectures(request):
 
 
 
+# @csrf_exempt
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated, HasPremiumSubscription])
+# def upload_audio(request):
+#     if request.method != "POST":
+#         return JsonResponse({"error": "Invalid request"}, status=405)
+#     try:
+#         print("USER:", request.user)
+#         print("AUTH:", request.user.is_authenticated)
+#         audio_file = request.FILES.get("audio")
+#         title = request.data.get("title", "").strip()
+#         if not audio_file:
+#             return JsonResponse({"error": "No audio file"}, status=400)
+#         MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
+
+#         if audio_file.size > MAX_AUDIO_SIZE:
+#              return JsonResponse(
+#             {
+#             "error": "Audio file is too large. "
+#                      "Maximum allowed size is 50 MB."
+#             }, status=400)
+#         folder = os.path.join(settings.MEDIA_ROOT, "audio")
+#         os.makedirs(folder, exist_ok=True)
+      
+#         lecture = Lecture.objects.create(
+#            user=request.user,
+#            title=title,
+#            audio_file=audio_file,
+#            status="processing"
+#        )
+        
+        
+#         process_audio(lecture.id)
+        
+       
+        
+#         return JsonResponse(
+#             {
+#                 "message": "Processing started",
+#                 "lecture_id": lecture.id,
+#                 "title": lecture.title,
+#             }, status=202
+#         )
+#     except Exception as e:
+#         print("UPLOAD ERROR:", str(e))
+#         traceback.print_exc()
+#         return JsonResponse({"error": str(e)}, status=500)
+
+
+
+# def process_audio(lecture_id):
+#     try:
+#         lecture = Lecture.objects.get(id=lecture_id)
+#         file_path = lecture.audio_file.path
+        
+#         api_key = os.getenv("ASSEMBLYAI_API_KEY")
+#         if not api_key:
+#             print("AssemblyAI key missing!")
+#             lecture.status = "failed"
+#             lecture.save()
+#             return
+#         aai.settings.api_key = api_key
+#         transcriber = aai.Transcriber()
+#         config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
+#         transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
+       
+#         # print("FULL TRANSCRIPT:", transcript.text)
+#         if transcript.status == "error":
+#             print("AssemblyAI error:", transcript.error)
+#             lecture.status = "failed"
+#             lecture.save()
+#             return
+#         transcript_text = transcript.text or ""
+
+#         lecture.transcript = transcript_text
+#         lecture.save(update_fields=["transcript"])
+#         notes = generate_lecture_note(transcript_text)
+        
+#         if not notes:
+#             print("Grok failed, no notes generated")
+#             lecture.status= "failed"
+#             lecture.save(update_fields=["status"])
+#             return
+    
+#         lecture.transcript = transcript_text
+#         lecture.lecture = notes
+#         lecture.status = "completed"
+        
+#         lecture.save(
+#             update_fields=[
+#             "transcript",
+#             "lecture",
+#             "status",
+#         ]
+#         )
+
+       
+        
+#         if os.path.exists(file_path):
+#             os.remove(file_path)
+#             print('Audio file deleted successfully')
+            
+#     except Exception as e:
+#         print("Audio processing error:", str(e))
+#         traceback.print_exc()
+#         try:
+#             lecture = Lecture.objects.get(id=lecture_id)
+#             lecture.status = "failed"
+#             lecture.save()
+#         except:
+#             pass
+        
+    
+    
+    
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, HasPremiumSubscription])
 def upload_audio(request):
+
     if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=405)
+        return JsonResponse(
+            {"error": "Invalid request"},
+            status=405
+        )
+
     try:
+
         print("USER:", request.user)
         print("AUTH:", request.user.is_authenticated)
+
+        # -----------------------------------
+        # Get uploaded audio
+        # -----------------------------------
+
         audio_file = request.FILES.get("audio")
-        title = request.data.get("title", "").strip()
+
+        title = request.data.get(
+            "title",
+            ""
+        ).strip()
+
+
+        # -----------------------------------
+        # Validate audio
+        # -----------------------------------
+
         if not audio_file:
-            return JsonResponse({"error": "No audio file"}, status=400)
+
+            return JsonResponse(
+                {
+                    "error": "No audio file"
+                },
+                status=400
+            )
+
+
+        # -----------------------------------
+        # Maximum audio size
+        # -----------------------------------
+
         MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
 
         if audio_file.size > MAX_AUDIO_SIZE:
-             return JsonResponse(
-            {
-            "error": "Audio file is too large. "
-                     "Maximum allowed size is 50 MB."
-            }, status=400)
-        folder = os.path.join(settings.MEDIA_ROOT, "audio")
-        os.makedirs(folder, exist_ok=True)
-      
+
+            return JsonResponse(
+                {
+                    "error": (
+                        "Audio file is too large. "
+                        "Maximum allowed size is 50 MB."
+                    )
+                },
+                status=400
+            )
+
+
+        # -----------------------------------
+        # Create Lecture record
+        # -----------------------------------
+
         lecture = Lecture.objects.create(
-           user=request.user,
-           title=title,
-           audio_file=audio_file,
-           status="processing"
-       )
-        
-        
+
+            user=request.user,
+
+            title=title,
+
+            audio_file=audio_file,
+
+            status="processing"
+
+        )
+
+
+        print(
+            f"🎧 Audio upload saved. "
+            f"Lecture ID: {lecture.id}"
+        )
+
+
+        # -----------------------------------
+        # Process audio
+        # -----------------------------------
+
         process_audio(lecture.id)
-        
-       
-        
+
+
+        # -----------------------------------
+        # Response
+        # -----------------------------------
+
         return JsonResponse(
             {
                 "message": "Processing started",
-                "lecture_id": lecture.id,
-                "title": lecture.title,
-            }, status=202
-        )
-    except Exception as e:
-        print("UPLOAD ERROR:", str(e))
-        traceback.print_exc()
-        return JsonResponse({"error": str(e)}, status=500)
 
+                "lecture_id": lecture.id,
+
+                "title": lecture.title,
+            },
+            status=202
+        )
+
+
+    except Exception as e:
+
+        print(
+            "❌ UPLOAD ERROR:",
+            str(e)
+        )
+
+        traceback.print_exc()
+
+        return JsonResponse(
+            {
+                "error": str(e)
+            },
+            status=500
+        )
+        
+        
 
 
 def process_audio(lecture_id):
-    try:
-        lecture = Lecture.objects.get(id=lecture_id)
-        file_path = lecture.audio_file.path
-        
-        api_key = os.getenv("ASSEMBLYAI_API_KEY")
-        if not api_key:
-            print("AssemblyAI key missing!")
-            lecture.status = "failed"
-            lecture.save()
-            return
-        aai.settings.api_key = api_key
-        transcriber = aai.Transcriber()
-        config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
-        transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
-       
-        # print("FULL TRANSCRIPT:", transcript.text)
-        if transcript.status == "error":
-            print("AssemblyAI error:", transcript.error)
-            lecture.status = "failed"
-            lecture.save()
-            return
-        transcript_text = transcript.text or ""
 
-        lecture.transcript = transcript_text
-        lecture.save(update_fields=["transcript"])
-        notes = generate_lecture_note(transcript_text)
-        
-        if not notes:
-            print("Grok failed, no notes generated")
-            lecture.status= "failed"
-            lecture.save(update_fields=["status"])
-            return
-    
-        lecture.transcript = transcript_text
-        lecture.lecture = notes
-        lecture.status = "completed"
-        
-        lecture.save(
-            update_fields=[
-            "transcript",
-            "lecture",
-            "status",
-        ]
+    file_path = None
+
+    try:
+
+        # -----------------------------------
+        # Get lecture
+        # -----------------------------------
+
+        lecture = Lecture.objects.get(
+            id=lecture_id
         )
 
-       
-        
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            print('Audio file deleted successfully')
-            
-    except Exception as e:
-        print("Audio processing error:", str(e))
-        traceback.print_exc()
-        try:
-            lecture = Lecture.objects.get(id=lecture_id)
+
+        file_path = lecture.audio_file.path
+
+
+        print(
+            f"🎧 Starting audio processing "
+            f"for Lecture {lecture_id}"
+        )
+
+
+        # -----------------------------------
+        # Get Groq API key
+        # -----------------------------------
+
+        api_key = os.getenv(
+            "GROQ_API_KEY",
+            ""
+        ).strip()
+
+
+        if not api_key:
+
+            print(
+                "❌ GROQ_API_KEY is missing"
+            )
+
             lecture.status = "failed"
-            lecture.save()
-        except:
+
+            lecture.save(
+                update_fields=["status"]
+            )
+
+            return
+
+
+        # -----------------------------------
+        # Verify audio file exists
+        # -----------------------------------
+
+        if not os.path.exists(file_path):
+
+            print(
+                "❌ Audio file does not exist:",
+                file_path
+            )
+
+            lecture.status = "failed"
+
+            lecture.save(
+                update_fields=["status"]
+            )
+
+            return
+
+
+        # -----------------------------------
+        # Create Groq client
+        # -----------------------------------
+
+        client = Groq(
+            api_key=api_key,
+            max_retries=0
+        )
+
+
+        # -----------------------------------
+        # Transcribe audio with Whisper
+        # -----------------------------------
+
+        print(
+            "🎙️ Transcribing audio with "
+            "Whisper Large V3 Turbo..."
+        )
+
+
+        with open(
+            file_path,
+            "rb"
+        ) as audio:
+
+            transcription = (
+                client.audio.transcriptions.create(
+
+                    file=audio,
+
+                    model="whisper-large-v3-turbo",
+
+                    response_format="json",
+
+                    temperature=0.0,
+
+                )
+            )
+
+
+        # -----------------------------------
+        # Get transcript text
+        # -----------------------------------
+
+        transcript_text = (
+            transcription.text or ""
+        ).strip()
+
+
+        if not transcript_text:
+
+            print(
+                "❌ Groq returned an empty transcript"
+            )
+
+            lecture.status = "failed"
+
+            lecture.save(
+                update_fields=["status"]
+            )
+
+            return
+
+
+        print(
+            "✅ Audio transcription completed"
+        )
+
+        print(
+            "Transcript length:",
+            len(transcript_text),
+            "characters"
+        )
+
+
+        # -----------------------------------
+        # Save transcript
+        # -----------------------------------
+
+        lecture.transcript = transcript_text
+
+        lecture.save(
+            update_fields=["transcript"]
+        )
+
+
+        # -----------------------------------
+        # Generate lecture notes
+        # -----------------------------------
+
+        print(
+            "🧠 Generating lecture notes..."
+        )
+
+
+        notes = generate_lecture_note(
+            transcript_text
+        )
+
+
+        if not notes:
+
+            print(
+                "❌ Lecture-note generation failed"
+            )
+
+            lecture.status = "failed"
+
+            lecture.save(
+                update_fields=["status"]
+            )
+
+            return
+
+
+        # -----------------------------------
+        # Save final result
+        # -----------------------------------
+
+        lecture.lecture = notes
+
+        lecture.status = "completed"
+
+        lecture.save(
+            update_fields=[
+                "lecture",
+                "status",
+            ]
+        )
+
+
+        print(
+            f"✅ Audio processing completed "
+            f"for Lecture {lecture_id}"
+        )
+
+
+        # -----------------------------------
+        # Delete original audio file
+        # -----------------------------------
+
+        if os.path.exists(file_path):
+
+            os.remove(file_path)
+
+            print(
+                "🗑️ Audio file deleted successfully"
+            )
+
+
+    except Exception as e:
+
+        print(
+            "❌ Audio processing error:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+
+        # -----------------------------------
+        # Mark lecture as failed
+        # -----------------------------------
+
+        try:
+
+            lecture = Lecture.objects.get(
+                id=lecture_id
+            )
+
+            lecture.status = "failed"
+
+            lecture.save(
+                update_fields=["status"]
+            )
+
+        except Exception:
+
             pass
-        
-        
+
+
+    
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
@@ -1489,80 +1869,302 @@ def lecture_status(request, id):
 
     
 
+
+
 def generate_lecture_note(transcription):
+    """
+    Generate detailed lecture notes from an audio transcript
+    using Groq GPT-OSS 20B.
+
+    The complete transcript is sent in one request.
+    No manual transcript truncation or chunking is performed.
+    """
+
     try:
-        api_key = os.getenv("GROQ_API_KEY", " ").strip()
-        
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-        # prompt = f"Convert this into structured lecture notes:\n{transcription[:10000]}"
-        
-        prompt = f"""
-          Based on the generated transcript, create clear, detailed, and well-structured lecture notes.
 
-          The notes should be easy to read and understand. Cover all relevant topics and important information from the lecture. Do not produce a simple summary. Instead, explain the concepts discussed in the lecture clearly and in enough depth for a student to learn from the notes without needing to listen to the recording again.
+        # -----------------------------------
+        # Validate transcript
+        # -----------------------------------
 
-          Organize the notes into meaningful sections and paragraphs, with each section focusing on a particular topic or idea. Preserve important definitions, explanations, examples, processes, comparisons, and other relevant details mentioned by the lecturer.
+        if not transcription or not transcription.strip():
 
-          Use clear headings and subheadings where appropriate, maintain a logical flow of ideas, and avoid unnecessary repetition.
+            print(
+                "❌ No transcript provided "
+                "for lecture-note generation"
+            )
 
-          When the lecture contains a comparison between two or more concepts, present the comparison in a clean and easy-to-read format. Use a simple structured comparison with clear labels rather than Markdown table syntax. Do not use characters such as `|`, `---`, or Markdown table separators to create tables. Instead, organize comparisons using clearly labeled items or sections so that they remain readable on mobile devices.
-
-
-          For example, instead of:
-
-          | Feature | Type A | Type B |
-          | ------- | ------ | ------ |
-          | Speed   | Fast   | Slow   |
-          | Cost    | High   | Low    |
-
-          write:
-
-          Comparison: Type A vs Type B...
-
-          Feature: Speed
-          Type A: Fast
-          Type B: Slow
-
-          Feature: Cost
-          Type A: High
-          Type B: Low
-
-         Do not output raw Markdown table syntax, Markdown table separators, escaped Unicode sequences such as `\u0026`, or unnecessary formatting characters. Return normal readable text that can be displayed directly in the application.
-
-         Use bullet points or numbered lists when they make information clearer. Keep code examples, commands, technical syntax, and programming keywords properly formatted using backticks where necessary.
-
-         End the notes with a concise conclusion that brings together the main ideas covered in the lecture, followed by relevant further reading suggestions when appropriate.
-
-         Transcript:
-
-        {transcription[:10000]}
-
-        Lecture Notes:
-
-        """
-        
-        payload = {
-            "model": "openai/gpt-oss-20b",
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.5,
-            "max_tokens": 4000,
-        }
-        response = requests.post(url, json=payload, headers=headers, timeout=60)
-        
-        if response.status_code != 200:
             return None
-        data = response.json()
-        return data["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        print("❌ HTTP GROQ ERROR:", repr(e))
+
+        # -----------------------------------
+        # Get Groq API key
+        # -----------------------------------
+
+        api_key = os.getenv(
+            "GROQ_API_KEY",
+            ""
+        ).strip()
+
+        if not api_key:
+
+            print(
+                "❌ GROQ_API_KEY is missing"
+            )
+
+            return None
+
+        # -----------------------------------
+        # Groq client
+        # -----------------------------------
+
+        client = Groq(
+            api_key=api_key,
+            max_retries=0
+        )
+
+        # -----------------------------------
+        # Lecture-note prompt
+        # -----------------------------------
+
+        prompt = f"""
+You are the SmartNotes Lecture Notes Generator.
+
+Based on the transcript below, create clear, detailed,
+well-structured lecture notes that a student can use
+for studying.
+
+The notes should allow a student to understand and study
+the lecture without needing to listen to the original
+recording again.
+
+IMPORTANT REQUIREMENTS:
+
+1. Cover all important topics and information contained
+   in the entire transcript.
+
+2. Do not produce a simple summary.
+
+3. Explain concepts clearly and in enough depth for a
+   student to learn from the notes.
+
+4. Preserve important:
+   - definitions
+   - explanations
+   - examples
+   - processes
+   - comparisons
+   - names
+   - dates
+   - places
+   - numbers
+   - terminology
+   - technical information
+
+5. Do not invent information that is not supported by
+   the transcript.
+
+6. Do not introduce unrelated outside information.
+
+7. Organize the lecture notes into meaningful sections.
+
+8. Use clear headings and subheadings where appropriate.
+
+9. Use paragraphs, bullet points, and numbered lists when
+   they improve readability.
+
+10. When the lecture contains a comparison between two
+    or more concepts, present the comparison using a
+    simple readable structure.
+
+11. Do not use Markdown table syntax.
+
+12. Do not use characters such as:
+    |
+    ---
+    to create tables.
+
+13. Instead, use clearly labelled comparison sections.
+
+Example:
+
+Comparison: Type A vs Type B
+
+Feature: Speed
+Type A: Fast
+Type B: Slow
+
+Feature: Cost
+Type A: High
+Type B: Low
+
+14. Keep technical terms, programming keywords, commands,
+    and code examples accurate.
+
+15. Use backticks for short technical syntax where
+    appropriate.
+
+16. Avoid unnecessary repetition.
+
+17. Maintain a logical flow from the beginning of the
+    lecture to the end.
+
+18. Correct obvious transcription errors when the intended
+    meaning is clear.
+
+19. Do not mention that the content came from a transcript.
+
+20. End the lecture notes with a concise conclusion that
+    brings together the main concepts covered.
+
+21. Where appropriate, include a short "Further Reading"
+    section based ONLY on topics actually discussed in
+    the lecture.
+
+22. Do not invent books, websites, authors, or sources
+    for the Further Reading section.
+
+IMPORTANT:
+
+The transcript may contain spoken-language repetition,
+informal expressions, incomplete sentences, or minor
+transcription errors.
+
+Clean these up where necessary while preserving the
+lecturer's intended meaning.
+
+Return only the completed lecture notes.
+
+TRANSCRIPT:
+
+{transcription}
+
+LECTURE NOTES:
+"""
+
+        # -----------------------------------
+        # Generate lecture notes
+        # -----------------------------------
+
+        max_attempts = 2
+
+        for attempt in range(
+            1,
+            max_attempts + 1
+        ):
+
+            try:
+
+                completion = client.chat.completions.create(
+
+                    model="openai/gpt-oss-20b",
+
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+
+                    temperature=0.5,
+
+                    max_tokens=16000,
+                )
+
+                lecture_notes = (
+                    completion
+                    .choices[0]
+                    .message
+                    .content
+                    .strip()
+                )
+
+                # -----------------------------------
+                # Track actual token usage
+                # -----------------------------------
+
+                if completion.usage:
+
+                    print(
+                        "Lecture-note generation usage:"
+                    )
+
+                    print(
+                        "Input tokens:",
+                        completion.usage.prompt_tokens
+                    )
+
+                    print(
+                        "Output tokens:",
+                        completion.usage.completion_tokens
+                    )
+
+                    print(
+                        "Total tokens:",
+                        completion.usage.total_tokens
+                    )
+
+                # -----------------------------------
+                # Validate response
+                # -----------------------------------
+
+                if lecture_notes:
+
+                    print(
+                        "✅ Lecture notes generated "
+                        "successfully"
+                    )
+
+                    return lecture_notes
+
+                print(
+                    f"⚠️ Lecture-note generation attempt "
+                    f"{attempt} returned empty content"
+                )
+
+            except Exception as e:
+
+                print(
+                    f"❌ Lecture-note generation attempt "
+                    f"{attempt} failed:",
+                    repr(e)
+                )
+
+                if attempt < max_attempts:
+
+                    print(
+                        "🔄 Retrying lecture-note generation..."
+                    )
+
+                    time.sleep(2)
+
+        # -----------------------------------
+        # All attempts failed
+        # -----------------------------------
+
+        print(
+            "❌ Lecture-note generation failed "
+            "after all attempts"
+        )
+
         return None
-    
+
+    except Exception as e:
+
+        print(
+            "❌ Lecture-note generation fatal error:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        return None
+
+
+
+
+
+
+
+
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_tutorial(request, id):
@@ -1817,308 +2419,226 @@ def split_transcript_into_chunks(transcript, max_chars=12000):
 
 
 
-# def translate_transcript_to_english(transcription):
-#     try:
-#         api_key = os.getenv("GROQ_API_KEY", "").strip()
-
-#         if not api_key:
-#             print("Groq API key not found")
-#             return None
-
-#         client = Groq(api_key=api_key)
-
-#         prompt = f"""
-# Translate the following transcript into clear, natural English.
-
-# Important:
-# - Preserve the original meaning.
-# - Do not summarize.
-# - Do not add information.
-# - Do not remove information.
-# - Keep names, dates, places, and numbers accurate.
-# - Return only the translated transcript.
-
-# Transcript:
-# {transcription}
-# """
-
-#         for attempt in range(3):
-#             try:
-#                 completion = client.chat.completions.create(
-#                     model="openai/gpt-oss-20b",
-#                     messages=[
-#                         {
-#                             "role": "user",
-#                             "content": prompt
-#                         }
-#                     ],
-#                     temperature=0.2,
-#                     max_tokens=16000,
-#                 )
-
-#                 translated = completion.choices[0].message.content.strip()
-
-#                 if translated:
-#                     return translated
-
-#             except Exception as e:
-#                 print(
-#                     f"Transcript translation attempt {attempt + 1} failed:",
-#                     e
-#                 )
-#                 time.sleep(2)
-
-#         return None
-
-#     except Exception as e:
-#         print("Transcript translation fatal error:", e)
-#         return None
-
-
 
 
 
 
 def translate_transcript_to_english(transcription):
+    """
+    Translate a transcript into clear, natural English using Groq.
+
+    The entire transcript is sent in one request.
+    No manual chunking is performed.
+    """
 
     try:
+        # -----------------------------------
+        # Validate transcript
+        # -----------------------------------
+
+        if not transcription or not transcription.strip():
+            print("❌ No transcript provided for translation")
+            return None
+
+        # -----------------------------------
+        # Get Groq API key
+        # -----------------------------------
+
         api_key = os.getenv("GROQ_API_KEY", "").strip()
 
         if not api_key:
-            print("Groq API key not found")
+            print("❌ Groq API key not found")
             return None
+
+        # -----------------------------------
+        # Groq client
+        # -----------------------------------
 
         client = Groq(
             api_key=api_key,
             max_retries=0
         )
 
-        # -------------------------------------------------
-        # Translation model
-        # -------------------------------------------------
+        # -----------------------------------
+        # Translation prompt
+        # -----------------------------------
 
-        translation_model = "qwen/qwen3.8-27b"
-
-        # -------------------------------------------------
-        # Keep chunks small enough for the model's
-        # current 1,000-token limit.
-        # -------------------------------------------------
-
-        chunks = split_transcript_into_chunks(
-            transcription,
-            max_chars=3000
-        )
-
-        print(
-            f"Transcript split into {len(chunks)} "
-            f"chunk(s) for translation"
-        )
-
-        translated_chunks = []
-
-        # -------------------------------------------------
-        # Translate each chunk
-        # -------------------------------------------------
-
-        for index, chunk in enumerate(chunks):
-
-            print(
-                f"Translating chunk "
-                f"{index + 1}/{len(chunks)} "
-                f"({len(chunk)} characters)"
-            )
-
-            prompt = f"""
+        prompt = f"""
 Translate the following transcript into clear, natural English.
 
-Rules:
+Requirements:
+
 - Preserve the original meaning.
 - Do not summarize.
 - Do not add information.
 - Do not remove information.
-- Preserve names, dates, places, numbers, and terminology.
-- Return only the translation.
+- Preserve names, dates, places, numbers, examples,
+  terminology, and other important details.
+- Translate the entire transcript.
+- Maintain the original order of the information.
+- Do not explain the translation.
+- Return only the translated transcript.
 
 Transcript:
-{chunk}
+
+{transcription}
 """
 
-            translated_chunk = None
+        # -----------------------------------
+        # Generate translation
+        # -----------------------------------
 
-            # -------------------------------------------------
-            # Maximum of 2 attempts
-            # -------------------------------------------------
+        max_attempts = 2
 
-            for attempt in range(2):
+        for attempt in range(1, max_attempts + 1):
 
-                try:
+            try:
 
-                    completion = client.chat.completions.create(
-                        model=translation_model,
+                completion = client.chat.completions.create(
+                    model="openai/gpt-oss-20b",
 
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
-                        ],
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
 
-                        temperature=0.1,
+                    temperature=0.2,
 
-                        # IMPORTANT:
-                        # Your current model/account has a
-                        # 1,000-token output limit.
-                        max_completion_tokens=900,
-                    )
-
-                    translated_chunk = (
-                        completion
-                        .choices[0]
-                        .message
-                        .content
-                        .strip()
-                    )
-
-                    if translated_chunk:
-                        break
-
-                except RateLimitError as e:
-
-                    error_message = str(e)
-
-                    print(
-                        f"Translation chunk "
-                        f"{index + 1}, "
-                        f"attempt {attempt + 1} "
-                        f"rate limited:"
-                    )
-
-                    print(error_message)
-
-                    # -----------------------------------------
-                    # Read Groq's suggested retry time
-                    # -----------------------------------------
-
-                    wait_seconds = 10
-
-                    match = re.search(
-                        r"try again in ([0-9.]+)s",
-                        error_message,
-                        re.IGNORECASE
-                    )
-
-                    if match:
-
-                        try:
-                            wait_seconds = (
-                                float(match.group(1)) + 3
-                            )
-                        except ValueError:
-                            wait_seconds = 10
-
-                    if attempt == 0:
-
-                        print(
-                            f"Waiting "
-                            f"{wait_seconds:.1f} seconds "
-                            f"before retrying..."
-                        )
-
-                        time.sleep(wait_seconds)
-
-                    else:
-
-                        print(
-                            f"Chunk {index + 1} "
-                            "failed after retry."
-                        )
-
-                except Exception as e:
-
-                    print(
-                        f"Translation chunk "
-                        f"{index + 1}, "
-                        f"attempt {attempt + 1} failed:",
-                        e
-                    )
-
-                    if attempt == 0:
-
-                        print(
-                            "Waiting 3 seconds "
-                            "before retry..."
-                        )
-
-                        time.sleep(3)
-
-            # -------------------------------------------------
-            # If translation failed, stop
-            # -------------------------------------------------
-
-            if not translated_chunk:
-
-                print(
-                    f"Failed to translate chunk "
-                    f"{index + 1}"
+                    max_tokens=16000,
                 )
 
-                return None
-
-            translated_chunks.append(
-                translated_chunk
-            )
-
-            # -------------------------------------------------
-            # Give the TPM window time to recover
-            # -------------------------------------------------
-
-            if index < len(chunks) - 1:
-
-                print(
-                    "Waiting 5 seconds before "
-                    "the next translation request..."
+                translated = (
+                    completion
+                    .choices[0]
+                    .message
+                    .content
+                    .strip()
                 )
 
-                time.sleep(5)
+                # -----------------------------------
+                # Track actual token usage
+                # -----------------------------------
 
-        # -------------------------------------------------
-        # Combine translated chunks
-        # -------------------------------------------------
+                if completion.usage:
 
-        translated_transcript = "\n\n".join(
-            translated_chunks
-        )
+                    print(
+                        "Translation usage:"
+                    )
+
+                    print(
+                        "Input tokens:",
+                        completion.usage.prompt_tokens
+                    )
+
+                    print(
+                        "Output tokens:",
+                        completion.usage.completion_tokens
+                    )
+
+                    print(
+                        "Total tokens:",
+                        completion.usage.total_tokens
+                    )
+
+                # -----------------------------------
+                # Validate response
+                # -----------------------------------
+
+                if translated:
+
+                    print(
+                        "✅ Transcript translation "
+                        "completed successfully"
+                    )
+
+                    return translated
+
+                print(
+                    f"⚠️ Translation attempt "
+                    f"{attempt} returned empty content"
+                )
+
+            except Exception as e:
+
+                print(
+                    f"❌ Transcript translation attempt "
+                    f"{attempt} failed:",
+                    repr(e)
+                )
+
+                if attempt < max_attempts:
+                    time.sleep(2)
 
         print(
-            "Transcript translation completed successfully."
-        )
-
-        return translated_transcript
-
-    except Exception as e:
-
-        print(
-            "Transcript translation fatal error:",
-            e
+            "❌ Transcript translation failed "
+            "after all attempts"
         )
 
         return None
 
+    except Exception as e:
 
+        print(
+            "❌ Transcript translation fatal error:",
+            repr(e)
+        )
 
+        traceback.print_exc()
 
+        return None
+    
+    
+    
 
 
 
 
 def generate_tutorial_from_transcript(transcription):
+    """
+    Generate complete educational tutorial/lecture notes
+    from a transcript using Groq GPT-OSS 20B.
+
+    The entire transcript is sent in one request.
+    No manual chunking is performed.
+    """
 
     try:
-        api_key = os.getenv("GROQ_API_KEY", "").strip()
+
+        # -----------------------------------
+        # Validate transcript
+        # -----------------------------------
+
+        if not transcription or not transcription.strip():
+
+            print(
+                "❌ No transcript provided "
+                "for tutorial generation"
+            )
+
+            return None
+
+        # -----------------------------------
+        # Get Groq API key
+        # -----------------------------------
+
+        api_key = os.getenv(
+            "GROQ_API_KEY",
+            ""
+        ).strip()
 
         if not api_key:
-            print("Groq API key not found")
+
+            print(
+                "❌ Groq API key not found"
+            )
+
             return None
+
+        # -----------------------------------
+        # Groq client
+        # -----------------------------------
 
         client = Groq(
             api_key=api_key,
@@ -2126,223 +2646,237 @@ def generate_tutorial_from_transcript(transcription):
         )
 
         # -----------------------------------
-        # Split transcript into smaller chunks
+        # Tutorial generation prompt
         # -----------------------------------
 
-        chunks = split_transcript_into_chunks(
-            transcription,
-            max_chars=12000
-        )
+        prompt = f"""
+You are an educational content generator for SmartNotes.
 
-        print(
-            f"Transcript split into {len(chunks)} "
-            f"chunk(s) for tutorial generation"
-        )
+Based on the transcript below, create complete, clear,
+detailed, and well-structured educational lecture notes.
 
-        generated_sections = []
+The purpose of these notes is to allow a student to understand
+and study the lecture without needing to listen to the original
+recording again.
 
-        # -----------------------------------
-        # Generate tutorial section by section
-        # -----------------------------------
+IMPORTANT REQUIREMENTS:
 
-        for index, chunk in enumerate(chunks):
+1. Cover the important information contained in the entire
+   transcript.
 
-            print(
-                f"Generating tutorial section "
-                f"{index + 1}/{len(chunks)} "
-                f"({len(chunk)} characters)"
-            )
+2. Do not simply summarize the transcript.
 
-            prompt = f"""
-Based on the transcript below, create a detailed educational
-section of lecture notes.
+3. Explain important concepts clearly and in enough depth
+   for a student to learn from the notes.
 
-Requirements:
+4. Preserve important:
+   - definitions
+   - explanations
+   - examples
+   - processes
+   - comparisons
+   - names
+   - dates
+   - places
+   - numbers
+   - terminology
+   - technical information
 
-- Explain the important ideas and concepts clearly.
-- Do not simply summarize the transcript.
-- Provide meaningful explanations of the points discussed.
-- Preserve important facts, examples, names, dates, places,
-  numbers, and terminology.
-- Organize the content into readable paragraphs.
-- Use headings where appropriate.
-- Do not invent information that is not supported by the transcript.
-- Do not repeat the introduction or conclusion unnecessarily.
-- Focus only on the material contained in this transcript section.
-- Return only the educational lecture-note content.
+5. Do not invent information that is not supported by
+   the transcript.
 
-Transcript section:
-{chunk}
+6. Do not introduce outside information.
 
-Lecture notes:
+7. Organize the notes into meaningful sections.
+
+8. Use clear headings and subheadings where appropriate.
+
+9. Use paragraphs, bullet points, and numbered lists when
+   they make the material easier to understand.
+
+10. When the transcript contains a comparison between concepts,
+    present it in a simple readable format.
+
+11. Do not use Markdown table syntax.
+
+12. Do not use characters such as:
+    | 
+    ---
+    to create tables.
+
+13. Instead, use clearly labelled comparison sections.
+
+For example:
+
+Comparison: Type A vs Type B
+
+Feature: Speed
+Type A: Fast
+Type B: Slow
+
+Feature: Cost
+Type A: High
+Type B: Low
+
+14. Keep technical terms, programming keywords, commands,
+    and code examples accurate.
+
+15. Use backticks for short technical syntax where appropriate.
+
+16. Avoid unnecessary repetition.
+
+17. Maintain a logical flow from the beginning of the lecture
+    to the end.
+
+18. Include all major topics discussed in the transcript.
+
+19. End the notes with a concise conclusion that brings
+    together the main concepts covered.
+
+20. Where appropriate, include a short "Further Reading"
+    section based ONLY on topics actually mentioned in
+    the transcript. Do not invent books, websites, authors,
+    or sources.
+
+IMPORTANT:
+
+The transcript may contain spoken-language repetition,
+informal expressions, incomplete sentences, or transcription
+errors.
+
+Clean these up where necessary while preserving the intended
+meaning.
+
+Do not mention that the content came from a transcript.
+
+Return only the completed educational lecture notes.
+
+TRANSCRIPT:
+
+{transcription}
+
+LECTURE NOTES:
 """
 
-            generated_section = None
+        # -----------------------------------
+        # Generate tutorial
+        # -----------------------------------
 
-            # -----------------------------------
-            # Only allow two attempts per chunk
-            # -----------------------------------
+        max_attempts = 2
 
-            for attempt in range(2):
+        for attempt in range(
+            1,
+            max_attempts + 1
+        ):
 
-                try:
+            try:
 
-                    completion = client.chat.completions.create(
-                        model="openai/gpt-oss-20b",
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
-                        ],
-                        temperature=0.5,
-                        max_tokens=3500,
-                    )
+                completion = client.chat.completions.create(
 
-                    generated_section = (
-                        completion.choices[0]
-                        .message.content
-                        .strip()
-                    )
+                    model="openai/gpt-oss-20b",
 
-                    if generated_section:
-                        break
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
 
-                except Exception as e:
+                    temperature=0.5,
 
-                    error_message = str(e)
+                    max_tokens=16000,
+                )
+
+                tutorial = (
+                    completion
+                    .choices[0]
+                    .message
+                    .content
+                    .strip()
+                )
+
+                # -----------------------------------
+                # Track actual token usage
+                # -----------------------------------
+
+                if completion.usage:
 
                     print(
-                        f"Tutorial section "
-                        f"{index + 1}, "
-                        f"attempt {attempt + 1} failed:",
-                        error_message
+                        "Tutorial generation usage:"
                     )
 
-                    # -----------------------------------
-                    # Handle Groq rate limits manually
-                    # -----------------------------------
+                    print(
+                        "Input tokens:",
+                        completion.usage.prompt_tokens
+                    )
 
-                    if "429" in error_message:
+                    print(
+                        "Output tokens:",
+                        completion.usage.completion_tokens
+                    )
 
-                        if attempt == 0:
-                            print(
-                                "Groq rate limit reached. "
-                                "Waiting 10 seconds before retry..."
-                            )
+                    print(
+                        "Total tokens:",
+                        completion.usage.total_tokens
+                    )
 
-                            time.sleep(10)
+                # -----------------------------------
+                # Validate response
+                # -----------------------------------
 
-                    else:
+                if tutorial:
 
-                        if attempt == 0:
-                            time.sleep(2)
+                    print(
+                        "✅ Tutorial generated successfully"
+                    )
 
-            # -----------------------------------
-            # Stop if a section could not be generated
-            # -----------------------------------
-
-            if not generated_section:
-
-                print(
-                    f"Failed to generate tutorial section "
-                    f"{index + 1}"
-                )
-
-                return None
-
-            generated_sections.append(
-                generated_section
-            )
-
-            # -----------------------------------
-            # Small delay between Groq requests
-            # -----------------------------------
-
-            if index < len(chunks) - 1:
+                    return tutorial
 
                 print(
-                    "Waiting 2 seconds before "
-                    "the next tutorial section..."
+                    f"⚠️ Tutorial generation attempt "
+                    f"{attempt} returned empty content"
                 )
 
-                time.sleep(2)
+            except Exception as e:
+
+                print(
+                    f"❌ Tutorial generation attempt "
+                    f"{attempt} failed:",
+                    repr(e)
+                )
+
+                if attempt < max_attempts:
+
+                    print(
+                        "🔄 Retrying tutorial generation..."
+                    )
+
+                    time.sleep(2)
 
         # -----------------------------------
-        # Combine all generated sections
+        # All attempts failed
         # -----------------------------------
 
-        tutorial = "\n\n".join(
-            generated_sections
+        print(
+            "❌ Tutorial generation failed "
+            "after all attempts"
         )
 
-        # -----------------------------------
-        # Add a simple conclusion
-        # -----------------------------------
-
-        conclusion_prompt = f"""
-Write a concise educational conclusion for the lecture notes
-below.
-
-Requirements:
-- Summarize the main concepts that were explained.
-- Do not introduce new information.
-- Do not repeat the entire lecture.
-- Keep the conclusion clear and useful for a student.
-- Return only the conclusion.
-
-Lecture notes:
-{tutorial}
-"""
-
-        try:
-
-            completion = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": conclusion_prompt
-                    }
-                ],
-                temperature=0.4,
-                max_tokens=800,
-            )
-
-            conclusion = (
-                completion.choices[0]
-                .message.content
-                .strip()
-            )
-
-            if conclusion:
-
-                tutorial += (
-                    "\n\n## Conclusion\n\n"
-                    + conclusion
-                )
-
-        except Exception as e:
-
-            print(
-                "Conclusion generation failed:",
-                e
-            )
-
-            # Do not discard the tutorial if only
-            # the conclusion request fails.
-            pass
-
-        return tutorial
+        return None
 
     except Exception as e:
 
         print(
-            "Tutorial generation fatal error:",
-            e
+            "❌ Tutorial generation fatal error:",
+            repr(e)
         )
 
+        traceback.print_exc()
+
         return None
+
+
+
 
 
 
