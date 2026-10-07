@@ -123,16 +123,6 @@ def request_password_reset(request):
 resend.api_key = settings.RESEND_API_KEY
 
 
-# def send_reset_email(to_email, reset_link):
-#     resend.Emails.send({
-#         "from": settings.FROM_EMAIL,
-#         "to": [to_email],
-#         "subject": "Password Reset",
-#         "html": f"""
-#         <h2>Password Reset</h2>
-#         <p>Click the link below to reset your password</p>
-#         <a href="{reset_link}">{reset_link}</a>"""
-#     })
 
 resend.api_key = settings.RESEND_API_KEY
 
