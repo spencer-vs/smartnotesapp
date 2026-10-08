@@ -9,6 +9,7 @@ from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
+from .audio import generate_lecture_note
 import time
 from datetime import timedelta
 from datetime import time as datetime_time
@@ -1285,7 +1286,83 @@ def delete_task(request, id):
             status=500
         )
         
+@api_view(["POST"])
+@permission_classes([
+    IsAuthenticated,
+    HasPremiumSubscription
+])
+def generate_lecture(request, id):
+
+    try:
+
+        lecture = Lecture.objects.get(
+            id=id,
+            user=request.user,
+            is_deleted=False
+        )
+
+    except Lecture.DoesNotExist:
+
+        return JsonResponse(
+            {"error": "Transcript does not exist"},
+            status=404
+        )
+
+    if not lecture.transcript:
+
+        return JsonResponse(
+            {"error": "Transcript is not available"},
+            status=400
+        )
+
+    try:
+
+        notes = generate_lecture_note(
+            lecture.transcript
+        )
+
+        if not notes:
+
+            return JsonResponse(
+                {"error": "Lecture generation failed"},
+                status=500
+            )
+
+        lecture.lecture = notes
+
+        lecture.save(
+            update_fields=["lecture"]
+        )
+
+        return JsonResponse(
+            {
+                "message": "Lecture generated successfully",
+                "id": lecture.id,
+                "title": lecture.title,
+                "transcript": lecture.transcript,
+                "lecture": lecture.lecture,
+                "status": lecture.status,
+                "created_at": lecture.created_at,
+            },
+            status=200
+        )
+
+    except Exception as e:
+
+        print(
+            "❌ Lecture generation error:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+        return JsonResponse(
+            {"error": "Lecture generation failed"},
+            status=500
+        )
         
+        
+               
         
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1331,496 +1408,9 @@ def get_all_lectures(request):
 
 
 
-# @csrf_exempt
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated, HasPremiumSubscription])
-# def upload_audio(request):
-#     if request.method != "POST":
-#         return JsonResponse({"error": "Invalid request"}, status=405)
-#     try:
-#         print("USER:", request.user)
-#         print("AUTH:", request.user.is_authenticated)
-#         audio_file = request.FILES.get("audio")
-#         title = request.data.get("title", "").strip()
-#         if not audio_file:
-#             return JsonResponse({"error": "No audio file"}, status=400)
-#         MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
-
-#         if audio_file.size > MAX_AUDIO_SIZE:
-#              return JsonResponse(
-#             {
-#             "error": "Audio file is too large. "
-#                      "Maximum allowed size is 50 MB."
-#             }, status=400)
-#         folder = os.path.join(settings.MEDIA_ROOT, "audio")
-#         os.makedirs(folder, exist_ok=True)
-      
-#         lecture = Lecture.objects.create(
-#            user=request.user,
-#            title=title,
-#            audio_file=audio_file,
-#            status="processing"
-#        )
-        
-        
-#         process_audio(lecture.id)
-        
-       
-        
-#         return JsonResponse(
-#             {
-#                 "message": "Processing started",
-#                 "lecture_id": lecture.id,
-#                 "title": lecture.title,
-#             }, status=202
-#         )
-#     except Exception as e:
-#         print("UPLOAD ERROR:", str(e))
-#         traceback.print_exc()
-#         return JsonResponse({"error": str(e)}, status=500)
-
-
-
-# def process_audio(lecture_id):
-#     try:
-#         lecture = Lecture.objects.get(id=lecture_id)
-#         file_path = lecture.audio_file.path
-        
-#         api_key = os.getenv("ASSEMBLYAI_API_KEY")
-#         if not api_key:
-#             print("AssemblyAI key missing!")
-#             lecture.status = "failed"
-#             lecture.save()
-#             return
-#         aai.settings.api_key = api_key
-#         transcriber = aai.Transcriber()
-#         config = aai.TranscriptionConfig(speech_models=["universal-3-pro", "universal-2"])
-#         transcript = transcriber.transcribe(lecture.audio_file.path, config=config)
-       
-#         # print("FULL TRANSCRIPT:", transcript.text)
-#         if transcript.status == "error":
-#             print("AssemblyAI error:", transcript.error)
-#             lecture.status = "failed"
-#             lecture.save()
-#             return
-#         transcript_text = transcript.text or ""
-
-#         lecture.transcript = transcript_text
-#         lecture.save(update_fields=["transcript"])
-#         notes = generate_lecture_note(transcript_text)
-        
-#         if not notes:
-#             print("Grok failed, no notes generated")
-#             lecture.status= "failed"
-#             lecture.save(update_fields=["status"])
-#             return
-    
-#         lecture.transcript = transcript_text
-#         lecture.lecture = notes
-#         lecture.status = "completed"
-        
-#         lecture.save(
-#             update_fields=[
-#             "transcript",
-#             "lecture",
-#             "status",
-#         ]
-#         )
-
-       
-        
-#         if os.path.exists(file_path):
-#             os.remove(file_path)
-#             print('Audio file deleted successfully')
-            
-#     except Exception as e:
-#         print("Audio processing error:", str(e))
-#         traceback.print_exc()
-#         try:
-#             lecture = Lecture.objects.get(id=lecture_id)
-#             lecture.status = "failed"
-#             lecture.save()
-#         except:
-#             pass
-        
-    
-    
-    
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
-def upload_audio(request):
-
-    if request.method != "POST":
-        return JsonResponse(
-            {"error": "Invalid request"},
-            status=405
-        )
-
-    try:
-
-        print("USER:", request.user)
-        print("AUTH:", request.user.is_authenticated)
-
-        # -----------------------------------
-        # Get uploaded audio
-        # -----------------------------------
-
-        audio_file = request.FILES.get("audio")
-
-        title = request.data.get(
-            "title",
-            ""
-        ).strip()
-
-
-        # -----------------------------------
-        # Validate audio
-        # -----------------------------------
-
-        if not audio_file:
-
-            return JsonResponse(
-                {
-                    "error": "No audio file"
-                },
-                status=400
-            )
-
-
-        # -----------------------------------
-        # Maximum audio size
-        # -----------------------------------
-
-        MAX_AUDIO_SIZE = 50 * 1024 * 1024  # 50 MB
-
-        if audio_file.size > MAX_AUDIO_SIZE:
-
-            return JsonResponse(
-                {
-                    "error": (
-                        "Audio file is too large. "
-                        "Maximum allowed size is 50 MB."
-                    )
-                },
-                status=400
-            )
-
-
-        # -----------------------------------
-        # Create Lecture record
-        # -----------------------------------
-
-        lecture = Lecture.objects.create(
-
-            user=request.user,
-
-            title=title,
-
-            audio_file=audio_file,
-
-            status="processing"
-
-        )
-
-
-        print(
-            f"🎧 Audio upload saved. "
-            f"Lecture ID: {lecture.id}"
-        )
-
-
-        # -----------------------------------
-        # Process audio
-        # -----------------------------------
-
-        process_audio(lecture.id)
-
-
-        # -----------------------------------
-        # Response
-        # -----------------------------------
-
-        return JsonResponse(
-            {
-                "message": "Processing started",
-
-                "lecture_id": lecture.id,
-
-                "title": lecture.title,
-            },
-            status=202
-        )
-
-
-    except Exception as e:
-
-        print(
-            "❌ UPLOAD ERROR:",
-            str(e)
-        )
-
-        traceback.print_exc()
-
-        return JsonResponse(
-            {
-                "error": str(e)
-            },
-            status=500
-        )
         
         
 
-
-def process_audio(lecture_id):
-
-    file_path = None
-
-    try:
-
-        # -----------------------------------
-        # Get lecture
-        # -----------------------------------
-
-        lecture = Lecture.objects.get(
-            id=lecture_id
-        )
-
-
-        file_path = lecture.audio_file.path
-
-
-        print(
-            f"🎧 Starting audio processing "
-            f"for Lecture {lecture_id}"
-        )
-
-
-        # -----------------------------------
-        # Get Groq API key
-        # -----------------------------------
-
-        api_key = os.getenv(
-            "GROQ_API_KEY",
-            ""
-        ).strip()
-
-
-        if not api_key:
-
-            print(
-                "❌ GROQ_API_KEY is missing"
-            )
-
-            lecture.status = "failed"
-
-            lecture.save(
-                update_fields=["status"]
-            )
-
-            return
-
-
-        # -----------------------------------
-        # Verify audio file exists
-        # -----------------------------------
-
-        if not os.path.exists(file_path):
-
-            print(
-                "❌ Audio file does not exist:",
-                file_path
-            )
-
-            lecture.status = "failed"
-
-            lecture.save(
-                update_fields=["status"]
-            )
-
-            return
-
-
-        # -----------------------------------
-        # Create Groq client
-        # -----------------------------------
-
-        client = Groq(
-            api_key=api_key,
-            max_retries=0
-        )
-
-
-        # -----------------------------------
-        # Transcribe audio with Whisper
-        # -----------------------------------
-
-        print(
-            "🎙️ Transcribing audio with "
-            "Whisper Large V3 Turbo..."
-        )
-
-
-        with open(
-            file_path,
-            "rb"
-        ) as audio:
-
-            transcription = (
-                client.audio.transcriptions.create(
-
-                    file=audio,
-
-                    model="whisper-large-v3-turbo",
-
-                    response_format="json",
-
-                    temperature=0.0,
-
-                )
-            )
-
-
-        # -----------------------------------
-        # Get transcript text
-        # -----------------------------------
-
-        transcript_text = (
-            transcription.text or ""
-        ).strip()
-
-
-        if not transcript_text:
-
-            print(
-                "❌ Groq returned an empty transcript"
-            )
-
-            lecture.status = "failed"
-
-            lecture.save(
-                update_fields=["status"]
-            )
-
-            return
-
-
-        print(
-            "✅ Audio transcription completed"
-        )
-
-        print(
-            "Transcript length:",
-            len(transcript_text),
-            "characters"
-        )
-
-
-        # -----------------------------------
-        # Save transcript
-        # -----------------------------------
-
-        lecture.transcript = transcript_text
-
-        lecture.save(
-            update_fields=["transcript"]
-        )
-
-
-        # -----------------------------------
-        # Generate lecture notes
-        # -----------------------------------
-
-        print(
-            "🧠 Generating lecture notes..."
-        )
-
-
-        notes = generate_lecture_note(
-            transcript_text
-        )
-
-
-        if not notes:
-
-            print(
-                "❌ Lecture-note generation failed"
-            )
-
-            lecture.status = "failed"
-
-            lecture.save(
-                update_fields=["status"]
-            )
-
-            return
-
-
-        # -----------------------------------
-        # Save final result
-        # -----------------------------------
-
-        lecture.lecture = notes
-
-        lecture.status = "completed"
-
-        lecture.save(
-            update_fields=[
-                "lecture",
-                "status",
-            ]
-        )
-
-
-        print(
-            f"✅ Audio processing completed "
-            f"for Lecture {lecture_id}"
-        )
-
-
-        # -----------------------------------
-        # Delete original audio file
-        # -----------------------------------
-
-        if os.path.exists(file_path):
-
-            os.remove(file_path)
-
-            print(
-                "🗑️ Audio file deleted successfully"
-            )
-
-
-    except Exception as e:
-
-        print(
-            "❌ Audio processing error:",
-            repr(e)
-        )
-
-        traceback.print_exc()
-
-
-        # -----------------------------------
-        # Mark lecture as failed
-        # -----------------------------------
-
-        try:
-
-            lecture = Lecture.objects.get(
-                id=lecture_id
-            )
-
-            lecture.status = "failed"
-
-            lecture.save(
-                update_fields=["status"]
-            )
-
-        except Exception:
-
-            pass
 
 
     
@@ -1841,314 +1431,12 @@ def delete_lectures(request, id):
         
 
         
-        
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def lecture_status(request, id):
-    try:
-        lecture = Lecture.objects.get(id=id, user=request.user)
-        return JsonResponse({
-            "id": lecture.id,
-            "status": lecture.status,
-            "lecture": lecture.lecture
-        })
-    except Lecture.DoesNotExist:
-        return JsonResponse({"error": "Not found"}, status=404)
+ 
     
     
     
 
     
-
-
-
-def generate_lecture_note(transcription):
-    """
-    Generate detailed lecture notes from an audio transcript
-    using Groq GPT-OSS 20B.
-
-    The complete transcript is sent in one request.
-    No manual transcript truncation or chunking is performed.
-    """
-
-    try:
-
-        # -----------------------------------
-        # Validate transcript
-        # -----------------------------------
-
-        if not transcription or not transcription.strip():
-
-            print(
-                "❌ No transcript provided "
-                "for lecture-note generation"
-            )
-
-            return None
-
-        # -----------------------------------
-        # Get Groq API key
-        # -----------------------------------
-
-        api_key = os.getenv(
-            "GROQ_API_KEY",
-            ""
-        ).strip()
-
-        if not api_key:
-
-            print(
-                "❌ GROQ_API_KEY is missing"
-            )
-
-            return None
-
-        # -----------------------------------
-        # Groq client
-        # -----------------------------------
-
-        client = Groq(
-            api_key=api_key,
-            max_retries=0
-        )
-
-        # -----------------------------------
-        # Lecture-note prompt
-        # -----------------------------------
-
-        prompt = f"""
-You are the SmartNotes Lecture Notes Generator.
-
-Based on the transcript below, create clear, detailed,
-well-structured lecture notes that a student can use
-for studying.
-
-The notes should allow a student to understand and study
-the lecture without needing to listen to the original
-recording again.
-
-IMPORTANT REQUIREMENTS:
-
-1. Cover all important topics and information contained
-   in the entire transcript.
-
-2. Do not produce a simple summary.
-
-3. Explain concepts clearly and in enough depth for a
-   student to learn from the notes.
-
-4. Preserve important:
-   - definitions
-   - explanations
-   - examples
-   - processes
-   - comparisons
-   - names
-   - dates
-   - places
-   - numbers
-   - terminology
-   - technical information
-
-5. Do not invent information that is not supported by
-   the transcript.
-
-6. Do not introduce unrelated outside information.
-
-7. Organize the lecture notes into meaningful sections.
-
-8. Use clear headings and subheadings where appropriate.
-
-9. Use paragraphs, bullet points, and numbered lists when
-   they improve readability.
-
-10. When the lecture contains a comparison between two
-    or more concepts, present the comparison using a
-    simple readable structure.
-
-11. Do not use Markdown table syntax.
-
-12. Do not use characters such as:
-    |
-    ---
-    to create tables.
-
-13. Instead, use clearly labelled comparison sections.
-
-Example:
-
-Comparison: Type A vs Type B
-
-Feature: Speed
-Type A: Fast
-Type B: Slow
-
-Feature: Cost
-Type A: High
-Type B: Low
-
-14. Keep technical terms, programming keywords, commands,
-    and code examples accurate.
-
-15. Use backticks for short technical syntax where
-    appropriate.
-
-16. Avoid unnecessary repetition.
-
-17. Maintain a logical flow from the beginning of the
-    lecture to the end.
-
-18. Correct obvious transcription errors when the intended
-    meaning is clear.
-
-19. Do not mention that the content came from a transcript.
-
-20. End the lecture notes with a concise conclusion that
-    brings together the main concepts covered.
-
-21. Where appropriate, include a short "Further Reading"
-    section based ONLY on topics actually discussed in
-    the lecture.
-
-22. Do not invent books, websites, authors, or sources
-    for the Further Reading section.
-
-IMPORTANT:
-
-The transcript may contain spoken-language repetition,
-informal expressions, incomplete sentences, or minor
-transcription errors.
-
-Clean these up where necessary while preserving the
-lecturer's intended meaning.
-
-Return only the completed lecture notes.
-
-TRANSCRIPT:
-
-{transcription}
-
-LECTURE NOTES:
-"""
-
-        # -----------------------------------
-        # Generate lecture notes
-        # -----------------------------------
-
-        max_attempts = 2
-
-        for attempt in range(
-            1,
-            max_attempts + 1
-        ):
-
-            try:
-
-                completion = client.chat.completions.create(
-
-                    model="openai/gpt-oss-20b",
-
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
-
-                    temperature=0.5,
-
-                    max_tokens=16000,
-                )
-
-                lecture_notes = (
-                    completion
-                    .choices[0]
-                    .message
-                    .content
-                    .strip()
-                )
-
-                # -----------------------------------
-                # Track actual token usage
-                # -----------------------------------
-
-                if completion.usage:
-
-                    print(
-                        "Lecture-note generation usage:"
-                    )
-
-                    print(
-                        "Input tokens:",
-                        completion.usage.prompt_tokens
-                    )
-
-                    print(
-                        "Output tokens:",
-                        completion.usage.completion_tokens
-                    )
-
-                    print(
-                        "Total tokens:",
-                        completion.usage.total_tokens
-                    )
-
-                # -----------------------------------
-                # Validate response
-                # -----------------------------------
-
-                if lecture_notes:
-
-                    print(
-                        "✅ Lecture notes generated "
-                        "successfully"
-                    )
-
-                    return lecture_notes
-
-                print(
-                    f"⚠️ Lecture-note generation attempt "
-                    f"{attempt} returned empty content"
-                )
-
-            except Exception as e:
-
-                print(
-                    f"❌ Lecture-note generation attempt "
-                    f"{attempt} failed:",
-                    repr(e)
-                )
-
-                if attempt < max_attempts:
-
-                    print(
-                        "🔄 Retrying lecture-note generation..."
-                    )
-
-                    time.sleep(2)
-
-        # -----------------------------------
-        # All attempts failed
-        # -----------------------------------
-
-        print(
-            "❌ Lecture-note generation failed "
-            "after all attempts"
-        )
-
-        return None
-
-    except Exception as e:
-
-        print(
-            "❌ Lecture-note generation fatal error:",
-            repr(e)
-        )
-
-        traceback.print_exc()
-
-        return None
-
 
 
 
@@ -2229,69 +1517,6 @@ def get_all_tutorials(request):
  
  
  
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated, HasPremiumSubscription])
-# def generate_tutorial(request):
-  
-#     if request.method != "POST":
-#         return JsonResponse({'error': 'Invalid request method'}, status=405)
-#     try:
-       
-#         yt_link = request.data.get('link')
-#         if not yt_link:
-#             return JsonResponse({'error': 'No YouTube link provided'}, status=400)
-       
-#         # Extract video ID
-#         video_id = get_video_id(yt_link)
-        
-       
-#         if not video_id:
-#             return JsonResponse({'error': 'Invalid YouTube URL'}, status=400)
-#         title = get_youtube_title(video_id)
-#         # Get transcript
-#         # transcription = transcription[:1200]
-#         transcription = get_transcription(video_id)
-#         if not transcription:
-#             return JsonResponse(
-#             {
-#             'error': (
-#                 'A transcript could not be retrieved for this YouTube video. '
-#                 'Please try another video.'
-#             )
-#             },
-#         status=400
-#     )
-#         # Translate transcript to English
-        
-#         english_transcription = translate_transcript_to_english(transcription)
-
-#         if not english_transcription:
-#            return JsonResponse(
-#            {'error': 'Failed to translate transcript to English'},
-#            status=500
-#            )
-
-#         # Generate blog
-#         tutorial = generate_tutorial_from_transcript(english_transcription)
-#         if not tutorial:
-#             return JsonResponse({'error': 'Failed to generate tutorial'}, status=500)
-#         # Save blog to database
-#         new_tutorial = Tutorial.objects.create(
-#             user=request.user,
-#             youtube_title=title,
-#             youtube_link=yt_link,
-#             youtube_text=tutorial,
-#             transcript=english_transcription
-#         )
-#         new_tutorial.save()
-        
-        
-        
-#         return JsonResponse({'content': tutorial})
-#     except Exception as e:
-#         print("SERVER ERROR:", e)
-#         return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
-
 
 
 
