@@ -1,9 +1,17 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,    get_all_lectures, get_lecture_detail, generate_lecture, generate_tutorial, search_lectures, search_tasks, delete_lectures, get_all_tutorials, get_tutorial_details, delete_tutorial, send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, get_active_task
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,    get_all_lectures, get_lecture_detail, generate_lecture,  search_lectures, search_tasks, delete_lectures,   send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, get_active_task
 from .audio import (
     upload_audio,
     lecture_status,
+)
+
+from .tutorials import (
+    generate_transcript,
+    generate_tutorial_notes,
+    get_tutorial_details,
+    get_all_tutorials,
+    delete_tutorial,
 )
 
 urlpatterns = [
@@ -20,19 +28,20 @@ urlpatterns = [
    path('notes/tasks/active/', views.get_active_task, name='get_active_task'),
    path('notes/tasks/<int:id>/', views.task_detail, name='task_detail'),
    path('notes/tasks/', views.get_all_task, name='get_all_task'),
-    path('notes/tasks/<int:task_id>/items/<int:item_id>/', views.update_task_item, name='update_task_item'),
+   path('notes/tasks/<int:task_id>/items/<int:item_id>/', views.update_task_item, name='update_task_item'),
    path('notes/tasks/<int:id>/delete/', views.delete_task, name='delete_task'),
    path('notes/upload-audio/', upload_audio),
    path("notes/lectures/<int:id>/generate/", generate_lecture, name="generate-lecture",),
    path("notes/lectures/", get_all_lectures, name="get_all_lectures"),
    path("notes/lectures/<int:id>/", get_lecture_detail, name="lecture-detail"),
    path("notes/lectures/<int:id>/status/", lecture_status),
-   path("notes/generate_tutorials/", generate_tutorial, name="generate_tutorial"),
+   path("notes/generate_transcript/", generate_transcript, name="generate_transcript"),
+   path("notes/tutorial/<int:id>/generate_tutorials/", generate_tutorial_notes, name="generate_tutorial_notes",),
    path("notes/lectures/<int:id>/delete/", delete_lectures, name="delete_lectures"),
-   path("notes/tutorials/", get_all_tutorials, name="get_tutorials"),
-   path("notes/tutorial/<int:id>/", get_tutorial_details, name="get_tutorial_details"),
-   path("notes/tutorial/<int:id>/delete/", delete_tutorial, name="delete_tutorial"),
    path("notes/quizzes/generate/", generate_quiz_view, name="generate_quiz"),
+   path("notes/tutorial/<int:id>/", get_tutorial_details, name="get_tutorial_details",),
+   path("notes/tutorials/", get_all_tutorials, name="get_all_tutorials"),
+   path("notes/tutorial/<int:id>/delete/",delete_tutorial,name="delete_tutorial",),
    path("notes/quizzes/<int:quiz_id>/submit/", submit_quiz_view, name="submit_quiz"),
    path("notes/quizzes/<int:quiz_id>/review/", review_quiz_view, name="review_quiz"),
    path("notes/quizzes/", saved_quizzes_view, name="saved_quizzes"),
