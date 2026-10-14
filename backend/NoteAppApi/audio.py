@@ -355,9 +355,12 @@ def process_audio(lecture_id):
                 "Audio transcription failed because of a processing error."
             )
 
-        except Exception:
-
-            pass
+        except Exception as refund_error:
+            print(
+                "❌ Failed to update lecture status or refund audio credit:",
+                repr(refund_error)
+            )
+            traceback.print_exc()
 
 
 # ============================================================
