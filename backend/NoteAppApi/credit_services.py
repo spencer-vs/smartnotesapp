@@ -27,13 +27,15 @@ def get_or_create_credit_balance(user):
     Lock the user row first to help serialize balance creation
     and credit updates for the same user.
     """
-    user.__class__.objects.select_for_update().get(pk=user.pk)
+    with transaction.atomic():
+        # Lock the user row to help prevent concurrent balance creation.
+        user.__class__.objects.select_for_update().get(pk=user.pk)
 
-    balance, _ = UserCreditBalance.objects.get_or_create(
-        user=user
-    )
+        balance, created = UserCreditBalance.objects.get_or_create(
+            user=user
+        )
 
-    return balance
+        return balance
 
 
 @transaction.atomic
