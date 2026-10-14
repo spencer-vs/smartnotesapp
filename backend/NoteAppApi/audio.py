@@ -10,25 +10,28 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Lecture
-from .permissions import HasPremiumSubscription
+from .credit_services import (
+    consume_credit,
+    refund_credit,
+    InsufficientCredits,
+)
+from .permissions import HasPremiumSubscription, HasTestingAccess
 
 
 # ============================================================
 # AUDIO UPLOAD
 # ============================================================
-
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes([
     IsAuthenticated,
-    HasPremiumSubscription
+    HasTestingAccess
 ])
 def upload_audio(request):
 
-    try:
-        print("USER:", request.user)
-        print("AUTH:", request.user.is_authenticated)
+    lecture = None
 
+    try:
         audio_file = request.FILES.get("audio")
         title = request.data.get("title", "").strip()
 
@@ -51,6 +54,7 @@ def upload_audio(request):
                 status=400
             )
 
+        # Save the upload so we have a stable lecture ID.
         lecture = Lecture.objects.create(
             user=request.user,
             title=title,
@@ -58,32 +62,104 @@ def upload_audio(request):
             status="processing"
         )
 
-        print(
-            f"🎧 Audio upload saved. Lecture ID: {lecture.id}"
-        )
+        # One audio credit per lecture transcription.
+        usage_key = f"audio:lecture:{lecture.id}:usage"
 
+        try:
+            consume_credit(
+                user=request.user,
+                feature="audio",
+                idempotency_key=usage_key,
+            )
+
+        except InsufficientCredits:
+            # Remove the uploaded file and database record.
+            if lecture.audio_file:
+                lecture.audio_file.delete(save=False)
+
+            lecture.delete()
+
+            return JsonResponse(
+                {
+                    "error": (
+                        "You have no audio credits remaining. "
+                        "Please purchase a package to continue."
+                    ),
+                    "code": "insufficient_audio_credits",
+                },
+                status=402
+            )
+
+        # Begin transcription.
         process_audio(lecture.id)
+
+        # process_audio currently runs synchronously.
+        # It may have completed or failed by the time it returns.
+        lecture.refresh_from_db()
+
+        if lecture.status == "failed":
+            return JsonResponse(
+                {
+                    "error": "Audio transcription failed.",
+                    "lecture_id": lecture.id,
+                    "status": lecture.status,
+                },
+                status=500
+            )
 
         return JsonResponse(
             {
-                "message": "Processing started",
+                "message": "Audio transcription processed.",
                 "lecture_id": lecture.id,
                 "title": lecture.title,
+                "status": lecture.status,
             },
-            status=202
+            status=200
         )
 
     except Exception as e:
 
-        print("❌ UPLOAD ERROR:", str(e))
+        print("UPLOAD ERROR:", str(e))
         traceback.print_exc()
 
         return JsonResponse(
-            {"error": str(e)},
+            {"error": "Audio upload failed."},
             status=500
         )
+        
+        
+def refund_failed_audio(lecture, reason):
+    """
+    Refund the audio credit for a failed transcription.
+    Repeated calls will not refund the same operation twice.
+    """
 
+    usage_key = f"audio:lecture:{lecture.id}:usage"
+    refund_key = f"audio:lecture:{lecture.id}:refund"
 
+    try:
+        refund_credit(
+            user=lecture.user,
+            feature="audio",
+            usage_idempotency_key=usage_key,
+            refund_idempotency_key=refund_key,
+            description=reason,
+        )
+
+        print(
+            f"Audio credit refund processed for "
+            f"Lecture {lecture.id}"
+        )
+
+    except Exception as e:
+        print(
+            f"Audio credit refund failed for "
+            f"Lecture {lecture.id}: {e}"
+        )
+
+        traceback.print_exc()
+        
+        
 # ============================================================
 # AUDIO PROCESSING / TRANSCRIPTION
 # ============================================================
@@ -124,6 +200,11 @@ def process_audio(lecture_id):
                 update_fields=["status"]
             )
 
+            refund_failed_audio(
+                lecture,
+                "Audio transcription failed: missing Groq API key."
+            )
+
             return
 
         # ----------------------------------------------------
@@ -141,6 +222,11 @@ def process_audio(lecture_id):
 
             lecture.save(
                 update_fields=["status"]
+            )
+            
+            refund_failed_audio(
+                lecture,
+                "Audio transcription failed: audio file missing."
             )
 
             return
@@ -192,6 +278,11 @@ def process_audio(lecture_id):
 
             lecture.save(
                 update_fields=["status"]
+            )
+            
+            refund_failed_audio(
+                lecture,
+                "Audio transcription failed: empty transcript."
             )
 
             return
@@ -257,6 +348,11 @@ def process_audio(lecture_id):
 
             lecture.save(
                 update_fields=["status"]
+            )
+            
+            refund_failed_audio(
+                lecture,
+                "Audio transcription failed because of a processing error."
             )
 
         except Exception:

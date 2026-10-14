@@ -41,7 +41,7 @@ import resend
 import smtplib
 import socket
 from django.core.mail import get_connection
-from .permissions import HasPremiumSubscription
+from .permissions import HasPremiumSubscription, HasTestingAccess
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -1286,10 +1286,12 @@ def delete_task(request, id):
             status=500
         )
         
+
+
 @api_view(["POST"])
 @permission_classes([
     IsAuthenticated,
-    HasPremiumSubscription
+    HasTestingAccess
 ])
 def generate_lecture(request, id):
 

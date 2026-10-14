@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Note, Contact, Task, TaskItem, Lecture, Tutorial, Subscription, Quiz, QuizAnswer, QuizQuestion
+from .models import Note, Contact, Task, TaskItem, Lecture, Tutorial, Subscription, Quiz, QuizAnswer, QuizQuestion, Package, PackagePurchase, UserCreditBalance, CreditTransaction
 
 # Register your models here.
 @admin.register(Note)
@@ -246,21 +246,120 @@ class QuizAnswerAdmin(admin.ModelAdmin):
 
 
 
-# Finalize Task and TaskItem models
-# Update Django admin so weekly tasks and checklist items are easy to inspect
-# Create serializers
-# Rewrite Groq scheduling to return structured Monday–Saturday data
-# Rewrite create_task()
-# title + checklist items from user
-# enforce one active task
-# calculate next Monday → Saturday
-# send items to Groq
-# validate Groq's response
-# create TaskItem records
-# Rewrite task_detail()
-# Rewrite get_all_task() to return weekly Task records with progress
-# Add the simple checklist completion operation
-# Change deletion to soft delete
-# Update URLs
-# Test the complete backend in Postman
-# Then move to the Create Task → Task Display → Tasks/weekly history mobile flow.
+@admin.register(Package)
+class PackageAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "level",
+        "category",
+        "price_ngn",
+        "price_usd",
+        "audio_credits",
+        "youtube_credits",
+        "quiz_credits",
+        "is_active",
+    )
+
+    list_filter = (
+        "level",
+        "category",
+        "is_active",
+    )
+
+    search_fields = (
+        "code",
+        "google_play_product_id",
+    )
+
+    list_editable = (
+        "is_active",
+    )
+
+    ordering = ("display_order",)
+
+
+@admin.register(PackagePurchase)
+class PackagePurchaseAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "package",
+        "amount_paid",
+        "currency",
+        "provider",
+        "status",
+        "created_at",
+    )
+
+    list_filter = (
+        "status",
+        "provider",
+        "currency",
+    )
+
+    search_fields = (
+        "user__username",
+        "user__email",
+        "order_id",
+    )
+
+    readonly_fields = (
+        "purchase_token",
+        "order_id",
+        "purchased_at",
+        "verified_at",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(UserCreditBalance)
+class UserCreditBalanceAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "audio_credits",
+        "youtube_credits",
+        "quiz_credits",
+        "updated_at",
+    )
+
+    search_fields = (
+        "user__username",
+        "user__email",
+    )
+
+
+@admin.register(CreditTransaction)
+class CreditTransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "transaction_type",
+        "feature",
+        "amount",
+        "balance_after",
+        "created_at",
+    )
+
+    list_filter = (
+        "transaction_type",
+        "feature",
+        "created_at",
+    )
+
+    search_fields = (
+        "user__username",
+        "user__email",
+        "description",
+        "idempotency_key",
+    )
+
+    readonly_fields = (
+        "user",
+        "purchase",
+        "transaction_type",
+        "feature",
+        "amount",
+        "balance_after",
+        "description",
+        "idempotency_key",
+        "created_at",
+    )

@@ -13,7 +13,12 @@ from groq import Groq
 from langdetect import detect
 
 from .models import Tutorial
-from .permissions import HasPremiumSubscription
+from .permissions import HasPremiumSubscription, HasTestingAccess
+from .credit_services import (
+    get_or_create_credit_balance,
+    consume_credit,
+    InsufficientCredits,
+)
 
 
 
@@ -147,16 +152,166 @@ def get_transcription_proxy(video_id):
 
 
 # ---------------- TRANSCRIPTION ---------------- #
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated, HasTestingAccess])
+# def generate_transcript(request):
+#     """
+#     Extract a YouTube transcript, translate it to English when necessary,
+#     and save it without generating tutorial notes.
+#     """
+
+#     try:
+#         # 1. Get YouTube link
+#         yt_link = request.data.get("link")
+
+#         if not yt_link:  
+#             return JsonResponse(
+#                 {"error": "No YouTube link provided"},
+#                 status=400,
+#             )
+
+#         # 2. Extract video ID
+#         video_id = get_video_id(yt_link)
+
+#         if not video_id:
+#             return JsonResponse(
+#                 {"error": "Invalid YouTube URL"},
+#                 status=400,
+#             )
+
+#         # 3. Get video title
+#         title = get_youtube_title(video_id)
+
+#         # 4. Retrieve transcript from RapidAPI
+#         transcription = get_transcription(video_id)
+
+#         if not transcription:
+#             return JsonResponse(
+#                 {
+#                     "error": (
+#                         "A transcript could not be retrieved for "
+#                         "this YouTube video. Please try another video."
+#                     )
+#                 },
+#                 status=400,
+#             )
+
+#         # 5. Detect transcript language
+#         try:
+#             detected_language = detect(transcription)
+
+#             print(
+#                 "Detected transcript language:",
+#                 detected_language,
+#             )
+
+#         except Exception as e:
+#             print(
+#                 "Language detection failed:",
+#                 repr(e),
+#             )
+#             detected_language = None
+
+#         # 6. Translate when necessary
+#         if detected_language == "en":
+#             print(
+#                 "Transcript is already in English. "
+#                 "Skipping translation."
+#             )
+
+#             english_transcription = transcription
+
+#         else:
+#             print(
+#                 "Transcript is not English or its language "
+#                 "could not be detected. Translating to English..."
+#             )
+
+#             english_transcription = translate_transcript_to_english(
+#                 transcription
+#             )
+
+#             if not english_transcription:
+#                 return JsonResponse(
+#                     {
+#                         "error": (
+#                             "Failed to translate transcript to English"
+#                         )
+#                     },
+#                     status=500,
+#                 )
+
+#         # 7. Save transcript without generating notes
+#         new_tutorial = Tutorial.objects.create(
+#             user=request.user,
+#             youtube_title=title,
+#             youtube_link=yt_link,
+#             transcript=english_transcription,
+#             youtube_text=None,
+#         )
+
+#         # 8. Return saved transcript and record ID
+#         return JsonResponse(
+#             {
+#                 "id": new_tutorial.id,
+#                 "title": new_tutorial.youtube_title,
+#                 "video_link": new_tutorial.youtube_link,
+#                 "transcript": new_tutorial.transcript,
+#                 "text": new_tutorial.youtube_text,
+#                 "created_at": new_tutorial.created_at.isoformat(),
+#                 "message": "Transcript extracted successfully",
+#             },
+#             status=201,
+#         )
+
+#     except Exception as e:
+#         print("Transcript extraction server error:", repr(e))
+#         traceback.print_exc()
+
+#         return JsonResponse(
+#             {"error": "Server error while extracting transcript"},
+#             status=500,
+#         )
+
+
+
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
+@permission_classes([IsAuthenticated, HasTestingAccess])
 def generate_transcript(request):
     """
     Extract a YouTube transcript, translate it to English when necessary,
     and save it without generating tutorial notes.
+
+    One YouTube credit is deducted after a successful transcript.
+    Failed transcript requests do not consume credits.
     """
 
+    new_tutorial = None
+
     try:
-        # 1. Get YouTube link
+        # --------------------------------------------------
+        # 1. Check YouTube credits before external API calls
+        # --------------------------------------------------
+
+        balance = get_or_create_credit_balance(request.user)
+
+        if balance.youtube_credits < 1:
+            return JsonResponse(
+                {
+                    "error": (
+                        "You have no YouTube credits remaining. "
+                        "Please purchase a package to continue."
+                    ),
+                    "code": "insufficient_credits",
+                    "youtube_credits": balance.youtube_credits,
+                },
+                status=402,
+            )
+
+        # --------------------------------------------------
+        # 2. Get YouTube link
+        # --------------------------------------------------
+
         yt_link = request.data.get("link")
 
         if not yt_link:
@@ -165,7 +320,10 @@ def generate_transcript(request):
                 status=400,
             )
 
-        # 2. Extract video ID
+        # --------------------------------------------------
+        # 3. Extract video ID
+        # --------------------------------------------------
+
         video_id = get_video_id(yt_link)
 
         if not video_id:
@@ -174,10 +332,16 @@ def generate_transcript(request):
                 status=400,
             )
 
-        # 3. Get video title
+        # --------------------------------------------------
+        # 4. Get video title
+        # --------------------------------------------------
+
         title = get_youtube_title(video_id)
 
-        # 4. Retrieve transcript from RapidAPI
+        # --------------------------------------------------
+        # 5. Retrieve transcript from RapidAPI
+        # --------------------------------------------------
+
         transcription = get_transcription(video_id)
 
         if not transcription:
@@ -191,7 +355,10 @@ def generate_transcript(request):
                 status=400,
             )
 
-        # 5. Detect transcript language
+        # --------------------------------------------------
+        # 6. Detect transcript language
+        # --------------------------------------------------
+
         try:
             detected_language = detect(transcription)
 
@@ -205,9 +372,13 @@ def generate_transcript(request):
                 "Language detection failed:",
                 repr(e),
             )
+
             detected_language = None
 
-        # 6. Translate when necessary
+        # --------------------------------------------------
+        # 7. Translate when necessary
+        # --------------------------------------------------
+
         if detected_language == "en":
             print(
                 "Transcript is already in English. "
@@ -236,7 +407,10 @@ def generate_transcript(request):
                     status=500,
                 )
 
-        # 7. Save transcript without generating notes
+        # --------------------------------------------------
+        # 8. Save transcript without generating notes
+        # --------------------------------------------------
+
         new_tutorial = Tutorial.objects.create(
             user=request.user,
             youtube_title=title,
@@ -245,7 +419,45 @@ def generate_transcript(request):
             youtube_text=None,
         )
 
-        # 8. Return saved transcript and record ID
+        # --------------------------------------------------
+        # 9. Deduct one YouTube credit
+        # --------------------------------------------------
+
+        usage_key = f"youtube:tutorial:{new_tutorial.id}:usage"
+
+        try:
+            consume_credit(
+                user=request.user,
+                feature="youtube",
+                idempotency_key=usage_key,
+            )
+
+        except InsufficientCredits:
+            # The balance may have changed while the transcript
+            # was being processed. Do not keep an unpaid transcript.
+            new_tutorial.delete()
+            new_tutorial = None
+
+            balance = get_or_create_credit_balance(request.user)
+
+            return JsonResponse(
+                {
+                    "error": (
+                        "You have no YouTube credits remaining. "
+                        "Please purchase a package to continue."
+                    ),
+                    "code": "insufficient_credits",
+                    "youtube_credits": balance.youtube_credits,
+                },
+                status=402,
+            )
+
+        # --------------------------------------------------
+        # 10. Return saved transcript and updated balance
+        # --------------------------------------------------
+
+        balance = get_or_create_credit_balance(request.user)
+
         return JsonResponse(
             {
                 "id": new_tutorial.id,
@@ -254,6 +466,7 @@ def generate_transcript(request):
                 "transcript": new_tutorial.transcript,
                 "text": new_tutorial.youtube_text,
                 "created_at": new_tutorial.created_at.isoformat(),
+                "youtube_credits": balance.youtube_credits,
                 "message": "Transcript extracted successfully",
             },
             status=201,
@@ -267,10 +480,6 @@ def generate_transcript(request):
             {"error": "Server error while extracting transcript"},
             status=500,
         )
-
-
-
-
 
 
 
@@ -313,7 +522,7 @@ def split_transcript_into_chunks(transcript, max_chars=12000):
 
 
 
-
+@permission_classes([HasTestingAccess])
 def translate_transcript_to_english(transcription):
     """
     Translate a non-English transcript into English using Groq.
@@ -814,7 +1023,7 @@ LECTURE NOTES:
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
+@permission_classes([IsAuthenticated, HasTestingAccess])
 def generate_tutorial_notes(request, id):
     """
     Generate tutorial notes from a previously saved YouTube transcript.

@@ -518,3 +518,264 @@ class QuizAnswer(models.Model):
 
     def __str__(self):
         return f"{self.quiz} - Question {self.question.order}"
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+class Package(models.Model):
+
+    LEVEL_CHOICES = [
+        ("basic", "Basic"),
+        ("medium", "Medium"),
+        ("pro", "Pro"),
+    ]
+
+    CATEGORY_CHOICES = [
+        ("student", "Student"),
+        ("personal", "Personal"),
+        ("scholar", "Scholar"),
+    ]
+
+    code = models.SlugField(max_length=50, unique=True)
+
+    level = models.CharField(
+        max_length=20,
+        choices=LEVEL_CHOICES
+    )
+
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES
+    )
+
+    price_ngn = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    price_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    audio_credits = models.PositiveIntegerField(default=0)
+    youtube_credits = models.PositiveIntegerField(default=0)
+    quiz_credits = models.PositiveIntegerField(default=0)
+
+    google_play_product_id = models.CharField(
+        max_length=150,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    display_order = models.PositiveIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["display_order", "id"]
+
+    def __str__(self):
+        return f"{self.level.title()} {self.category.title()}"
+    
+    
+    
+    
+    
+    
+    
+class PackagePurchase(models.Model):
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("verified", "Verified"),
+        ("failed", "Failed"),
+        ("refunded", "Refunded"),
+        ("revoked", "Revoked"),
+    ]
+
+    PROVIDER_CHOICES = [
+        ("google_play", "Google Play"),
+        ("admin", "Admin"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="package_purchases"
+    )
+
+    package = models.ForeignKey(
+        Package,
+        on_delete=models.PROTECT,
+        related_name="purchases"
+    )
+
+    provider = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        default="google_play"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending"
+    )
+
+    amount_paid = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    currency = models.CharField(
+        max_length=3,
+        choices=[
+            ("NGN", "Nigerian Naira"),
+            ("USD", "US Dollar"),
+        ]
+    )
+
+    google_play_product_id = models.CharField(
+        max_length=150,
+        blank=True
+    )
+
+    purchase_token = models.TextField(
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    order_id = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True
+    )
+
+    purchased_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    verified_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} - {self.package} - {self.status}"
+    
+    
+    
+    
+    
+    
+    
+class UserCreditBalance(models.Model):
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="credit_balance"
+    )
+
+    audio_credits = models.PositiveIntegerField(default=0)
+    youtube_credits = models.PositiveIntegerField(default=0)
+    quiz_credits = models.PositiveIntegerField(default=0)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} - Credit Balance"
+    
+    
+    
+    
+class CreditTransaction(models.Model):
+
+    TYPE_CHOICES = [
+        ("purchase", "Purchase"),
+        ("usage", "Usage"),
+        ("refund", "Refund"),
+        ("adjustment", "Adjustment"),
+    ]
+
+    FEATURE_CHOICES = [
+        ("audio", "Audio"),
+        ("youtube", "YouTube"),
+        ("quiz", "Quiz"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="credit_transactions"
+    )
+
+    purchase = models.ForeignKey(
+        PackagePurchase,
+        on_delete=models.PROTECT,
+        related_name="credit_transactions",
+        null=True,
+        blank=True
+    )
+
+    transaction_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES
+    )
+
+    feature = models.CharField(
+        max_length=20,
+        choices=FEATURE_CHOICES
+    )
+
+    amount = models.IntegerField()
+
+    balance_after = models.PositiveIntegerField()
+
+    description = models.CharField(max_length=255, blank=True)
+
+    idempotency_key = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return (
+            f"{self.user} - {self.feature} - "
+            f"{self.amount:+d}"
+        )
