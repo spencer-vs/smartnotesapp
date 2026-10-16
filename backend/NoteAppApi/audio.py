@@ -30,6 +30,8 @@ from .permissions import HasPremiumSubscription, HasTestingAccess
 def upload_audio(request):
 
     lecture = None
+    credit_deducted = False
+    processing_started = False
 
     try:
         audio_file = request.FILES.get("audio")
@@ -71,6 +73,8 @@ def upload_audio(request):
                 feature="audio",
                 idempotency_key=usage_key,
             )
+            
+            credit_deducted = True
 
         except InsufficientCredits:
             # Remove the uploaded file and database record.
@@ -91,6 +95,7 @@ def upload_audio(request):
             )
 
         # Begin transcription.
+        processing_started = True
         process_audio(lecture.id)
 
         # process_audio currently runs synchronously.
@@ -119,8 +124,21 @@ def upload_audio(request):
 
     except Exception as e:
 
-        print("UPLOAD ERROR:", str(e))
+        print("UPLOAD ERROR:", repr(e))
         traceback.print_exc()
+
+        # Refund only if a credit was deducted but audio processing
+        # had not started. Once processing starts, process_audio()
+        # is responsible for handling transcription failures.
+        if (
+            lecture is not None
+            and credit_deducted
+            and not processing_started
+        ):
+            refund_failed_audio(
+                lecture,
+                "Audio transcription failed before processing started."
+            )
 
         return JsonResponse(
             {"error": "Audio upload failed."},
