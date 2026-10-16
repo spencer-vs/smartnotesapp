@@ -5,7 +5,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer, Task, TaskItem
+from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer, Task, TaskItem,PackagePurchase, UserCreditBalance, CreditTransaction
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
@@ -57,6 +57,88 @@ User = get_user_model()
 
 
 
+
+
+
+# ==========================================
+# CREDIT BALANCE AND HISTORY
+# ==========================================
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def credit_balance_view(request):
+    """Return the authenticated user's current credit balances."""
+
+    balance, _ = UserCreditBalance.objects.get_or_create(
+        user=request.user
+    )
+
+    return Response({
+        "audio_credits": balance.audio_credits,
+        "youtube_credits": balance.youtube_credits,
+        "quiz_credits": balance.quiz_credits,
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def package_purchase_history_view(request):
+    """Return the authenticated user's package purchase history."""
+
+    purchases = (
+        PackagePurchase.objects
+        .filter(user=request.user)
+        .select_related("package")
+        .order_by("-created_at")
+    )
+
+    data = [
+        {
+            "id": purchase.id,
+            "package": purchase.package.code,
+            "amount_paid": str(purchase.amount_paid),
+            "status": purchase.status,
+            "purchase_date": (
+                purchase.purchased_at or purchase.created_at
+            ),
+        }
+        for purchase in purchases
+    ]
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def credit_transaction_history_view(request):
+    """Return the authenticated user's credit transaction history."""
+
+    transactions = (
+        CreditTransaction.objects
+        .filter(user=request.user)
+        .select_related("purchase__package")
+        .order_by("-created_at")
+    )
+
+    data = [
+        {
+            "id": transaction.id,
+            "feature": transaction.feature,
+            "transaction_type": transaction.transaction_type,
+            "package": (
+                transaction.purchase.package.code
+                if transaction.purchase
+                else None
+            ),
+            "amount": transaction.amount,
+            "balance_after": transaction.balance_after,
+            "description": transaction.description,
+            "created_at": transaction.created_at,
+        }
+        for transaction in transactions
+    ]
+
+    return Response(data)
 
 
 

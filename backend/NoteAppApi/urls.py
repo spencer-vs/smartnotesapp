@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,    get_all_lectures, get_lecture_detail, generate_lecture,  search_lectures, search_tasks, delete_lectures,   send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, get_active_task
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,    get_all_lectures, get_lecture_detail, generate_lecture,  search_lectures, search_tasks, delete_lectures,   send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, get_active_task, credit_balance_view, package_purchase_history_view,credit_transaction_history_view
 from .audio import (
     upload_audio,
     lecture_status,
@@ -54,6 +54,9 @@ urlpatterns = [
    path("payment/initialize_payment/", initialize_payment, name="initialize-payment"),
    path("payment/verify/<str:reference>/", verify_payment, name='verify-payment'),
    path("payment/paystack_webhook/", paystack_webhook, name="paystack-webhook"),
+   path("credits/balance/", credit_balance_view,name="credit-balance",),
+   path("credits/purchases/", package_purchase_history_view, name="package-purchase-history",),
+   path("credits/transactions/", credit_transaction_history_view, name="credit-transaction-history",),
   
    
    
