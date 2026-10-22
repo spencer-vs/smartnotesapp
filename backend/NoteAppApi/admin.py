@@ -16,7 +16,7 @@ class ContactAdmin(admin.ModelAdmin):
     
 # @admin.register(Task)
 # class TaskAdmin(admin.ModelAdmin):
-#     list_display = ("id", "todo_title", "todo_list")
+#     list_display = ("id", "todo_title", "todo_list", "timetable_type")
 #     search_fields = ('ToDo',)
   
   
@@ -27,6 +27,7 @@ class TaskItemInline(admin.TabularInline):
     fields = (
         'description',
         'date',
+        'timetable_type',
         'start_time',
         'end_time',
         'completed',
@@ -47,6 +48,7 @@ class TaskAdmin(admin.ModelAdmin):
         'id',
         'todo_title',
         'user',
+        'timetable_type',
         'week_start',
         'week_end',
         'completed',
@@ -56,6 +58,7 @@ class TaskAdmin(admin.ModelAdmin):
 
     list_filter = (
         'is_deleted',
+        'timetable_type',
         'week_start',
         'week_end',
         'completed',

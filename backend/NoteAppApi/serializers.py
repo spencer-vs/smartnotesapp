@@ -23,7 +23,6 @@ class ContactSerializer(serializers.ModelSerializer):
 
 
 
-
 class TaskItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskItem
@@ -49,6 +48,7 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "todo_title",
+            "timetable_type",
             "week_start",
             "week_end",
             "completed",
@@ -57,11 +57,9 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "week_start",
-            "week_end",
             "completed",
             "created_at",
-        ]        
+        ]     
 
     
     

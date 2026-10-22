@@ -47,9 +47,21 @@ class Contact(models.Model):
     def __str__(self):
        return self.author or 'unauthored'
    
-   
-   
+
+
+
+
+
+
+
+
 class Task(models.Model):
+
+    TIMETABLE_TYPES = [
+        ('daily', 'Daily Timetable'),
+        ('weekly', 'Weekly Timetable'),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -58,6 +70,12 @@ class Task(models.Model):
 
     todo_title = models.CharField(
         max_length=150
+    )
+
+    timetable_type = models.CharField(
+        max_length=10,
+        choices=TIMETABLE_TYPES,
+        default='weekly'
     )
 
     week_start = models.DateField()
@@ -70,20 +88,64 @@ class Task(models.Model):
     is_deleted = models.BooleanField(
         default=False
     )
-    
+
     completed = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user'],
-                condition=models.Q(is_deleted=False, completed=False),
-                name='one_active_task_per_user'
+                fields=['user', 'timetable_type'],
+                condition=models.Q(
+                    is_deleted=False,
+                    completed=False
+                ),
+                name='one_active_timetable_per_type_per_user'
             )
         ]
 
     def __str__(self):
         return self.todo_title or 'Task'
+
+
+
+
+
+   
+# class Task(models.Model):
+#     user = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.CASCADE,
+#         related_name='ToDo'
+#     )
+
+#     todo_title = models.CharField(
+#         max_length=150
+#     )
+
+#     week_start = models.DateField()
+#     week_end = models.DateField()
+
+#     created_at = models.DateTimeField(
+#         auto_now_add=True
+#     )
+
+#     is_deleted = models.BooleanField(
+#         default=False
+#     )
+    
+#     completed = models.BooleanField(default=False)
+
+#     class Meta:
+#         constraints = [
+#             models.UniqueConstraint(
+#                 fields=['user'],
+#                 condition=models.Q(is_deleted=False, completed=False),
+#                 name='one_active_task_per_user'
+#             )
+#         ]
+
+#     def __str__(self):
+#         return self.todo_title or 'Task'
 
 
 class TaskItem(models.Model):
@@ -124,21 +186,9 @@ class TaskItem(models.Model):
    
    
 
-# class Task(models.Model):
-#     user = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         related_name='ToDo'
-#     )
-#     todo_title = models.CharField(max_length=100, blank=True)
-#     todo_list = models.TextField(null=True, blank=True)  
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     is_deleted = models.BooleanField(default=False)
     
     
-    
-#     def __str__(self):
-#         return self.todo_title or 'Task'
+
     
     
     

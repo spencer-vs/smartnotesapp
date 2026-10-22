@@ -5,7 +5,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer, Task, TaskItem,PackagePurchase, UserCreditBalance, CreditTransaction
+from .models import Note, Contact, Tutorial, Subscription,  Quiz, QuizQuestion, QuizAnswer, PackagePurchase, UserCreditBalance, CreditTransaction, Task, TaskItem
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.serializers import ModelSerializer
 from django.db.models import Q
@@ -13,8 +13,9 @@ from .audio import generate_lecture_note
 import time
 from datetime import timedelta
 from datetime import time as datetime_time
+from datetime import datetime as datetime_datetime
 from .quiz_generator import generate_quiz, save_generated_quiz
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from openai import OpenAI
 from django.http import JsonResponse
 import json
@@ -476,742 +477,550 @@ class NoteDetailView(generics.RetrieveAPIView):
     
 
 
-# ============================================================
-# CREATE TASK
-# ============================================================
+
 
 # ============================================================
-# CREATE TASK
+# VALIDATE TIMETABLE TITLE
 # ============================================================
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, HasPremiumSubscription])
-def create_task(request):
+def validate_timetable_title(title):
+    if not isinstance(title, str) or not title.strip():
+        return None, "A timetable title is required."
+
+    title = title.strip()
+
+    if len(title) > 150:
+        return None, "The title cannot exceed 150 characters."
+
+    return title, None
+
+
+# ============================================================
+# VALIDATE DATE STRING
+# ============================================================
+
+def parse_date(value, field_name):
+    if not isinstance(value, str):
+        raise ValueError(
+            f"{field_name} must be a date in YYYY-MM-DD format."
+        )
 
     try:
-        title = request.data.get("title")
-        items = request.data.get("items")
+        return datetime_datetime.strptime(
+            value, "%Y-%m-%d"
+        ).date()
 
-        # ----------------------------------------------------
-        # Validate title
-        # ----------------------------------------------------
+    except ValueError:
+        raise ValueError(
+            f"{field_name} must be a valid date in YYYY-MM-DD format."
+        )
 
-        if not isinstance(title, str) or not title.strip():
-            return JsonResponse(
-                {"error": "Task title is required."},
-                status=400
+# ============================================================
+# VALIDATE TIME STRING
+# ============================================================
+
+def parse_time(value, field_name):
+    if not isinstance(value, str):
+        raise ValueError(
+            f"{field_name} must be a time in HH:MM format."
+        )
+
+    try:
+        return datetime_datetime.strptime(
+            value, "%H:%M"
+        ).time()
+
+    except ValueError:
+        raise ValueError(
+            f"{field_name} must be a valid time in HH:MM format."
+        )
+
+
+
+# def parse_time(value):
+#     if not isinstance(value, str):
+#         return None
+
+#     for time_format in ("%H:%M", "%H:%M:%S"):
+#         try:
+#             return datetime_datetime.strptime(value, time_format).time()
+#         except ValueError:
+#             continue
+
+#     return None
+
+
+# ============================================================
+# VALIDATE ACTIVITY LIST
+# ============================================================
+
+def validate_timetable_items(items, timetable_type, week_start, week_end):
+    """
+    Validate manually scheduled activities.
+
+    Returns:
+        cleaned_items, error_message
+    """
+
+    if not isinstance(items, list) or not items:
+        return None, "Provide at least one activity."
+
+    cleaned_items = []
+
+    for index, item in enumerate(items, start=1):
+
+        if not isinstance(item, dict):
+            return None, f"Activity {index} must be an object."
+
+        description = item.get("description")
+
+        if not isinstance(description, str) or not description.strip():
+            return None, (
+                f"Activity {index} must have a description."
             )
 
-        title = title.strip()
+        try:
+            item_date = parse_date(
+                item.get("date"),
+                f"Activity {index} date",
+            )
 
-        if len(title) > 150:
-            return JsonResponse(
-                {
-                    "error": "Task title cannot exceed 150 characters."
-                },
-                status=400
+            start_time = parse_time(
+                item.get("start_time"),
+                f"Activity {index} start_time",
+            )
+
+            end_time = parse_time(
+                item.get("end_time"),
+                f"Activity {index} end_time",
+            )
+
+        except ValueError as exc:
+            return None, str(exc)
+
+        if end_time <= start_time:
+            return None, (
+                f"Activity {index}: end time must be later "
+                "than start time."
             )
 
         # ----------------------------------------------------
-        # Validate items
+        # Validate activity date against timetable type
         # ----------------------------------------------------
 
-        if not isinstance(items, list):
-            return JsonResponse(
-                {
-                    "error": "Task items must be provided as a list."
-                },
-                status=400
-            )
+        if timetable_type == "daily":
 
-        if len(items) < 2:
-            return JsonResponse(
-                {
-                    "error": "At least 2 task items are required."
-                },
-                status=400
-            )
-
-        # ----------------------------------------------------
-        # Clean and validate individual items
-        # ----------------------------------------------------
-
-        cleaned_items = []
-
-        for item in items:
-
-            if not isinstance(item, str):
-                return JsonResponse(
-                    {
-                        "error": "Every task item must be text."
-                    },
-                    status=400
+            if item_date != week_start:
+                return None, (
+                    f"Activity {index} must be scheduled for "
+                    "the selected daily timetable date."
                 )
 
-            item = item.strip()
+        elif timetable_type == "weekly":
 
-            if item:
-                cleaned_items.append(item)
+            if not week_start <= item_date <= week_end:
+                return None, (
+                    f"Activity {index} must fall between "
+                    f"{week_start} and {week_end}."
+                )
 
-        # ----------------------------------------------------
-        # Minimum valid items
-        # ----------------------------------------------------
+        cleaned_items.append({
+            "description": description.strip(),
+            "date": item_date,
+            "start_time": start_time,
+            "end_time": end_time,
+            "order": index,
+        })
 
-        if len(cleaned_items) < 2:
-            return JsonResponse(
-                {
-                    "error": "At least 2 valid task items are required."
-                },
-                status=400
-            )
+    return cleaned_items, None
 
-        # ----------------------------------------------------
-        # Maximum items
-        #
-        # Monday-Saturday = 6 days
-        # Maximum 2 items per day
-        # 6 × 2 = 12 items maximum
-        # ----------------------------------------------------
 
-        if len(cleaned_items) > 12:
-            return JsonResponse(
-                {
-                    "error": (
-                        "A weekly task can contain a maximum "
-                        "of 12 items."
-                    )
-                },
-                status=400
-            )
 
-        # ----------------------------------------------------
-        # Check if user already has an active task
-        # ----------------------------------------------------
 
-        active_task_exists = Task.objects.filter(
-            user=request.user,
-            is_deleted=False,
-            completed=False
-        ).exists()
+# ============================================================
+# CREATE DAILY TIMETABLE
+# ============================================================
 
-        if active_task_exists:
-            return JsonResponse(
-                {
-                    "error": (
-                        "You already have an active task. "
-                        "Complete or delete it before "
-                        "creating a new one."
-                    )
-                },
-                status=400
-            )
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_daily_timetable(request):
 
-        # ----------------------------------------------------
-        # Calculate next Monday
-        # ----------------------------------------------------
+    title, title_error = validate_timetable_title(
+        request.data.get("title")
+    )
 
-        today = timezone.localdate()
-
-        days_until_monday = (7 - today.weekday()) % 7
-
-        week_start = today + timedelta(
-            days=days_until_monday
+    if title_error:
+        return Response(
+            {"error": title_error},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-        # Monday + 5 days = Saturday
-        week_end = week_start + timedelta(days=5)
-
-        # ----------------------------------------------------
-        # Ask Groq to organize the user's items
-        # ----------------------------------------------------
-
-        schedule = generate_task_schedule(cleaned_items)
-
-        if not schedule:
-            return JsonResponse(
-                {
-                    "error": (
-                        "Could not generate a task schedule. "
-                        "Please try again."
-                    )
-                },
-                status=500
-            )
-
-        # ----------------------------------------------------
-        # Validate Groq response
-        # ----------------------------------------------------
-
-        validation_error = validate_task_schedule(
-            schedule,
-            len(cleaned_items)
+    try:
+        timetable_date = parse_date(
+            request.data.get("date"),
+            "date",
         )
 
-        if validation_error:
-            print(
-                "❌ Schedule validation failed:",
-                validation_error
-            )
+    except ValueError as exc:
+        return Response(
+            {"error": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-            return JsonResponse(
-                {
-                    "error": "Generated schedule was invalid.",
-                    "details": validation_error
-                },
-                status=500
-            )
+    cleaned_items, items_error = validate_timetable_items(
+        items=request.data.get("items"),
+        timetable_type="daily",
+        week_start=timetable_date,
+        week_end=timetable_date,
+    )
 
-        # ----------------------------------------------------
-        # Valid day offsets
-        # ----------------------------------------------------
+    if items_error:
+        return Response(
+            {"error": items_error},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-        day_offsets = {
-            "Monday": 0,
-            "Tuesday": 1,
-            "Wednesday": 2,
-            "Thursday": 3,
-            "Friday": 4,
-            "Saturday": 5,
-        }
-
-        # ----------------------------------------------------
-        # Create Task + TaskItems atomically
-        # ----------------------------------------------------
-
+    try:
         with transaction.atomic():
+
+            # ------------------------------------------------
+            # Prevent duplicate active daily timetables
+            # ------------------------------------------------
+
+            active_exists = Task.objects.filter(
+                user=request.user,
+                timetable_type="daily",
+                is_deleted=False,
+                completed=False,
+            ).exists()
+
+            if active_exists:
+                return Response(
+                    {
+                        "error": (
+                            "You already have an active daily "
+                            "timetable. Complete or delete it "
+                            "before creating another."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # ------------------------------------------------
+            # Create timetable
+            # ------------------------------------------------
 
             task = Task.objects.create(
                 user=request.user,
                 todo_title=title,
+                timetable_type="daily",
+                week_start=timetable_date,
+                week_end=timetable_date,
+                completed=False,
+                is_deleted=False,
+            )
+
+            # ------------------------------------------------
+            # Create activities
+            # ------------------------------------------------
+
+            TaskItem.objects.bulk_create([
+                TaskItem(
+                    task=task,
+                    description=item["description"],
+                    date=item["date"],
+                    start_time=item["start_time"],
+                    end_time=item["end_time"],
+                    completed=False,
+                    order=item["order"],
+                )
+                for item in cleaned_items
+            ])
+
+        task = Task.objects.prefetch_related("items").get(
+            id=task.id
+        )
+
+        return Response(
+            TaskSerializer(task).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    except IntegrityError:
+        return Response(
+            {
+                "error": (
+                    "An active daily timetable already exists. "
+                    "Refresh and try again."
+                )
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    except Exception:
+        traceback.print_exc()
+
+        return Response(
+            {"error": "Could not create the daily timetable."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+
+
+
+
+# ============================================================
+# CREATE WEEKLY TIMETABLE
+# ============================================================
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated,])
+def create_weekly_timetable(request):
+
+    title, title_error = validate_timetable_title(
+        request.data.get("title")
+    )
+
+    if title_error:
+        return Response(
+            {"error": title_error},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        week_start = parse_date(
+            request.data.get("week_start"),
+            "week_start",
+        )
+
+    except ValueError as exc:
+        return Response(
+            {"error": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # --------------------------------------------------------
+    # Weekly timetable must begin on Monday
+    # --------------------------------------------------------
+
+    if week_start.weekday() != 0:
+        return Response(
+            {
+                "error": (
+                    "The weekly timetable must start on Monday."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Monday + 5 days = Saturday
+    week_end = week_start + timedelta(days=5)
+
+    cleaned_items, items_error = validate_timetable_items(
+        items=request.data.get("items"),
+        timetable_type="weekly",
+        week_start=week_start,
+        week_end=week_end,
+    )
+
+    if items_error:
+        return Response(
+            {"error": items_error},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        with transaction.atomic():
+
+            # ------------------------------------------------
+            # Prevent duplicate active weekly timetables
+            # ------------------------------------------------
+
+            active_exists = Task.objects.filter(
+                user=request.user,
+                timetable_type="weekly",
+                is_deleted=False,
+                completed=False,
+            ).exists()
+
+            if active_exists:
+                return Response(
+                    {
+                        "error": (
+                            "You already have an active weekly "
+                            "timetable. Complete or delete it "
+                            "before creating another."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # ------------------------------------------------
+            # Create timetable
+            # ------------------------------------------------
+
+            task = Task.objects.create(
+                user=request.user,
+                todo_title=title,
+                timetable_type="weekly",
                 week_start=week_start,
                 week_end=week_end,
                 completed=False,
-                is_deleted=False
+                is_deleted=False,
             )
 
-            # Track order separately from the user's
-            # original item index.
-            item_order = 1
+            # ------------------------------------------------
+            # Create activities
+            # ------------------------------------------------
 
-            for scheduled_item in schedule:
-
-                item_index = scheduled_item["item_index"]
-                day_name = scheduled_item["day"]
-
-                # ------------------------------------------------
-                # Get the original user-provided description
-                # ------------------------------------------------
-
-                description = cleaned_items[item_index - 1]
-
-                # ------------------------------------------------
-                # Calculate the actual date
-                # ------------------------------------------------
-
-                item_date = week_start + timedelta(
-                    days=day_offsets[day_name]
-                )
-
-                # ------------------------------------------------
-                # Django determines the time slot.
-                #
-                # First item of the day:
-                # 08:00 - 10:00
-                #
-                # Second item:
-                # 11:00 - 13:00
-                # ------------------------------------------------
-
-                existing_items_today = TaskItem.objects.filter(
+            TaskItem.objects.bulk_create([
+                TaskItem(
                     task=task,
-                    date=item_date
-                ).count()
-
-                if existing_items_today == 0:
-
-                    start_time = time(8, 0)
-                    end_time = time(10, 0)
-
-                elif existing_items_today == 1:
-
-                    start_time = time(11, 0)
-                    end_time = time(13, 0)
-
-                else:
-
-                    raise ValueError(
-                        f"More than 2 items scheduled on {day_name}."
-                    )
-
-                # ------------------------------------------------
-                # Create TaskItem
-                # ------------------------------------------------
-
-                TaskItem.objects.create(
-                    task=task,
-                    description=description,
-                    date=item_date,
-                    start_time=start_time,
-                    end_time=end_time,
+                    description=item["description"],
+                    date=item["date"],
+                    start_time=item["start_time"],
+                    end_time=item["end_time"],
                     completed=False,
-                    order=item_order
+                    order=item["order"],
                 )
+                for item in cleaned_items
+            ])
 
-                item_order += 1
-
-        # ----------------------------------------------------
-        # Return complete task
-        # ----------------------------------------------------
-
-        task.refresh_from_db()
-
-        serializer = TaskSerializer(task)
-
-        return JsonResponse(
-            serializer.data,
-            status=201
+        task = Task.objects.prefetch_related("items").get(
+            id=task.id
         )
 
-    except Exception as e:
+        return Response(
+            TaskSerializer(task).data,
+            status=status.HTTP_201_CREATED,
+        )
 
-        print("❌ CREATE TASK ERROR:")
-        traceback.print_exc()
-
-        return JsonResponse(
+    except IntegrityError:
+        return Response(
             {
-                "error": "Server error.",
-                "details": str(e)
+                "error": (
+                    "An active weekly timetable already exists. "
+                    "Refresh and try again."
+                )
             },
-            status=500
+            status=status.HTTP_409_CONFLICT,
         )
-# ============================================================
-# GROQ TASK SCHEDULER
-# ============================================================
-
-# ============================================================
-# GROQ TASK SCHEDULER
-# ============================================================
-
-def generate_task_schedule(user_items):
-
-    try:
-
-        api_key = os.getenv("GROQ_API_KEY")
-
-        if api_key:
-            api_key = api_key.strip()
-
-        if not api_key:
-            print("❌ Groq API key not found")
-            return None
-
-        client = Groq(api_key=api_key)
-
-        # ----------------------------------------------------
-        # Number the user's items so Groq can reference them
-        # ----------------------------------------------------
-
-        numbered_items = "\n".join(
-            f"{index}. {item}"
-            for index, item in enumerate(user_items, start=1)
-        )
-
-        # ----------------------------------------------------
-        # Scheduling prompt
-        # ----------------------------------------------------
-
-        prompt = f"""
-You are a weekly task scheduling assistant.
-
-The user has provided these task items:
-
-{numbered_items}
-
-Your ONLY job is to assign each item to a day from Monday
-through Saturday.
-
-IMPORTANT RULES:
-
-1. You MUST use every item exactly once.
-2. You MUST NOT create new items.
-3. You MUST NOT remove any item.
-4. You MUST NOT rewrite any item.
-5. You MUST NOT summarize any item.
-6. You MUST NOT combine any items.
-7. You MUST NOT split any items.
-8. Use Monday through Saturday only.
-9. NEVER use Sunday.
-10. Maximum 2 items may be assigned to the same day.
-11. You MUST schedule all {len(user_items)} items.
-12. The "item_index" must refer to the original item number.
-13. Do not change the item_index.
-14. Return ONLY valid JSON.
-15. Do not return Markdown.
-16. Do not include explanations.
-
-Return exactly this structure:
-
-{{
-    "items": [
-        {{
-            "item_index": 1,
-            "day": "Monday"
-        }},
-        {{
-            "item_index": 2,
-            "day": "Tuesday"
-        }}
-    ]
-}}
-
-Remember:
-
-- Every item must appear exactly once.
-- Every item_index must be between 1 and {len(user_items)}.
-- Maximum 2 items per day.
-- Sunday is forbidden.
-"""
-
-        # ----------------------------------------------------
-        # Ask Groq for the schedule
-        # ----------------------------------------------------
-
-        completion = client.chat.completions.create(
-
-            model="openai/gpt-oss-20b",
-
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a strict weekly task scheduling "
-                        "assistant. Return JSON only. "
-                        "Never write explanations or Markdown. "
-                        "Never modify the user's task items."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-
-            temperature=0.2,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
-
-        # ----------------------------------------------------
-        # Get Groq response
-        # ----------------------------------------------------
-
-        response_text = (
-            completion
-            .choices[0]
-            .message
-            .content
-            .strip()
-        )
-
-        print("🤖 GROQ RESPONSE:")
-        print(response_text)
-
-        # ----------------------------------------------------
-        # Remove accidental Markdown code fences
-        # ----------------------------------------------------
-
-        if response_text.startswith("```"):
-
-            response_text = response_text.replace(
-                "```json",
-                ""
-            ).replace(
-                "```",
-                ""
-            ).strip()
-
-        # ----------------------------------------------------
-        # Parse JSON
-        # ----------------------------------------------------
-
-        schedule_data = json.loads(response_text)
-
-        # ----------------------------------------------------
-        # Validate expected top-level structure
-        # ----------------------------------------------------
-
-        if not isinstance(schedule_data, dict):
-            print("❌ Groq response is not a JSON object")
-            return None
-
-        schedule = schedule_data.get("items")
-
-        if not isinstance(schedule, list):
-            print("❌ Groq response does not contain an items list")
-            return None
-
-        return schedule
-
-    except json.JSONDecodeError:
-
-        print("❌ Groq returned invalid JSON")
-        traceback.print_exc()
-
-        return None
 
     except Exception:
-
-        print("❌ Groq scheduling error:")
         traceback.print_exc()
 
-        return None
-
-# ============================================================
-# VALIDATE GROQ SCHEDULE
-# ============================================================
-
-# ============================================================
-# VALIDATE GROQ SCHEDULE
-# ============================================================
-
-def validate_task_schedule(schedule, total_items):
-
-    # --------------------------------------------------------
-    # Basic structure
-    # --------------------------------------------------------
-
-    if not isinstance(schedule, list):
-        return "Schedule must be a list."
-
-    if len(schedule) != total_items:
-        return (
-            f"Expected {total_items} scheduled items, "
-            f"but received {len(schedule)}."
+        return Response(
+            {"error": "Could not create the weekly timetable."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    # --------------------------------------------------------
-    # Valid days
-    # --------------------------------------------------------
 
-    valid_days = {
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-    }
 
-    # --------------------------------------------------------
-    # Expected item indexes
-    # --------------------------------------------------------
 
-    expected_indexes = set(
-        range(1, total_items + 1)
-    )
-
-    received_indexes = []
-
-    daily_counts = {}
-
-    # --------------------------------------------------------
-    # Validate each scheduled item
-    # --------------------------------------------------------
-
-    for item in schedule:
-
-        # ----------------------------------------------------
-        # Each schedule entry must be an object
-        # ----------------------------------------------------
-
-        if not isinstance(item, dict):
-            return "Each scheduled item must be an object."
-
-        # ----------------------------------------------------
-        # item_index
-        # ----------------------------------------------------
-
-        if "item_index" not in item:
-            return "Missing item_index."
-
-        item_index = item["item_index"]
-
-        if not isinstance(item_index, int):
-            return "item_index must be an integer."
-
-        if item_index not in expected_indexes:
-            return (
-                f"Invalid item_index: {item_index}. "
-                f"Expected values between 1 and {total_items}."
-            )
-
-        received_indexes.append(item_index)
-
-        # ----------------------------------------------------
-        # Day
-        # ----------------------------------------------------
-
-        if "day" not in item:
-            return (
-                f"Missing day for item {item_index}."
-            )
-
-        day = item["day"]
-
-        if not isinstance(day, str):
-            return (
-                f"Day must be text for item {item_index}."
-            )
-
-        if day not in valid_days:
-            return f"Invalid day: {day}"
-
-        # ----------------------------------------------------
-        # Count items per day
-        # ----------------------------------------------------
-
-        daily_counts[day] = (
-            daily_counts.get(day, 0) + 1
-        )
-
-        # ----------------------------------------------------
-        # Maximum 2 items per day
-        # ----------------------------------------------------
-
-        if daily_counts[day] > 2:
-            return (
-                f"More than 2 items scheduled on {day}."
-            )
-
-    # --------------------------------------------------------
-    # Make sure every item appears exactly once
-    # --------------------------------------------------------
-
-    if len(received_indexes) != len(set(received_indexes)):
-        return "An item was scheduled more than once."
-
-    received_indexes_set = set(received_indexes)
-
-    if received_indexes_set != expected_indexes:
-        missing_indexes = (
-            expected_indexes - received_indexes_set
-        )
-
-        extra_indexes = (
-            received_indexes_set - expected_indexes
-        )
-
-        if missing_indexes:
-            return (
-                "Some user-provided items were missing: "
-                f"{sorted(missing_indexes)}."
-            )
-
-        if extra_indexes:
-            return (
-                "Invalid item indexes were returned: "
-                f"{sorted(extra_indexes)}."
-            )
-
-        return "Scheduled items do not match the user's items."
-
-    # --------------------------------------------------------
-    # Final capacity check
-    #
-    # Monday-Saturday = 6 days
-    # Maximum 2 items/day = 12 items
-    # --------------------------------------------------------
-
-    if total_items > 12:
-        return (
-            "Too many items for the Monday-Saturday schedule. "
-            "Maximum is 12 items."
-        )
-
-    # --------------------------------------------------------
-    # Schedule is valid
-    # --------------------------------------------------------
-
-    return None
 
 # ============================================================
-# GET SINGLE TASK
+# GET BOTH ACTIVE TIMETABLES
 # ============================================================
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_active_task(request):
-    task = Task.objects.filter(
+    """
+    Return the user's active daily and weekly timetables.
+
+    Either timetable may be null if it does not exist.
+    """
+
+    tasks = Task.objects.filter(
         user=request.user,
         is_deleted=False,
-        completed=False
-    ).prefetch_related('items').first()
+        completed=False,
+    ).prefetch_related("items")
 
-    if not task:
-        return Response(
-            {"detail": "No active task found."},
-            status=status.HTTP_404_NOT_FOUND
-        )
+    daily_task = tasks.filter(
+        timetable_type="daily"
+    ).first()
 
-    serializer = TaskSerializer(task)
+    weekly_task = tasks.filter(
+        timetable_type="weekly"
+    ).first()
 
-    return Response(serializer.data)
+    return Response(
+        {
+            "daily_timetable": (
+                TaskSerializer(daily_task).data
+                if daily_task else None
+            ),
+            "weekly_timetable": (
+                TaskSerializer(weekly_task).data
+                if weekly_task else None
+            ),
+        },
+        status=status.HTTP_200_OK,
+    )
+    
+    
+    
+    
 
-@api_view(['GET'])
+# ============================================================
+# GET SINGLE TIMETABLE
+# ============================================================
+
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def task_detail(request, id):
-
     try:
-
-        task = Task.objects.get(
+        task = Task.objects.prefetch_related("items").get(
             id=id,
             user=request.user,
-            is_deleted=False
+            is_deleted=False,
         )
 
         serializer = TaskSerializer(task)
 
-        return JsonResponse(
+        return Response(
             serializer.data,
-            status=200
+            status=status.HTTP_200_OK,
         )
 
     except Task.DoesNotExist:
-
-        return JsonResponse(
-            {"error": "Task not found"},
-            status=404
+        return Response(
+            {"error": "Timetable not found."},
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     except Exception:
-
         traceback.print_exc()
 
-        return JsonResponse(
-            {"error": "Server error"},
-            status=500
+        return Response(
+            {"error": "Server error."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
+        
+        
+        
 # ============================================================
-# GET ALL TASKS
+# GET ALL NON-DELETED TIMETABLES
 # ============================================================
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_all_task(request):
-
     try:
-
-        tasks = Task.objects.filter(
-            user=request.user,
-            is_deleted=False
-        ).order_by('-created_at')
+        tasks = (
+            Task.objects.filter(
+                user=request.user,
+                is_deleted=False,
+            )
+            .prefetch_related("items")
+            .order_by("-created_at")
+        )
 
         data = []
 
         for task in tasks:
-
             total_items = task.items.count()
 
             completed_items = task.items.filter(
@@ -1221,6 +1030,7 @@ def get_all_task(request):
             data.append({
                 "id": task.id,
                 "todo_title": task.todo_title,
+                "timetable_type": task.timetable_type,
                 "week_start": task.week_start,
                 "week_end": task.week_end,
                 "completed": task.completed,
@@ -1229,145 +1039,600 @@ def get_all_task(request):
                 "created_at": task.created_at,
             })
 
-        return JsonResponse(
+        return Response(
             data,
-            safe=False,
-            status=200
+            status=status.HTTP_200_OK,
         )
 
     except Exception:
-
         traceback.print_exc()
 
-        return JsonResponse(
-            {"error": "Server error"},
-            status=500
+        return Response(
+            {"error": "Server error."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
+        
+        
+        
+        
+        
 # ============================================================
-# COMPLETE / UNCOMPLETE TASK ITEM
+# COMPLETE / UNCOMPLETE TIMETABLE ACTIVITY
 # ============================================================
 
-@api_view(['PATCH'])
+
+
+
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_task_item(request, task_id, item_id):
 
+    completed = request.data.get("completed")
+
+    if not isinstance(completed, bool):
+        return Response(
+            {"error": "completed must be either true or false."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
+        with transaction.atomic():
 
-        task = Task.objects.get(
-            id=task_id,
-            user=request.user,
-            is_deleted=False
-        )
-
-        item = TaskItem.objects.get(
-            id=item_id,
-            task=task
-        )
-
-        completed = request.data.get("completed")
-
-        if not isinstance(completed, bool):
-            return JsonResponse(
-                {
-                    "error": (
-                        "completed must be either true or false."
-                    )
-                },
-                status=400
+            # Lock the timetable while updating its completion state.
+            task = (
+                Task.objects.select_for_update()
+                .filter(
+                    id=task_id,
+                    user=request.user,
+                    is_deleted=False,
+                )
+                .first()
             )
 
-        item.completed = completed
-        item.save(update_fields=["completed"])
+            if task is None:
+                return Response(
+                    {"error": "Timetable not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        # ----------------------------------------------------
-        # Task is completed only when ALL items are completed
-        # ----------------------------------------------------
+            item = TaskItem.objects.filter(
+                id=item_id,
+                task=task,
+            ).first()
 
-        all_items_completed = not task.items.filter(
-            completed=False
-        ).exists()
+            if item is None:
+                return Response(
+                    {"error": "Activity not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        task.completed = all_items_completed
+            # ------------------------------------------------
+            # Prevent reopening an old timetable when a
+            # replacement of the same type already exists.
+            # ------------------------------------------------
 
-        task.save(update_fields=["completed"])
+            if task.completed and not completed:
 
-        return JsonResponse(
-            {
-                "message": "Task item updated successfully.",
-                "item": TaskItemSerializer(item).data,
-                "task_completed": task.completed,
-            },
-            status=200
-        )
+                replacement_exists = Task.objects.filter(
+                    user=request.user,
+                    timetable_type=task.timetable_type,
+                    is_deleted=False,
+                    completed=False,
+                ).exclude(
+                    id=task.id
+                ).exists()
 
-    except Task.DoesNotExist:
+                if replacement_exists:
+                    return Response(
+                        {
+                            "error": (
+                                "This timetable has been completed "
+                                "and replaced. Its activities can no "
+                                "longer be marked incomplete."
+                            )
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
 
-        return JsonResponse(
-            {"error": "Task not found"},
-            status=404
-        )
+            # ------------------------------------------------
+            # Update the activity
+            # ------------------------------------------------
 
-    except TaskItem.DoesNotExist:
+            item.completed = completed
 
-        return JsonResponse(
-            {"error": "Task item not found"},
-            status=404
-        )
+            item.save(
+                update_fields=["completed"]
+            )
+
+            # ------------------------------------------------
+            # Recalculate timetable completion
+            # An empty timetable must remain incomplete.
+            # ------------------------------------------------
+
+            has_items = task.items.exists()
+
+            all_items_completed = (
+                has_items
+                and not task.items.filter(
+                    completed=False
+                ).exists()
+            )
+
+            if all_items_completed:
+                task.completed = True
+
+            elif not task.completed:
+                task.completed = False
+
+            # If task.completed was already True and reopening
+            # was permitted, the checks above ensure there is
+            # no active replacement of the same timetable type.
+            elif not completed:
+                task.completed = False
+
+            task.save(
+                update_fields=["completed"]
+            )
+
+            return Response(
+                {
+                    "message": "Activity updated successfully.",
+                    "item": TaskItemSerializer(item).data,
+                    "task_completed": task.completed,
+                },
+                status=status.HTTP_200_OK,
+            )
 
     except Exception:
-
         traceback.print_exc()
 
-        return JsonResponse(
-            {"error": "Server error"},
-            status=500
+        return Response(
+            {"error": "Server error."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+
+
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_timetable(request, id):
+    try:
+        with transaction.atomic():
+            # Lock the timetable while it is being updated.
+            task = Task.objects.select_for_update().filter(
+                id=id,
+                user=request.user,
+                is_deleted=False,
+            ).first()
+
+            if task is None:
+                return Response(
+                    {"error": "Timetable not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            if task.completed:
+                return Response(
+                    {"error": "Completed timetables cannot be edited."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            data = request.data
+
+            # -----------------------------------------------
+            # 1. Validate the title
+            # -----------------------------------------------
+            new_title = task.todo_title
+
+            if "title" in data:
+                new_title, title_error = validate_timetable_title(
+                    data.get("title")
+                )
+
+                if title_error:
+                    return Response(
+                        {"error": title_error},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # -----------------------------------------------
+            # 2. Validate the timetable date range
+            # -----------------------------------------------
+            new_start = task.week_start
+            new_end = task.week_end
+
+            try:
+                if task.timetable_type == "daily":
+                    if "date" in data:
+                        new_start = parse_date(
+                            data.get("date"),
+                            "date",
+                        )
+
+                    new_end = new_start
+
+                elif task.timetable_type == "weekly":
+                    if "week_start" in data:
+                        new_start = parse_date(
+                            data.get("week_start"),
+                            "week_start",
+                        )
+
+                    if new_start.weekday() != 0:
+                        return Response(
+                            {
+                                "error": (
+                                    "The weekly timetable must start "
+                                    "on Monday."
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    new_end = new_start + timedelta(days=5)
+
+            except ValueError as exc:
+                return Response(
+                    {"error": str(exc)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # -----------------------------------------------
+            # 3. Prepare existing activities
+            # -----------------------------------------------
+            existing_items = {
+                item.id: item
+                for item in task.items.all()
+            }
+
+            # If the timetable date range changes, shift existing
+            # activity dates by the same number of days.
+            date_shift = (new_start - task.week_start).days
+
+            planned_items = {}
+
+            for item_id, item in existing_items.items():
+                shifted_date = item.date + timedelta(
+                    days=date_shift
+                )
+
+                planned_items[item_id] = {
+                    "instance": item,
+                    "description": item.description,
+                    "date": shifted_date,
+                    "start_time": item.start_time,
+                    "end_time": item.end_time,
+                    "completed": item.completed,
+                    "order": item.order,
+                    "is_new": False,
+                }
+
+            # -----------------------------------------------
+            # 4. Process requested activity additions/edits
+            # -----------------------------------------------
+            if "items" in data:
+                items_data = data.get("items")
+
+                if not isinstance(items_data, list):
+                    return Response(
+                        {"error": "items must be a list."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                seen_ids = set()
+
+                for index, item_data in enumerate(
+                    items_data,
+                    start=1,
+                ):
+                    if not isinstance(item_data, dict):
+                        return Response(
+                            {
+                                "error": (
+                                    f"Activity {index} must be an object."
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    item_id = item_data.get("id")
+
+                    # Existing activity: verify ownership by timetable.
+                    if item_id is not None:
+                        if item_id in seen_ids:
+                            return Response(
+                                {
+                                    "error": (
+                                        "An activity ID cannot appear "
+                                        "more than once."
+                                    )
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                        seen_ids.add(item_id)
+
+                        if item_id not in existing_items:
+                            return Response(
+                                {
+                                    "error": (
+                                        f"Activity {item_id} does not "
+                                        "belong to this timetable."
+                                    )
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                    description = item_data.get("description")
+
+                    if (
+                        not isinstance(description, str)
+                        or not description.strip()
+                    ):
+                        return Response(
+                            {
+                                "error": (
+                                    f"Activity {index} requires "
+                                    "a description."
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    try:
+                        item_date = parse_date(
+                            item_data.get("date"),
+                            f"Activity {index} date",
+                        )
+
+                        start_time = parse_time(
+                            item_data.get("start_time"),
+                            f"Activity {index} start_time",
+                        )
+
+                        end_time = parse_time(
+                            item_data.get("end_time"),
+                            f"Activity {index} end_time",
+                        )
+
+                    except ValueError as exc:
+                        return Response(
+                            {"error": str(exc)},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    if end_time <= start_time:
+                        return Response(
+                            {
+                                "error": (
+                                    f"Activity {index}: end time must "
+                                    "be later than start time."
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    if not new_start <= item_date <= new_end:
+                        return Response(
+                            {
+                                "error": (
+                                    f"Activity {index} must fall "
+                                    "within the timetable date range."
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    if task.timetable_type == "daily":
+                        if item_date != new_start:
+                            return Response(
+                                {
+                                    "error": (
+                                        f"Activity {index} must use "
+                                        "the daily timetable date."
+                                    )
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                    if item_id is not None:
+                        old = existing_items[item_id]
+
+                        details_changed = (
+                            old.description != description.strip()
+                            or old.date != item_date
+                            or old.start_time != start_time
+                            or old.end_time != end_time
+                        )
+
+                        planned_items[item_id] = {
+                            "instance": old,
+                            "description": description.strip(),
+                            "date": item_date,
+                            "start_time": start_time,
+                            "end_time": end_time,
+                            "completed": (
+                                False if details_changed else old.completed
+                            ),
+                            "order": old.order,
+                            "is_new": False,
+                        }
+
+                    else:
+                        # New activities receive an order after existing ones.
+                        planned_items[f"new_{index}"] = {
+                            "instance": None,
+                            "description": description.strip(),
+                            "date": item_date,
+                            "start_time": start_time,
+                            "end_time": end_time,
+                            "completed": False,
+                            "order": max(
+                                (
+                                    entry["order"]
+                                    for entry in planned_items.values()
+                                ),
+                                default=0,
+                            ) + 1,
+                            "is_new": True,
+                        }
+
+            # -----------------------------------------------
+            # 5. Validate all existing activities after shifting
+            # -----------------------------------------------
+            for entry in planned_items.values():
+                if not new_start <= entry["date"] <= new_end:
+                    return Response(
+                        {
+                            "error": (
+                                "Changing the timetable date range would "
+                                "leave an existing activity outside it. "
+                                "Supply a valid date for that activity."
+                            )
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # -----------------------------------------------
+            # 6. Save timetable fields
+            # -----------------------------------------------
+            task.todo_title = new_title
+            task.week_start = new_start
+            task.week_end = new_end
+
+            task.save(
+                update_fields=[
+                    "todo_title",
+                    "week_start",
+                    "week_end",
+                ]
+            )
+
+            # -----------------------------------------------
+            # 7. Save activity additions and edits
+            # -----------------------------------------------
+            for entry in planned_items.values():
+                if entry["is_new"]:
+                    TaskItem.objects.create(
+                        task=task,
+                        description=entry["description"],
+                        date=entry["date"],
+                        start_time=entry["start_time"],
+                        end_time=entry["end_time"],
+                        completed=False,
+                        order=entry["order"],
+                    )
+
+                else:
+                    item = entry["instance"]
+
+                    details_changed = (
+                        item.description != entry["description"]
+                        or item.date != entry["date"]
+                        or item.start_time != entry["start_time"]
+                        or item.end_time != entry["end_time"]
+                    )
+
+                    item.description = entry["description"]
+                    item.date = entry["date"]
+                    item.start_time = entry["start_time"]
+                    item.end_time = entry["end_time"]
+                    item.completed = (
+                        False if details_changed else entry["completed"]
+                    )
+                    item.order = entry["order"]
+
+                    item.save(
+                        update_fields=[
+                            "description",
+                            "date",
+                            "start_time",
+                            "end_time",
+                            "completed",
+                            "order",
+                        ]
+                    )
+
+            # -----------------------------------------------
+            # 8. Recalculate timetable completion
+            # -----------------------------------------------
+            has_items = task.items.exists()
+
+            all_completed = (
+                has_items
+                and not task.items.filter(completed=False).exists()
+            )
+
+            task.completed = all_completed
+            task.save(update_fields=["completed"])
+
+            # Return the updated timetable and all activities.
+            task = Task.objects.prefetch_related("items").get(
+                id=task.id
+            )
+
+            return Response(
+                TaskSerializer(task).data,
+                status=status.HTTP_200_OK,
+            )
+
+    except Exception:
+        traceback.print_exc()
+
+        return Response(
+            {"error": "Could not update the timetable."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+
+
+
+
 
 
 # ============================================================
-# DELETE TASK - SOFT DELETE
+# DELETE TIMETABLE - SOFT DELETE
 # ============================================================
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_task(request, id):
-
     try:
-
-        task = Task.objects.get(
+        task = Task.objects.filter(
             id=id,
             user=request.user,
-            is_deleted=False
-        )
+            is_deleted=False,
+        ).first()
+
+        if task is None:
+            return Response(
+                {"error": "Timetable not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         task.is_deleted = True
-        task.save(update_fields=["is_deleted"])
 
-        return JsonResponse(
-            {
-                "message": "Task deleted successfully."
-            },
-            status=200
+        task.save(
+            update_fields=["is_deleted"]
         )
 
-    except Task.DoesNotExist:
-
-        return JsonResponse(
-            {"error": "Task not found"},
-            status=404
+        return Response(
+            {"message": "Timetable deleted successfully."},
+            status=status.HTTP_200_OK,
         )
 
     except Exception:
-
         traceback.print_exc()
 
-        return JsonResponse(
-            {"error": "Server error"},
-            status=500
+        return Response(
+            {"error": "Server error."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-        
+
 
 
 @api_view(["POST"])

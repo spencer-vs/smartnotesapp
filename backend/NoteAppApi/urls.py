@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task,    get_all_lectures, get_lecture_detail, generate_lecture,  search_lectures, search_tasks, delete_lectures,   send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, get_active_task, credit_balance_view, package_purchase_history_view,credit_transaction_history_view
+from .views import NoteListCreate, NoteDeleteView, NoteUpdateView, NoteDetailView,  search_notes, ContactListCreate, get_all_lectures, get_lecture_detail, generate_lecture,  search_lectures, search_tasks, delete_lectures,   send_reset_email, reset_password, test_email, request_password_reset, search_tutorials, subscription_status, initialize_payment, verify_payment, paystack_webhook, cancel_subscription, generate_quiz_view, submit_quiz_view, review_quiz_view, saved_quizzes_view, retake_quiz_view, credit_balance_view, package_purchase_history_view,credit_transaction_history_view, create_daily_timetable, create_weekly_timetable, task_detail, get_all_task, update_task_item, delete_task, get_active_task, update_timetable
 from .audio import (
     upload_audio,
     lecture_status,
@@ -24,12 +24,14 @@ urlpatterns = [
    path("notes/search_tasks/", search_tasks),
    path("notes/search_tutorials/", search_tutorials),
    path("notes/contact/", ContactListCreate.as_view(), name="contact_us"),
-   path('notes/tasks/create/', views.create_task, name='create_task'),
-   path('notes/tasks/active/', views.get_active_task, name='get_active_task'),
+   path("tasks/daily/create/", views.create_daily_timetable, name='create_daily_task'),
+   path("tasks/weekly/create/", views.create_weekly_timetable, name='create_weekly_task'),
    path('notes/tasks/<int:id>/', views.task_detail, name='task_detail'),
+   path('notes/tasks/active/', views.get_active_task, name="get_active_task"),
    path('notes/tasks/', views.get_all_task, name='get_all_task'),
    path('notes/tasks/<int:task_id>/items/<int:item_id>/', views.update_task_item, name='update_task_item'),
    path('notes/tasks/<int:id>/delete/', views.delete_task, name='delete_task'),
+   path("tasks/<int:id>/update/", views.update_timetable, name="update_timetable",),
    path('notes/upload-audio/', upload_audio),
    path("notes/lectures/<int:id>/generate/", generate_lecture, name="generate-lecture",),
    path("notes/lectures/", get_all_lectures, name="get_all_lectures"),
@@ -64,6 +66,5 @@ urlpatterns = [
 
 
 
+# create_task, generate_task_schedule, validate_task_schedule, task_detail, get_all_task, update_task_item, delete_task, get_active_task,   
 
-
-# api.get(`notes/task/${id}/`)
