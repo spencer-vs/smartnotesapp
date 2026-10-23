@@ -683,29 +683,7 @@ def create_daily_timetable(request):
     try:
         with transaction.atomic():
 
-            # ------------------------------------------------
-            # Prevent duplicate active daily timetables
-            # ------------------------------------------------
-
-            active_exists = Task.objects.filter(
-                user=request.user,
-                timetable_type="daily",
-                is_deleted=False,
-                completed=False,
-            ).exists()
-
-            if active_exists:
-                return Response(
-                    {
-                        "error": (
-                            "You already have an active daily "
-                            "timetable. Complete or delete it "
-                            "before creating another."
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
+           
             # ------------------------------------------------
             # Create timetable
             # ------------------------------------------------
@@ -746,16 +724,7 @@ def create_daily_timetable(request):
             status=status.HTTP_201_CREATED,
         )
 
-    except IntegrityError:
-        return Response(
-            {
-                "error": (
-                    "An active daily timetable already exists. "
-                    "Refresh and try again."
-                )
-            },
-            status=status.HTTP_409_CONFLICT,
-        )
+   
 
     except Exception:
         traceback.print_exc()
@@ -832,30 +801,36 @@ def create_weekly_timetable(request):
 
     try:
         with transaction.atomic():
+            
+           
+          # --------------------------------------------------------
+          # Limit active weekly timetables to four per user
+          # --------------------------------------------------------
 
-            # ------------------------------------------------
-            # Prevent duplicate active weekly timetables
-            # ------------------------------------------------
-
-            active_exists = Task.objects.filter(
+            active_weekly_count = Task.objects.filter(
                 user=request.user,
                 timetable_type="weekly",
                 is_deleted=False,
                 completed=False,
-            ).exists()
+            ).count()
 
-            if active_exists:
+            if active_weekly_count >= 4:
                 return Response(
                     {
-                        "error": (
-                            "You already have an active weekly "
-                            "timetable. Complete or delete it "
-                            "before creating another."
-                        )
+                       "error": (
+                       "You can have a maximum of four active weekly "
+                       "timetables. Complete or delete an existing "
+                       "weekly timetable before creating another."
+                       ),
+                       "code": "weekly_timetable_limit_reached",
+                       "limit": 4,
+                       "active_count": active_weekly_count,
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
+
+           
             # ------------------------------------------------
             # Create timetable
             # ------------------------------------------------
@@ -896,16 +871,7 @@ def create_weekly_timetable(request):
             status=status.HTTP_201_CREATED,
         )
 
-    except IntegrityError:
-        return Response(
-            {
-                "error": (
-                    "An active weekly timetable already exists. "
-                    "Refresh and try again."
-                )
-            },
-            status=status.HTTP_409_CONFLICT,
-        )
+    
 
     except Exception:
         traceback.print_exc()
@@ -923,44 +889,45 @@ def create_weekly_timetable(request):
 # GET BOTH ACTIVE TIMETABLES
 # ============================================================
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_active_task(request):
     """
-    Return the user's active daily and weekly timetables.
-
-    Either timetable may be null if it does not exist.
+    Return all active daily and weekly timetables for the user.
     """
 
     tasks = Task.objects.filter(
         user=request.user,
         is_deleted=False,
         completed=False,
-    ).prefetch_related("items")
+    ).prefetch_related("items").order_by("-created_at")
 
-    daily_task = tasks.filter(
+    daily_tasks = tasks.filter(
         timetable_type="daily"
-    ).first()
+    )
 
-    weekly_task = tasks.filter(
+    weekly_tasks = tasks.filter(
         timetable_type="weekly"
-    ).first()
+    )
 
     return Response(
         {
-            "daily_timetable": (
-                TaskSerializer(daily_task).data
-                if daily_task else None
-            ),
-            "weekly_timetable": (
-                TaskSerializer(weekly_task).data
-                if weekly_task else None
-            ),
+            "daily_timetables": TaskSerializer(
+                daily_tasks,
+                many=True
+            ).data,
+            "weekly_timetables": TaskSerializer(
+                weekly_tasks,
+                many=True
+            ).data,
+            "daily_count": daily_tasks.count(),
+            "weekly_count": weekly_tasks.count(),
+            "weekly_limit": 4,
         },
         status=status.HTTP_200_OK,
     )
-    
-    
+
     
     
 
