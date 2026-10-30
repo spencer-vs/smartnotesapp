@@ -52,6 +52,7 @@ class TaskAdmin(admin.ModelAdmin):
         'week_start',
         'week_end',
         'completed',
+        "reminder_enabled",
         'created_at',
         'is_deleted',
     )

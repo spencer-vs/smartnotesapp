@@ -666,6 +666,15 @@ def create_daily_timetable(request):
             {"error": str(exc)},
             status=status.HTTP_400_BAD_REQUEST,
         )
+        
+        
+    reminder_enabled = request.data.get("reminder_enabled", False)
+
+    if not isinstance(reminder_enabled, bool):
+        return Response(
+           {"error": "reminder_enabled must be true or false."},
+           status=status.HTTP_400_BAD_REQUEST,
+        )
 
     cleaned_items, items_error = validate_timetable_items(
         items=request.data.get("items"),
@@ -695,6 +704,7 @@ def create_daily_timetable(request):
                 week_start=timetable_date,
                 week_end=timetable_date,
                 completed=False,
+                reminder_enabled=reminder_enabled,
                 is_deleted=False,
             )
 
@@ -710,6 +720,7 @@ def create_daily_timetable(request):
                     start_time=item["start_time"],
                     end_time=item["end_time"],
                     completed=False,
+                    reminder_enabled=False,
                     order=item["order"],
                 )
                 for item in cleaned_items
@@ -766,6 +777,15 @@ def create_weekly_timetable(request):
     except ValueError as exc:
         return Response(
             {"error": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+        
+        
+    reminder_enabled = request.data.get("reminder_enabled", False)
+
+    if not isinstance(reminder_enabled, bool):
+        return Response(
+            {"error": "reminder_enabled must be true or false."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -842,6 +862,7 @@ def create_weekly_timetable(request):
                 week_start=week_start,
                 week_end=week_end,
                 completed=False,
+                reminder_enabled=reminder_enabled,
                 is_deleted=False,
             )
 
@@ -1188,6 +1209,24 @@ def update_timetable(request, id):
                 )
 
             data = request.data
+            
+            
+        # -----------------------------------------------
+        # Validate reminder preference
+        # -----------------------------------------------
+
+            new_reminder_enabled = task.reminder_enabled
+
+            if "reminder_enabled" in data:
+                reminder_value = data.get("reminder_enabled")
+
+                if not isinstance(reminder_value, bool):
+                    return Response(
+                        {"error": "reminder_enabled must be true or false."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                new_reminder_enabled = reminder_value
 
             # -----------------------------------------------
             # 1. Validate the title
@@ -1469,12 +1508,14 @@ def update_timetable(request, id):
             task.todo_title = new_title
             task.week_start = new_start
             task.week_end = new_end
+            task.reminder_enabled = new_reminder_enabled
 
             task.save(
                 update_fields=[
-                    "todo_title",
-                    "week_start",
-                    "week_end",
+                   "todo_title",
+                   "week_start",
+                   "week_end",
+                   "reminder_enabled",
                 ]
             )
 

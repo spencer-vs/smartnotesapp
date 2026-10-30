@@ -55,59 +55,6 @@ class Contact(models.Model):
 
 
 
-# class Task(models.Model):
-
-#     TIMETABLE_TYPES = [
-#         ('daily', 'Daily Timetable'),
-#         ('weekly', 'Weekly Timetable'),
-#     ]
-
-#     user = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         related_name='ToDo'
-#     )
-
-#     todo_title = models.CharField(
-#         max_length=150
-#     )
-
-#     timetable_type = models.CharField(
-#         max_length=10,
-#         choices=TIMETABLE_TYPES,
-#         default='weekly'
-#     )
-
-#     week_start = models.DateField()
-#     week_end = models.DateField()
-
-#     created_at = models.DateTimeField(
-#         auto_now_add=True
-#     )
-
-#     is_deleted = models.BooleanField(
-#         default=False
-#     )
-
-#     completed = models.BooleanField(default=False)
-
-#     class Meta:
-#         constraints = [
-#             models.UniqueConstraint(
-#                 fields=['user', 'timetable_type'],
-#                 condition=models.Q(
-#                     is_deleted=False,
-#                     completed=False
-#                 ),
-#                 name='one_active_timetable_per_type_per_user'
-#             )
-#         ]
-
-#     def __str__(self):
-#         return self.todo_title or 'Task'
-
-
-
 class Task(models.Model):
 
     TIMETABLE_TYPES = [
@@ -143,6 +90,9 @@ class Task(models.Model):
     )
 
     completed = models.BooleanField(default=False)
+    
+    
+    reminder_enabled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.todo_title or 'Task'

@@ -52,6 +52,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "week_start",
             "week_end",
             "completed",
+            "reminder_enabled",
             "items",
             "created_at",
         ]
